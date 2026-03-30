@@ -1,0 +1,54 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+
+# Environment / local config
+.env
+.env.*
+
+# Flutter / Dart (project is under frontend/)
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+frontend/.metadata
+frontend/build/
+
+# Flutter generated registrants and plugin files
+frontend/**/GeneratedPluginRegistrant.*
+frontend/**/generated_plugin_registrant.*
+frontend/**/generated_plugins.cmake
+
+# Android
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/android/key.properties
+frontend/android/**/captures/
+
+# iOS / macOS
+frontend/ios/Flutter/ephemeral/
+frontend/ios/Flutter/Generated.xcconfig
+frontend/ios/Flutter/flutter_export_environment.sh
+frontend/ios/Pods/
+frontend/ios/.symlinks/
+frontend/macos/Flutter/ephemeral/
+frontend/macos/Pods/
+frontend/macos/.symlinks/
+
+# Linux / Windows generated
+frontend/linux/flutter/ephemeral/
+frontend/windows/flutter/ephemeral/
+
+# Web build output
+frontend/web/.dart_tool/
+
+# Optional: dependency lock for apps (uncomment if you don't want to track it)
+# frontend/pubspec.lock
