@@ -50,5 +50,9 @@ frontend/windows/flutter/ephemeral/
 # Web build output
 frontend/web/.dart_tool/
 
+# Context Packing
+AGENTS.md
+CLAUDE.md
+
 # Optional: dependency lock for apps (uncomment if you don't want to track it)
 # frontend/pubspec.lock
