@@ -591,7 +591,7 @@ class _FeaturedCarsSection extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               clipBehavior: Clip.none,
               itemCount: kMockVehicles.length > 4 ? 4 : kMockVehicles.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 14),
+              separatorBuilder: (_, _) => const SizedBox(width: 14),
               itemBuilder: (context, index) {
                 final vehicle = kMockVehicles[index];
                 return CarCard(
