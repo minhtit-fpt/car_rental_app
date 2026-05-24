@@ -1272,18 +1272,370 @@ class _RevenueBarChart extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
+// Phase 4 — Mock Data
+// ─────────────────────────────────────────────
+
+class _KycRequest {
+  final String name;
+  final String email;
+  final String submittedAt;
+  final String status;
+  final String avatar;
+  final String docType;
+  const _KycRequest({
+    required this.name,
+    required this.email,
+    required this.submittedAt,
+    required this.status,
+    required this.avatar,
+    required this.docType,
+  });
+}
+
+const _kKycMockData = <_KycRequest>[
+  _KycRequest(name: 'Nguyễn Văn An', email: 'an.nv@gmail.com', submittedAt: '5 phút trước', status: 'pending', avatar: 'NA', docType: 'CCCD + GPLX'),
+  _KycRequest(name: 'Trần Thị Bình', email: 'binh.tt@gmail.com', submittedAt: '12 phút trước', status: 'pending', avatar: 'TB', docType: 'CCCD + GPLX'),
+  _KycRequest(name: 'Lê Hoàng Cường', email: 'cuong.lh@gmail.com', submittedAt: '1 giờ trước', status: 'reviewing', avatar: 'LC', docType: 'CCCD'),
+  _KycRequest(name: 'Phạm Minh Đức', email: 'duc.pm@gmail.com', submittedAt: '2 giờ trước', status: 'pending', avatar: 'PD', docType: 'CCCD + GPLX'),
+  _KycRequest(name: 'Hoàng Thị Em', email: 'em.ht@gmail.com', submittedAt: '3 giờ trước', status: 'reviewing', avatar: 'HE', docType: 'GPLX'),
+  _KycRequest(name: 'Vũ Quang Huy', email: 'huy.vq@gmail.com', submittedAt: '5 giờ trước', status: 'pending', avatar: 'VH', docType: 'CCCD + GPLX'),
+];
+
+class _AdminUser {
+  final String name;
+  final String email;
+  final String city;
+  final String role;
+  final String joinedAt;
+  final String avatar;
+  final bool verified;
+  final int trips;
+  const _AdminUser({
+    required this.name,
+    required this.email,
+    required this.city,
+    required this.role,
+    required this.joinedAt,
+    required this.avatar,
+    required this.verified,
+    required this.trips,
+  });
+}
+
+const _kUsersMockData = <_AdminUser>[
+  _AdminUser(name: 'Nguyễn Văn An', email: 'an.nv@gmail.com', city: 'Hà Nội', role: 'RENTER', joinedAt: '2 ngày trước', avatar: 'NA', verified: true, trips: 12),
+  _AdminUser(name: 'Trần Thị Bình', email: 'binh.tt@gmail.com', city: 'TP.HCM', role: 'OWNER', joinedAt: '5 ngày trước', avatar: 'TB', verified: true, trips: 45),
+  _AdminUser(name: 'Lê Hoàng Cường', email: 'cuong.lh@gmail.com', city: 'Đà Nẵng', role: 'BOTH', joinedAt: '1 tuần trước', avatar: 'LC', verified: true, trips: 28),
+  _AdminUser(name: 'Phạm Minh Đức', email: 'duc.pm@gmail.com', city: 'Hà Nội', role: 'RENTER', joinedAt: '1 tuần trước', avatar: 'PD', verified: false, trips: 3),
+  _AdminUser(name: 'Hoàng Thị Em', email: 'em.ht@gmail.com', city: 'Hải Phòng', role: 'OWNER', joinedAt: '2 tuần trước', avatar: 'HE', verified: true, trips: 67),
+  _AdminUser(name: 'Vũ Quang Huy', email: 'huy.vq@gmail.com', city: 'TP.HCM', role: 'RENTER', joinedAt: '2 tuần trước', avatar: 'VH', verified: true, trips: 8),
+  _AdminUser(name: 'Đỗ Thanh Lan', email: 'lan.dt@gmail.com', city: 'Cần Thơ', role: 'OWNER', joinedAt: '3 tuần trước', avatar: 'DL', verified: true, trips: 34),
+  _AdminUser(name: 'Bùi Văn Minh', email: 'minh.bv@gmail.com', city: 'Nha Trang', role: 'RENTER', joinedAt: '1 tháng trước', avatar: 'BM', verified: true, trips: 15),
+  _AdminUser(name: 'Ngô Thị Ngọc', email: 'ngoc.nt@gmail.com', city: 'Hà Nội', role: 'OWNER', joinedAt: '1 tháng trước', avatar: 'NN', verified: true, trips: 89),
+  _AdminUser(name: 'Trịnh Quốc Phong', email: 'phong.tq@gmail.com', city: 'Đà Nẵng', role: 'BOTH', joinedAt: '2 tháng trước', avatar: 'TP', verified: true, trips: 52),
+];
+
+enum _UserFilter { all, renter, owner }
+
+// ─────────────────────────────────────────────
+// Shared Admin Tab Widgets
+// ─────────────────────────────────────────────
+
+class _SummaryItem {
+  final String label;
+  final String value;
+  final Color color;
+  const _SummaryItem({required this.label, required this.value, required this.color});
+}
+
+class _AdminSummaryRow extends StatelessWidget {
+  const _AdminSummaryRow({required this.items});
+  final List<_SummaryItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: List.generate(items.length, (i) {
+        final it = items[i];
+        return Expanded(
+          child: Container(
+            margin: EdgeInsets.only(right: i < items.length - 1 ? 8 : 0),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: _kAdminCard,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _kAdminBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(color: it.color, shape: BoxShape.circle),
+                ),
+                const SizedBox(height: 8),
+                Text(it.value,
+                    style: const TextStyle(
+                      color: _kAdminText,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    )),
+                const SizedBox(height: 2),
+                Text(it.label,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: _kAdminMuted, fontSize: 11)),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _AdminSearchBar extends StatelessWidget {
+  const _AdminSearchBar({
+    required this.controller,
+    required this.hint,
+    required this.onChanged,
+  });
+  final TextEditingController controller;
+  final String hint;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: _kAdminSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _kAdminBorder),
+      ),
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        style: const TextStyle(color: _kAdminText, fontSize: 14),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: _kAdminMuted, fontSize: 14),
+          prefixIcon: const Icon(Icons.search, color: _kAdminMuted, size: 20),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminFilterChip extends StatelessWidget {
+  const _AdminFilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+        decoration: BoxDecoration(
+          gradient: selected
+              ? const LinearGradient(colors: [_kAdminPrimary, _kAdminTeal])
+              : null,
+          color: selected ? null : _kAdminSurface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? Colors.transparent : _kAdminBorder),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : _kAdminText,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
 // KYC Tab (full list)
 // ─────────────────────────────────────────────
 
-class _KycTab extends StatelessWidget {
+class _KycTab extends StatefulWidget {
+  @override
+  State<_KycTab> createState() => _KycTabState();
+}
+
+class _KycTabState extends State<_KycTab> {
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtered = _kKycMockData.where((k) =>
+        k.name.toLowerCase().contains(_query.toLowerCase()) ||
+        k.email.toLowerCase().contains(_query.toLowerCase())).toList();
+
+    final pending = _kKycMockData.where((k) => k.status == 'pending').length;
+    final reviewing = _kKycMockData.where((k) => k.status == 'reviewing').length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _KycQueueCard(),
+        _AdminSummaryRow(items: [
+          _SummaryItem(label: 'Chờ duyệt', value: '$pending', color: const Color(0xFFF59E0B)),
+          _SummaryItem(label: 'Đang xem xét', value: '$reviewing', color: _kAdminTeal),
+          _SummaryItem(label: 'Duyệt hôm nay', value: '142', color: const Color(0xFF10B981)),
+        ]),
+        const SizedBox(height: 16),
+        _AdminSearchBar(
+          controller: _searchCtrl,
+          hint: 'Tìm theo tên hoặc email...',
+          onChanged: (v) => setState(() => _query = v),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            color: _kAdminCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _kAdminBorder),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Hàng đợi KYC (${filtered.length})',
+                      style: const TextStyle(
+                        color: _kAdminText,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Text('Mới nhất',
+                        style: TextStyle(color: _kAdminMuted, fontSize: 12)),
+                  ],
+                ),
+              ),
+              const Divider(color: _kAdminBorder, height: 1),
+              ...filtered.map((k) => _KycListItem(req: k)),
+              if (filtered.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Text('Không tìm thấy yêu cầu KYC',
+                      style: TextStyle(color: _kAdminMuted)),
+                ),
+            ],
+          ),
+        ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+class _KycListItem extends StatelessWidget {
+  const _KycListItem({required this.req});
+  final _KycRequest req;
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = req.status == 'pending'
+        ? const Color(0xFFF59E0B)
+        : req.status == 'reviewing'
+            ? _kAdminTeal
+            : const Color(0xFF10B981);
+    final statusLabel = req.status == 'pending'
+        ? 'Chờ duyệt'
+        : req.status == 'reviewing'
+            ? 'Đang xem xét'
+            : 'Đã duyệt';
+
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: _kAdminBorder, width: 0.5)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [_kAdminPrimary, _kAdminTeal],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              req.avatar,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(req.name,
+                    style: const TextStyle(
+                      color: _kAdminText,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    )),
+                const SizedBox(height: 2),
+                Text(
+                  '${req.docType} · ${req.submittedAt}',
+                  style: const TextStyle(color: _kAdminMuted, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: statusColor.withAlpha(38),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              statusLabel,
+              style: TextStyle(
+                color: statusColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right, color: _kAdminMuted, size: 20),
+            onPressed: () {},
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1292,15 +1644,230 @@ class _KycTab extends StatelessWidget {
 // Users Tab
 // ─────────────────────────────────────────────
 
-class _UsersTab extends StatelessWidget {
+class _UsersTab extends StatefulWidget {
+  @override
+  State<_UsersTab> createState() => _UsersTabState();
+}
+
+class _UsersTabState extends State<_UsersTab> {
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _query = '';
+  _UserFilter _filter = _UserFilter.all;
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtered = _kUsersMockData.where((u) {
+      final matchQuery = _query.isEmpty ||
+          u.name.toLowerCase().contains(_query.toLowerCase()) ||
+          u.city.toLowerCase().contains(_query.toLowerCase());
+      final matchFilter = _filter == _UserFilter.all ||
+          (_filter == _UserFilter.renter &&
+              (u.role == 'RENTER' || u.role == 'BOTH')) ||
+          (_filter == _UserFilter.owner &&
+              (u.role == 'OWNER' || u.role == 'BOTH'));
+      return matchQuery && matchFilter;
+    }).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _RecentUsersCard(),
+        const _AdminSummaryRow(items: [
+          _SummaryItem(label: 'Tổng người dùng', value: '2,847', color: _kAdminPrimary),
+          _SummaryItem(label: 'Người thuê', value: '1,203', color: _kAdminTeal),
+          _SummaryItem(label: 'Chủ xe', value: '1,644', color: Color(0xFF10B981)),
+        ]),
+        const SizedBox(height: 16),
+        _AdminSearchBar(
+          controller: _searchCtrl,
+          hint: 'Tìm theo tên hoặc thành phố...',
+          onChanged: (v) => setState(() => _query = v),
+        ),
+        const SizedBox(height: 12),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _AdminFilterChip(
+                label: 'Tất cả',
+                selected: _filter == _UserFilter.all,
+                onTap: () => setState(() => _filter = _UserFilter.all),
+              ),
+              const SizedBox(width: 8),
+              _AdminFilterChip(
+                label: 'Người thuê',
+                selected: _filter == _UserFilter.renter,
+                onTap: () => setState(() => _filter = _UserFilter.renter),
+              ),
+              const SizedBox(width: 8),
+              _AdminFilterChip(
+                label: 'Chủ xe',
+                selected: _filter == _UserFilter.owner,
+                onTap: () => setState(() => _filter = _UserFilter.owner),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            color: _kAdminCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _kAdminBorder),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Người dùng (${filtered.length})',
+                      style: const TextStyle(
+                        color: _kAdminText,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Text('Mới nhất',
+                        style: TextStyle(color: _kAdminMuted, fontSize: 12)),
+                  ],
+                ),
+              ),
+              const Divider(color: _kAdminBorder, height: 1),
+              ...filtered.map((u) => _UserListItem(user: u)),
+              if (filtered.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Text('Không tìm thấy người dùng',
+                      style: TextStyle(color: _kAdminMuted)),
+                ),
+            ],
+          ),
+        ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+class _UserListItem extends StatelessWidget {
+  const _UserListItem({required this.user});
+  final _AdminUser user;
+
+  @override
+  Widget build(BuildContext context) {
+    final roleColor = user.role == 'OWNER'
+        ? const Color(0xFF10B981)
+        : user.role == 'BOTH'
+            ? const Color(0xFFA855F7)
+            : _kAdminTeal;
+    final roleLabel = user.role == 'OWNER'
+        ? 'Chủ xe'
+        : user.role == 'BOTH'
+            ? 'Cả hai'
+            : 'Người thuê';
+
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: _kAdminBorder, width: 0.5)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Stack(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [_kAdminPrimary, _kAdminTeal],
+                  ),
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  user.avatar,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              if (user.verified)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: _kAdminCard, width: 2),
+                    ),
+                    child: const Icon(Icons.check, size: 8, color: Colors.white),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _kAdminText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined,
+                        size: 12, color: _kAdminMuted),
+                    const SizedBox(width: 2),
+                    Expanded(
+                      child: Text(
+                        '${user.city} · ${user.trips} chuyến · ${user.joinedAt}',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: _kAdminMuted, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: roleColor.withAlpha(38),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              roleLabel,
+              style: TextStyle(
+                color: roleColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
