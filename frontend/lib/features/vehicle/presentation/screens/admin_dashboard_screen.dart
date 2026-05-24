@@ -277,7 +277,7 @@ class _AdminSliverAppBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Admin Dashboard',
+                    'Quản trị',
                     style: TextStyle(
                       color: _kAdminText,
                       fontSize: 22,
@@ -305,7 +305,7 @@ class _AdminSliverAppBar extends StatelessWidget {
           child: Row(
             children: [
               _AdminTab(
-                label: 'Dashboard',
+                label: 'Tổng quan',
                 index: 0,
                 current: tabIndex,
                 onTap: onTabChanged,
@@ -1245,8 +1245,8 @@ class _RevenueBarChart extends StatelessWidget {
                               _kAdminPrimary.withAlpha(178),
                             ]
                           : [
-                              _kAdminBorder,
-                              _kAdminBorder.withAlpha(178),
+                              _kAdminTeal.withAlpha(77),
+                              _kAdminTeal.withAlpha(46),
                             ],
                     ),
                     borderRadius: const BorderRadius.vertical(

@@ -191,19 +191,35 @@ class _SearchCard extends StatelessWidget {
       ),
       child: Column(
         children: [
+          _SearchField(
+            label: 'Địa điểm đón xe',
+            hint: '📍 Nhập địa điểm',
+            height: 48,
+          ),
+          const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: _SearchField(label: 'Where', hint: '📍 Pickup location')),
-              const SizedBox(width: 8),
-              Expanded(child: _SearchField(label: 'From', hint: '📅 Pick date')),
-              const SizedBox(width: 8),
-              Expanded(child: _SearchField(label: 'Until', hint: '📅 Return date')),
+              Expanded(
+                child: _SearchField(
+                  label: 'Ngày đón',
+                  hint: '📅 Chọn ngày',
+                  height: 48,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _SearchField(
+                  label: 'Ngày trả',
+                  hint: '📅 Chọn ngày',
+                  height: 48,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            height: 44,
+            height: 48,
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
@@ -215,8 +231,8 @@ class _SearchCard extends StatelessWidget {
                 elevation: 0,
               ),
               child: const Text(
-                '🔍  Search Cars',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                '🔍  Tìm xe ngay',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
               ),
             ),
           ),
@@ -227,10 +243,15 @@ class _SearchCard extends StatelessWidget {
 }
 
 class _SearchField extends StatelessWidget {
-  const _SearchField({required this.label, required this.hint});
+  const _SearchField({
+    required this.label,
+    required this.hint,
+    this.height = 48,
+  });
 
   final String label;
   final String hint;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -240,23 +261,25 @@ class _SearchField extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: FontWeight.w500,
             color: AppColors.secondaryText,
           ),
         ),
         const SizedBox(height: 4),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          height: height,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: AppColors.border, width: 1.5),
           ),
+          alignment: Alignment.centerLeft,
           child: Text(
             hint,
             style: const TextStyle(
-              fontSize: 10,
+              fontSize: 13,
               color: AppColors.mutedText,
             ),
             overflow: TextOverflow.ellipsis,

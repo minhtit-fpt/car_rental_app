@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/shared/widgets/info_row.dart';
+
+String _fmtVnd(int kAmount) {
+  if (kAmount >= 1000) {
+    final m = kAmount / 1000;
+    if (m == m.truncateToDouble()) return '${m.truncate()}M VNĐ';
+    return '${m.toStringAsFixed(2).replaceAll(RegExp(r'0+$'), '')}M VNĐ';
+  }
+  return '${kAmount}K VNĐ';
+}
 
 // ─────────────────────────────────────────────
 // Mock Data
@@ -36,7 +46,7 @@ const _kBookings = [
     location: 'HQ Guzm Office',
     bookingRef: 'BK-2024-002',
     status: _BookingStatus.active,
-    price: 375,
+    price: 3750,
   ),
   _Booking(
     carName: 'Tesla Model 3',
@@ -45,7 +55,7 @@ const _kBookings = [
     location: 'Sân bay Nội Bài',
     bookingRef: 'BK-2024-001',
     status: _BookingStatus.completed,
-    price: 267,
+    price: 2670,
   ),
   _Booking(
     carName: 'Toyota Camry',
@@ -54,7 +64,7 @@ const _kBookings = [
     location: 'Sân bay Tân Sơn Nhất',
     bookingRef: 'BK-2024-003',
     status: _BookingStatus.completed,
-    price: 110,
+    price: 1100,
   ),
   _Booking(
     carName: 'Honda Civic RS',
@@ -202,7 +212,7 @@ class _RenterSliverAppBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   const Text(
-                    'Renter Dashboard',
+                    'Trang chủ Người thuê',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -257,7 +267,7 @@ class _StatsRow extends StatelessWidget {
         Expanded(
           child: _StatCard(
             value: '12',
-            unit: 'trips',
+            unit: 'chuyến',
             label: 'Tổng Chuyến',
             color: AppColors.orange,
           ),
@@ -267,7 +277,7 @@ class _StatsRow extends StatelessWidget {
           child: _StatCard(
             value: '850',
             unit: 'pts',
-            label: 'Loyalty Points',
+            label: 'Điểm thưởng',
             color: const Color(0xFF10B981),
           ),
         ),
@@ -422,76 +432,12 @@ class _ProfileCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          // Trips & Points
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Column(
-                    children: [
-                      Text(
-                        '12',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      Text(
-                        'Trips',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.mutedText,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Column(
-                    children: [
-                      Text(
-                        '850',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF10B981),
-                        ),
-                      ),
-                      Text(
-                        'Points',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.mutedText,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 16),
-          // Info
-          const _InfoRow(icon: Icons.email_outlined, text: 'tuan@email.com'),
+          const InfoRow(icon: Icons.email_outlined, text: 'tuan@email.com'),
           const SizedBox(height: 6),
-          const _InfoRow(icon: Icons.phone_outlined, text: '+84 912 345 678'),
+          const InfoRow(icon: Icons.phone_outlined, text: '+84 912 345 678'),
           const SizedBox(height: 6),
-          const _InfoRow(icon: Icons.location_on_outlined, text: 'Hanoi, Vietnam'),
+          const InfoRow(icon: Icons.location_on_outlined, text: 'Hà Nội, Việt Nam'),
           const SizedBox(height: 6),
           Row(
             children: [
@@ -544,29 +490,6 @@ class _ProfileCard extends StatelessWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: AppColors.mutedText),
-        const SizedBox(width: 8),
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.secondaryText,
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 // ─────────────────────────────────────────────
 // Bookings Card
@@ -787,7 +710,7 @@ class _BookingRow extends StatelessWidget {
               const SizedBox(height: 4),
               if (booking.price > 0)
                 Text(
-                  '\$${booking.price}',
+                  _fmtVnd(booking.price),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,

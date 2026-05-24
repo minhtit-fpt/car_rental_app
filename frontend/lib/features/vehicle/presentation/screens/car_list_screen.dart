@@ -72,7 +72,7 @@ class _CarListScreenState extends State<CarListScreen> {
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  'Find a Car',
+                  'Tìm xe',
                   style: TextStyle(
                     color: AppColors.darkText,
                     fontWeight: FontWeight.bold,
@@ -325,7 +325,7 @@ class _FilterSheet extends StatefulWidget {
 }
 
 class _FilterSheetState extends State<_FilterSheet> {
-  double _maxPrice = 150;
+  double _maxPrice = 1500;
   double _minRating = 4.0;
 
   @override
@@ -350,7 +350,7 @@ class _FilterSheetState extends State<_FilterSheet> {
               TextButton(
                 onPressed: () {
                   setState(() {
-                    _maxPrice = 150;
+                    _maxPrice = 1500;
                     _minRating = 4.0;
                   });
                 },
@@ -367,7 +367,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Max price per day',
+                'Giá tối đa mỗi ngày',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -375,7 +375,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 ),
               ),
               Text(
-                '\$${_maxPrice.toInt()}',
+                '${_maxPrice.toInt()}K VNĐ',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -386,8 +386,8 @@ class _FilterSheetState extends State<_FilterSheet> {
           ),
           Slider(
             value: _maxPrice,
-            min: 30,
-            max: 200,
+            min: 300,
+            max: 2000,
             divisions: 17,
             activeColor: AppColors.primary,
             inactiveColor: AppColors.border,
