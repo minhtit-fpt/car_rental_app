@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/screens/car_detail_screen.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -597,7 +598,12 @@ class _FeaturedCarsSection extends StatelessWidget {
                 return CarCard(
                   vehicle: vehicle,
                   width: 220,
-                  onTap: () {},
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CarDetailScreen(vehicle: vehicle),
+                    ),
+                  ),
                 );
               },
             ),

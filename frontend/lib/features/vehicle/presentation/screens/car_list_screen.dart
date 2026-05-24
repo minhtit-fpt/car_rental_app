@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/screens/car_detail_screen.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
 
 enum _VehicleFilter { all, sedan, suv, electric, pickup }
@@ -266,7 +267,12 @@ class _VehicleList extends StatelessWidget {
               final vehicle = vehicles[index];
               return CarListTile(
                 vehicle: vehicle,
-                onTap: () {},
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CarDetailScreen(vehicle: vehicle),
+                  ),
+                ),
               );
             },
           ),
