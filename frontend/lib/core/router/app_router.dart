@@ -4,6 +4,7 @@ import 'package:frontend/core/router/auth_routes.dart';
 import 'package:frontend/core/router/booking_routes.dart';
 import 'package:frontend/core/router/kyc_routes.dart';
 import 'package:frontend/core/router/payment_routes.dart';
+import 'package:frontend/core/router/admin_routes.dart';
 import 'package:frontend/core/router/owner_routes.dart';
 import 'package:frontend/core/router/profile_routes.dart';
 import 'package:frontend/core/router/social_routes.dart';
@@ -25,7 +26,7 @@ final appRouter = GoRouter(
     ...socialRoutes,
     ...ownerRoutes,
     ...profileRoutes,
-    // Phase 11–12 routes added per phase
+    ...adminRoutes,
   ],
   errorBuilder: (context, state) => Scaffold(
     body: Center(child: Text('Page not found: ${state.uri}')),
