@@ -777,7 +777,8 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                         ),
                       )
                     else
-                      Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           // Status badge
@@ -804,49 +805,54 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          GestureDetector(
-                            onTap: () => setState(() => _approved.add(i)),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF10B981).withAlpha(38),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Text(
-                                'Duyệt',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFF10B981),
-                                  fontWeight: FontWeight.w600,
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              GestureDetector(
+                                onTap: () => setState(() => _approved.add(i)),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withAlpha(38),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'Duyệt',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF10B981),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          GestureDetector(
-                            onTap: () => setState(() => _rejected.add(i)),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444).withAlpha(38),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Text(
-                                'Từ chối',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFFEF4444),
-                                  fontWeight: FontWeight.w600,
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: () => setState(() => _rejected.add(i)),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEF4444).withAlpha(38),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'Từ chối',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFFEF4444),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),

@@ -171,7 +171,7 @@ class _RenterSliverAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverAppBar(
       pinned: true,
-      expandedHeight: 110,
+      expandedHeight: 150,
       backgroundColor: AppColors.primary,
       systemOverlayStyle: SystemUiOverlayStyle.light,
       title: Row(
@@ -674,11 +674,14 @@ class _BookingRow extends StatelessWidget {
                       color: AppColors.mutedText,
                     ),
                     const SizedBox(width: 2),
-                    Text(
-                      '${booking.location} · ${booking.bookingRef}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.mutedText,
+                    Expanded(
+                      child: Text(
+                        '${booking.location} · ${booking.bookingRef}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.mutedText,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

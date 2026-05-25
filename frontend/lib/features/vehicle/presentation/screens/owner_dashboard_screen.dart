@@ -113,7 +113,7 @@ class _OwnerSliverAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverAppBar(
       pinned: true,
-      expandedHeight: 120,
+      expandedHeight: 150,
       backgroundColor: const Color(0xFF003380),
       systemOverlayStyle: SystemUiOverlayStyle.light,
       title: Row(
@@ -583,11 +583,14 @@ class _ActiveRentalCard extends StatelessWidget {
                             color: AppColors.mutedText,
                           ),
                           const SizedBox(width: 2),
-                          const Text(
-                            'HQ Guzm Office · BK-2024-002',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.mutedText,
+                          const Expanded(
+                            child: Text(
+                              'HQ Guzm Office · BK-2024-002',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.mutedText,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
