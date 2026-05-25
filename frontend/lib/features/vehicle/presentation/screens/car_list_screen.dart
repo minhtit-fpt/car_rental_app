@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
@@ -266,7 +267,10 @@ class _VehicleList extends StatelessWidget {
               final vehicle = vehicles[index];
               return CarListTile(
                 vehicle: vehicle,
-                onTap: () {},
+                onTap: () => context.push(
+                  '/vehicles/${vehicle.id}',
+                  extra: vehicle,
+                ),
               );
             },
           ),
