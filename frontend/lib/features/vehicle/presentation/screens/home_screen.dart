@@ -15,32 +15,41 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
+  int _selectedCity = 0;
+  final _cities = const [
+    'TP. HCM',
+    'Hà Nội',
+    'Đà Nẵng',
+    'Nha Trang',
+    'Đà Lạt',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: CustomScrollView(
-          controller: _scrollController,
           slivers: [
-            _HeroSliverAppBar(),
             SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _StatsRow(),
-                  const _HowItWorksSection(),
-                  const _PromoBanner(),
+                  const _TopBar(),
+                  _GreetingHeader(),
+                  const SizedBox(height: 16),
+                  const _SearchCard(),
+                  const SizedBox(height: 20),
+                  _CityChips(
+                    cities: _cities,
+                    selected: _selectedCity,
+                    onSelect: (i) => setState(() => _selectedCity = i),
+                  ),
+                  const SizedBox(height: 20),
                   _FeaturedCarsSection(onSeeAllTap: widget.onCarsTap),
+                  const SizedBox(height: 16),
+                  const _TrustBanner(),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -53,123 +62,106 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // ─────────────────────────────────────────────
-// Hero Sliver App Bar
+// Top Bar — logo + actions
 // ─────────────────────────────────────────────
 
-class _HeroSliverAppBar extends StatelessWidget {
+class _TopBar extends StatelessWidget {
+  const _TopBar();
+
   @override
   Widget build(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 420,
-      pinned: true,
-      backgroundColor: const Color(0xFF003380),
-      systemOverlayStyle: SystemUiOverlayStyle.light,
-      title: Row(
+    final top = MediaQuery.of(context).padding.top;
+    return Container(
+      color: AppColors.surface,
+      padding: EdgeInsets.fromLTRB(16, top + 8, 16, 8),
+      child: Row(
         children: [
+          // Logo
           Container(
-            width: 30,
-            height: 30,
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
               gradient: AppColors.logoGradient,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(7),
             ),
           ),
           const SizedBox(width: 8),
           const Text(
             'RideVN',
             style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
+              color: AppColors.primary,
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
               letterSpacing: -0.3,
             ),
           ),
+          const Spacer(),
+          _NavIconButton(
+            icon: Icons.notifications_outlined,
+            onTap: () {},
+          ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () {},
-          child: const Text(
-            'Log In',
-            style: TextStyle(color: Colors.white70, fontSize: 13),
-          ),
+    );
+  }
+}
+
+class _NavIconButton extends StatelessWidget {
+  const _NavIconButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceSunken,
+          borderRadius: BorderRadius.circular(12),
         ),
-        Padding(
-          padding: const EdgeInsets.only(right: 12),
-          child: TextButton(
-            onPressed: () {},
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.white.withAlpha(30),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: const BorderSide(color: Colors.white38),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            ),
-            child: const Text(
-              'Sign Up',
-              style: TextStyle(color: Colors.white, fontSize: 13),
-            ),
-          ),
-        ),
-      ],
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(gradient: AppColors.heroGradient),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 70, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(38),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      '🚀 Vietnam\'s #1 Car Sharing Platform',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Title
-                  const Text(
-                    'Find your\nperfect ride today',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                      height: 1.2,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // Subtitle
-                  Text(
-                    'Explore thousands of cars from local hosts.\nBook instantly, drive anywhere in Vietnam.',
-                    style: TextStyle(
-                      color: Colors.white.withAlpha(191),
-                      fontSize: 13,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const _SearchCard(),
-                ],
-              ),
+        child: Icon(icon, size: 20, color: AppColors.darkText),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Greeting Header
+// ─────────────────────────────────────────────
+
+class _GreetingHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text(
+            'Xin chào, bạn',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: AppColors.mutedText,
             ),
           ),
-        ),
+          SizedBox(height: 2),
+          Text(
+            'Hôm nay bạn đi đâu?',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: AppColors.darkText,
+              letterSpacing: -0.02 * 26,
+              height: 1.15,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -184,363 +176,101 @@ class _SearchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(242),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        children: [
-          _SearchField(
-            label: 'Địa điểm đón xe',
-            hint: '📍 Nhập địa điểm',
-            height: 48,
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _SearchField(
-                  label: 'Ngày đón',
-                  hint: '📅 Chọn ngày',
-                  height: 48,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _SearchField(
-                  label: 'Ngày trả',
-                  hint: '📅 Chọn ngày',
-                  height: 48,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                '🔍  Tìm xe ngay',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SearchField extends StatelessWidget {
-  const _SearchField({
-    required this.label,
-    required this.hint,
-    this.height = 48,
-  });
-
-  final String label;
-  final String hint;
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: AppColors.secondaryText,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          height: height,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.border, width: 1.5),
-          ),
-          alignment: Alignment.centerLeft,
-          child: Text(
-            hint,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.mutedText,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────
-// Stats Row
-// ─────────────────────────────────────────────
-
-class _StatsRow extends StatelessWidget {
-  const _StatsRow();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.surface,
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-      child: Row(
-        children: const [
-          Expanded(child: _StatItem(value: '12,000+', label: 'Vehicles')),
-          _StatDivider(),
-          Expanded(child: _StatItem(value: '50+', label: 'Cities')),
-          _StatDivider(),
-          Expanded(child: _StatItem(value: '4.8★', label: 'Avg Rating')),
-          _StatDivider(),
-          Expanded(child: _StatItem(value: '500K+', label: 'Trips')),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  const _StatItem({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primary,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppColors.mutedText,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatDivider extends StatelessWidget {
-  const _StatDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 30,
-      width: 1,
-      color: AppColors.border,
-    );
-  }
-}
-
-// ─────────────────────────────────────────────
-// How It Works Section
-// ─────────────────────────────────────────────
-
-class _HowItWorksSection extends StatelessWidget {
-  const _HowItWorksSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.surface,
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Three steps to your\nnext adventure',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 20),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: const [
-                _StepCard(
-                  emoji: '🔍',
-                  step: 'STEP 1',
-                  title: 'Browse & Choose',
-                  description: 'Search by location, date, and preferences.',
-                ),
-                SizedBox(width: 12),
-                _StepCard(
-                  emoji: '📱',
-                  step: 'STEP 2',
-                  title: 'Book Instantly',
-                  description: 'Reserve your car in seconds with instant booking.',
-                ),
-                SizedBox(width: 12),
-                _StepCard(
-                  emoji: '🚗',
-                  step: 'STEP 3',
-                  title: 'Hit the Road',
-                  description: 'Pick up your car and start your journey!',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StepCard extends StatelessWidget {
-  const _StepCard({
-    required this.emoji,
-    required this.step,
-    required this.title,
-    required this.description,
-  });
-
-  final String emoji;
-  final String step;
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 200,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 36)),
-          const SizedBox(height: 10),
-          Text(
-            step,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.darkText,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.secondaryText,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────
-// Promo Banner
-// ─────────────────────────────────────────────
-
-class _PromoBanner extends StatelessWidget {
-  const _PromoBanner();
-
-  @override
-  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: AppColors.promoGradient,
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.cardShadowColor,
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
-        child: Row(
+        child: Column(
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // Location row
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+              child: Row(
                 children: [
-                  const Text(
-                    'Become a Host',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      height: 1.2,
-                    ),
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 20,
+                    color: AppColors.primary,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Earn up to \$1,200/month by sharing your car.',
-                    style: TextStyle(
-                      color: Colors.white.withAlpha(217),
-                      fontSize: 12,
-                      height: 1.4,
-                    ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        'ĐIỂM NHẬN',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.mutedText,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                      SizedBox(height: 1),
+                      Text(
+                        'Quận 1, TP. HCM',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.darkText,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.orange,
-                  borderRadius: BorderRadius.circular(12),
+            const Divider(height: 1, color: AppColors.inkLight),
+            // Date row
+            Row(
+              children: [
+                Expanded(
+                  child: _DateField(
+                    label: 'NHẬN XE',
+                    value: 'T2, 15/06 · 9:00',
+                    borderRight: true,
+                  ),
                 ),
-                child: const Text(
-                  'List Car →',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: _DateField(
+                    label: 'TRẢ XE',
+                    value: 'T4, 17/06 · 18:00',
+                    borderRight: false,
+                  ),
+                ),
+              ],
+            ),
+            // Search button
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.search_rounded, size: 18),
+                  label: const Text('Tìm xe'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -548,6 +278,136 @@ class _PromoBanner extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _DateField extends StatelessWidget {
+  const _DateField({
+    required this.label,
+    required this.value,
+    required this.borderRight,
+  });
+
+  final String label;
+  final String value;
+  final bool borderRight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: borderRight
+            ? const Border(right: BorderSide(color: AppColors.inkLight))
+            : null,
+      ),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.calendar_today_outlined,
+            size: 16,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mutedText,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.darkText,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// City Chips
+// ─────────────────────────────────────────────
+
+class _CityChips extends StatelessWidget {
+  const _CityChips({
+    required this.cities,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  final List<String> cities;
+  final int selected;
+  final ValueChanged<int> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            'Khám phá theo thành phố',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: AppColors.darkText,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 36,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: cities.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            itemBuilder: (context, i) {
+              final active = i == selected;
+              return GestureDetector(
+                onTap: () => onSelect(i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  curve: Curves.easeOut,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: active ? AppColors.primary : AppColors.surface,
+                    borderRadius: BorderRadius.circular(9999),
+                    border: Border.all(
+                      color: active ? AppColors.primary : AppColors.border,
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    cities[i],
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: active ? Colors.white : AppColors.darkText,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -563,73 +423,123 @@ class _FeaturedCarsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cars = kMockVehicles.take(3).toList();
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Section header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'FEATURED',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    'Popular rides near you',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkText,
-                    ),
-                  ),
-                ],
+              const Text(
+                'Xe nổi bật gần bạn',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.darkText,
+                ),
               ),
               GestureDetector(
                 onTap: onSeeAllTap,
                 child: const Text(
-                  'See all →',
+                  'Xem tất cả',
                   style: TextStyle(
-                    color: AppColors.primary,
                     fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 300,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              clipBehavior: Clip.none,
-              itemCount: kMockVehicles.length > 4 ? 4 : kMockVehicles.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 14),
-              itemBuilder: (context, index) {
-                final vehicle = kMockVehicles[index];
-                return CarCard(
-                  vehicle: vehicle,
-                  width: 220,
-                  onTap: () => context.push(
-                    '/vehicles/${vehicle.id}',
-                    extra: vehicle,
-                  ),
-                );
-              },
-            ),
+          const SizedBox(height: 12),
+          // Vertical list of car row tiles
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: cars.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final v = cars[index];
+              return CarListTile(
+                vehicle: v,
+                onTap: () => context.push('/vehicles/${v.id}', extra: v),
+              );
+            },
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Trust / Insurance Banner
+// ─────────────────────────────────────────────
+
+class _TrustBanner extends StatelessWidget {
+  const _TrustBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: AppColors.heroGradient,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: AppColors.brandShadow,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(26),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.shield_outlined,
+                size: 22,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Mỗi chuyến đều có bảo hiểm',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Đền bù tối đa 200 triệu cho mọi hư hỏng phát sinh.',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.white70,
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }

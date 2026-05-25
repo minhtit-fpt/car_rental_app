@@ -51,7 +51,7 @@ class _BottomNav extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
+        border: Border(top: BorderSide(color: AppColors.inkLight)),
       ),
       child: BottomNavigationBar(
         currentIndex: currentIndex,
@@ -59,24 +59,24 @@ class _BottomNav extends StatelessWidget {
         backgroundColor: Colors.transparent,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
-            label: 'Home',
+            icon: Icon(Icons.search_outlined),
+            activeIcon: Icon(Icons.search_rounded),
+            label: 'Tìm xe',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.directions_car_outlined),
             activeIcon: Icon(Icons.directions_car_rounded),
-            label: 'Cars',
+            label: 'Xe',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map_outlined),
             activeIcon: Icon(Icons.map_rounded),
-            label: 'Map',
+            label: 'Bản đồ',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline_rounded),
             activeIcon: Icon(Icons.person_rounded),
-            label: 'Profile',
+            label: 'Tôi',
           ),
         ],
       ),
