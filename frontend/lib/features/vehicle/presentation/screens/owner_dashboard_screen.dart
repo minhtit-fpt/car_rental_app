@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/shared/widgets/info_row.dart';
 
@@ -466,7 +467,7 @@ class _OwnerProfileCard extends StatelessWidget {
             width: double.infinity,
             height: 42,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => context.push('/profile/edit'),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primary),
                 shape: RoundedRectangleBorder(
@@ -689,7 +690,7 @@ class _MyCarsCard extends StatelessWidget {
                   ],
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () => context.push('/owner/vehicle/add'),
                   icon: const Icon(Icons.add, size: 16),
                   label: const Text(
                     'Thêm xe mới',
@@ -839,7 +840,7 @@ class _OwnedCarRow extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               GestureDetector(
-                onTap: () {},
+                onTap: () => context.push('/owner/vehicle/edit'),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,

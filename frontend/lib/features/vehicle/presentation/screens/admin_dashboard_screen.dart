@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 // ─────────────────────────────────────────────
 // Admin Design Tokens (dark theme)
@@ -666,7 +667,9 @@ class _KycQueueCardState extends State<_KycQueueCard> {
               final isApproved = _approved.contains(i);
               final isRejected = _rejected.contains(i);
 
-              return Padding(
+              return GestureDetector(
+                onTap: () => context.push('/admin/kyc/$i'),
+                child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -858,7 +861,7 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                       ),
                   ],
                 ),
-              );
+              ));
             },
           ),
         ],
@@ -994,7 +997,7 @@ class _DisputeRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           GestureDetector(
-            onTap: () {},
+            onTap: () => context.push('/admin/dispute/1'),
             child: const Text(
               'Tiếp nhận →',
               style: TextStyle(
@@ -1090,7 +1093,9 @@ class _RecentUserRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isOwner = user.role == 'Owner';
 
-    return Padding(
+    return GestureDetector(
+      onTap: () => context.push('/admin/user/1'),
+      child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
@@ -1163,7 +1168,7 @@ class _RecentUserRow extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }
 
