@@ -87,32 +87,20 @@ class RvSliverAppBar extends StatelessWidget {
   }
 
   Color get _topColor => switch (role) {
-        RvRole.renter => const Color(0xFF003380),
-        RvRole.owner => const Color(0xFF001A3D),
-        RvRole.admin => const Color(0xFF0A1628),
+        RvRole.renter => AppColors.renterHeaderGradient.colors.first,
+        RvRole.owner => AppColors.ownerHeaderGradient.colors.first,
+        RvRole.admin => const Color(0xFF0A1628), // admin dark — no AppColors constant yet
         RvRole.neutral => AppColors.primary,
       };
 
   LinearGradient get _gradient => switch (role) {
-        RvRole.renter => const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF003380), Color(0xFF007BFF)],
-          ),
-        RvRole.owner => const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF001A3D), Color(0xFF003380)],
-          ),
+        RvRole.renter => AppColors.renterHeaderGradient,
+        RvRole.owner => AppColors.ownerHeaderGradient,
         RvRole.admin => const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF0A1628), Color(0xFF142035)],
+            colors: [Color(0xFF0A1628), Color(0xFF142035)], // admin dark
           ),
-        RvRole.neutral => const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF003380), Color(0xFF007BFF)],
-          ),
+        RvRole.neutral => AppColors.renterHeaderGradient,
       };
 }
