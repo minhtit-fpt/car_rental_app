@@ -115,7 +115,7 @@ class _OwnerSliverAppBar extends StatelessWidget {
     return SliverAppBar(
       pinned: true,
       expandedHeight: 150,
-      backgroundColor: const Color(0xFF003380),
+      backgroundColor: AppColors.ownerHeaderGradient.colors.last,
       systemOverlayStyle: SystemUiOverlayStyle.light,
       title: Row(
         children: [
@@ -165,11 +165,7 @@ class _OwnerSliverAppBar extends StatelessWidget {
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF001A3D), Color(0xFF003380)],
-            ),
+            gradient: AppColors.ownerHeaderGradient,
           ),
           child: SafeArea(
             child: Padding(
