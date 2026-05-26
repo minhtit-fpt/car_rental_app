@@ -2,6 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 
+// pricePerDay is stored in K VNĐ (e.g. 890 = 890K VNĐ)
+String _fmtVnd(double kAmount) {
+  if (kAmount >= 1000) {
+    final m = kAmount / 1000;
+    if (m == m.truncateToDouble()) return '${m.truncate()}M VNĐ';
+    return '${m.toStringAsFixed(2).replaceAll(RegExp(r'0+$'), '')}M VNĐ';
+  }
+  return '${kAmount.toInt()}K VNĐ';
+}
+
 class CarCard extends StatelessWidget {
   const CarCard({
     super.key,
@@ -117,7 +127,7 @@ class _CardDetails extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${vehicle.year} · ${vehicle.isElectric ? 'Electric' : vehicle.type}',
+            '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
             style: const TextStyle(
               fontSize: 12,
               color: AppColors.mutedText,
@@ -128,9 +138,9 @@ class _CardDetails extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '\$${vehicle.pricePerDay.toStringAsFixed(0)}',
+                _fmtVnd(vehicle.pricePerDay),
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                   height: 1,
@@ -140,7 +150,7 @@ class _CardDetails extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.only(bottom: 1),
                 child: Text(
-                  '/day',
+                  '/ngày',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.mutedText,
@@ -282,7 +292,7 @@ class CarListTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      '${vehicle.year} · ${vehicle.isElectric ? 'Electric' : vehicle.type}',
+                      '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.mutedText,
@@ -306,9 +316,9 @@ class CarListTile extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              '\$${vehicle.pricePerDay.toStringAsFixed(0)}',
+                              _fmtVnd(vehicle.pricePerDay),
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
                                 height: 1,
@@ -318,7 +328,7 @@ class CarListTile extends StatelessWidget {
                             const Padding(
                               padding: EdgeInsets.only(bottom: 1),
                               child: Text(
-                                '/day',
+                                '/ngày',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.mutedText,

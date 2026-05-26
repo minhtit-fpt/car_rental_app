@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/shared/widgets/info_row.dart';
+
+String _fmtVnd(int kAmount) {
+  if (kAmount >= 1000) {
+    final m = kAmount / 1000;
+    if (m == m.truncateToDouble()) return '${m.truncate()}M VNĐ';
+    return '${m.toStringAsFixed(2).replaceAll(RegExp(r'0+$'), '')}M VNĐ';
+  }
+  return '${kAmount}K VNĐ';
+}
 
 // ─────────────────────────────────────────────
 // Mock Data
@@ -30,25 +40,25 @@ const _kOwnedCars = [
   _OwnedCar(
     name: 'Toyota Camry 2022',
     plate: '51A-123.45',
-    pricePerDay: 55,
+    pricePerDay: 550,
     status: _CarStatus.rented,
-    monthlyRevenue: '1.2M',
+    monthlyRevenue: '12M',
     emoji: '🚗',
   ),
   _OwnedCar(
     name: 'Honda CR-V 2023',
     plate: '30H-456.78',
-    pricePerDay: 70,
+    pricePerDay: 700,
     status: _CarStatus.available,
-    monthlyRevenue: '980K',
+    monthlyRevenue: '9.8M',
     emoji: '🚙',
   ),
   _OwnedCar(
     name: 'VinFast Fadil',
     plate: '29B-789.01',
-    pricePerDay: 35,
+    pricePerDay: 350,
     status: _CarStatus.maintenance,
-    monthlyRevenue: '430K',
+    monthlyRevenue: '4.3M',
     emoji: '🚘',
   ),
 ];
@@ -168,7 +178,7 @@ class _OwnerSliverAppBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   const Text(
-                    'Owner Dashboard',
+                    'Trang chủ Chủ xe',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -421,76 +431,12 @@ class _OwnerProfileCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          // Revenue & Cars
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Column(
-                    children: [
-                      Text(
-                        '24.5M',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFF59E0B),
-                        ),
-                      ),
-                      Text(
-                        'VNĐ/tháng',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.mutedText,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Column(
-                    children: [
-                      Text(
-                        '3',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      Text(
-                        'xe đang đăng',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.mutedText,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 16),
-          const _InfoRow2(icon: Icons.email_outlined, text: 'tuan@email.com'),
+          const InfoRow(icon: Icons.email_outlined, text: 'tuan@email.com'),
           const SizedBox(height: 6),
-          const _InfoRow2(icon: Icons.phone_outlined, text: '+84 912 345 678'),
+          const InfoRow(icon: Icons.phone_outlined, text: '+84 912 345 678'),
           const SizedBox(height: 6),
-          const _InfoRow2(
-              icon: Icons.location_on_outlined, text: 'Hanoi, Vietnam'),
+          const InfoRow(icon: Icons.location_on_outlined, text: 'Hà Nội, Việt Nam'),
           const SizedBox(height: 6),
           Row(
             children: [
@@ -543,26 +489,6 @@ class _OwnerProfileCard extends StatelessWidget {
   }
 }
 
-class _InfoRow2 extends StatelessWidget {
-  const _InfoRow2({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: AppColors.mutedText),
-        const SizedBox(width: 8),
-        Text(
-          text,
-          style: const TextStyle(fontSize: 12, color: AppColors.secondaryText),
-        ),
-      ],
-    );
-  }
-}
 
 // ─────────────────────────────────────────────
 // Active Rental Card (xe đang thuê từ người khác)
@@ -692,7 +618,7 @@ class _ActiveRentalCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      '\$375',
+                      '3.75M VNĐ',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -856,7 +782,7 @@ class _OwnedCarRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '\$${car.pricePerDay}/ngày',
+                  '${_fmtVnd(car.pricePerDay)}/ngày',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
