@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/vehicle/presentation/screens/admin_dashboard_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/car_list_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/home_screen.dart';
+import 'package:frontend/features/vehicle/presentation/screens/owner_dashboard_screen.dart';
+import 'package:frontend/features/vehicle/presentation/screens/renter_dashboard_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -99,7 +102,7 @@ class _AppShellState extends State<_AppShell> {
           HomeScreen(onCarsTap: () => _navigateTo(1)),
           const CarListScreen(),
           const _PlaceholderScreen(label: '🗺️', title: 'Map'),
-          const _PlaceholderScreen(label: '👤', title: 'Profile'),
+          const _DashboardSelectorScreen(),
         ],
       ),
       bottomNavigationBar: _BottomNav(
@@ -155,6 +158,142 @@ class _BottomNav extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Dashboard Selector Screen (Profile Tab)
+// ─────────────────────────────────────────────
+
+class _DashboardSelectorScreen extends StatefulWidget {
+  const _DashboardSelectorScreen();
+
+  @override
+  State<_DashboardSelectorScreen> createState() =>
+      _DashboardSelectorScreenState();
+}
+
+class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
+  int _role = 0; // 0=Renter, 1=Owner, 2=Admin
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        title: const Text(
+          'Tài khoản',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkText,
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            color: AppColors.surface,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Row(
+              children: [
+                _RoleChip(
+                  label: '👤 Người thuê',
+                  isActive: _role == 0,
+                  onTap: () => setState(() => _role = 0),
+                ),
+                const SizedBox(width: 8),
+                _RoleChip(
+                  label: '🚗 Chủ xe',
+                  isActive: _role == 1,
+                  onTap: () => setState(() => _role = 1),
+                ),
+                const SizedBox(width: 8),
+                _RoleChip(
+                  label: '🛡️ Admin',
+                  isActive: _role == 2,
+                  onTap: () => setState(() => _role = 2),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      body: IndexedStack(
+        index: _role,
+        children: const [
+          _RenterDashboardWrapper(),
+          _OwnerDashboardWrapper(),
+          _AdminDashboardWrapper(),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoleChip extends StatelessWidget {
+  const _RoleChip({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primary : AppColors.background,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.primary : AppColors.border,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: isActive ? Colors.white : AppColors.secondaryText,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Wrapper strips the outer Scaffold/AppBar so dashboards
+/// render cleanly inside the parent shell
+class _RenterDashboardWrapper extends StatelessWidget {
+  const _RenterDashboardWrapper();
+
+  @override
+  Widget build(BuildContext context) {
+    return const RenterDashboardScreen();
+  }
+}
+
+class _OwnerDashboardWrapper extends StatelessWidget {
+  const _OwnerDashboardWrapper();
+
+  @override
+  Widget build(BuildContext context) {
+    return const OwnerDashboardScreen();
+  }
+}
+
+class _AdminDashboardWrapper extends StatelessWidget {
+  const _AdminDashboardWrapper();
+
+  @override
+  Widget build(BuildContext context) {
+    return const AdminDashboardScreen();
   }
 }
 
