@@ -171,16 +171,16 @@ class _VehicleCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withAlpha(26),
+              color: AppColors.successSoft,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                  color: const Color(0xFF10B981).withAlpha(80)),
+                  color: AppColors.success.withAlpha(80)),
             ),
             child: const Text(
               '✅ Đã hoàn thành',
               style: TextStyle(
                 fontSize: 11,
-                color: Color(0xFF10B981),
+                color: AppColors.success,
                 fontWeight: FontWeight.w600,
               ),
             ),

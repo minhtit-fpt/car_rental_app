@@ -129,7 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     '🟢 Đang hoạt động',
                     style: TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF10B981),
+                      color: AppColors.success,
                     ),
                   ),
                 ],

@@ -119,19 +119,19 @@ class _StatusCard extends StatelessWidget {
           title: 'Đang chờ xét duyệt',
           subtitle:
               'Hồ sơ của bạn đang được xem xét.\nThường mất 1–2 ngày làm việc.',
-          color: const Color(0xFFF59E0B),
+          color: AppColors.warning,
         ),
       KycStatus.approved => (
           emoji: '✅',
           title: 'Đã xác minh',
           subtitle: 'Tài khoản của bạn đã được xác minh.\nBạn có thể thuê xe ngay.',
-          color: const Color(0xFF10B981),
+          color: AppColors.success,
         ),
       KycStatus.rejected => (
           emoji: '❌',
           title: 'Xác minh thất bại',
           subtitle: 'Hồ sơ bị từ chối. Vui lòng\nnộp lại với ảnh rõ ràng hơn.',
-          color: const Color(0xFFEF4444),
+          color: AppColors.danger,
         ),
     };
   }
@@ -226,11 +226,11 @@ class _TimelineRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dotColor = step.isRejected
-        ? const Color(0xFFEF4444)
+        ? AppColors.danger
         : step.isDone
-            ? const Color(0xFF10B981)
+            ? AppColors.success
             : step.isActive
-                ? const Color(0xFFF59E0B)
+                ? AppColors.warning
                 : AppColors.border;
 
     return Row(
@@ -271,7 +271,7 @@ class _TimelineRow extends StatelessWidget {
               Container(
                 width: 2,
                 height: 32,
-                color: step.isDone ? const Color(0xFF10B981).withAlpha(60) : AppColors.border,
+                color: step.isDone ? AppColors.success.withAlpha(60) : AppColors.border,
               ),
           ],
         ),
@@ -315,9 +315,9 @@ class _RejectionReasonCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFEF4444).withAlpha(13),
+        color: AppColors.danger.withAlpha(13),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEF4444).withAlpha(60)),
+        border: Border.all(color: AppColors.danger.withAlpha(60)),
       ),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,14 +325,14 @@ class _RejectionReasonCard extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.info_outline_rounded,
-                  size: 16, color: Color(0xFFEF4444)),
+                  size: 16, color: AppColors.danger),
               SizedBox(width: 8),
               Text(
                 'Lý do từ chối',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFEF4444),
+                  color: AppColors.danger,
                 ),
               ),
             ],

@@ -310,7 +310,7 @@ class _StatsRow extends StatelessWidget {
             icon: Icons.star_rounded,
             label: 'Đánh giá TB',
             value: '4.9',
-            color: const Color(0xFFF59E0B),
+            color: AppColors.warning,
           ),
         ),
         const SizedBox(width: 12),
@@ -319,7 +319,7 @@ class _StatsRow extends StatelessWidget {
             icon: Icons.directions_car_rounded,
             label: 'Tỉ lệ chấp nhận',
             value: '94%',
-            color: const Color(0xFF10B981),
+            color: AppColors.success,
           ),
         ),
         const SizedBox(width: 12),
@@ -458,8 +458,8 @@ class _TransactionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = transaction.isIncome
-        ? const Color(0xFF10B981)
-        : const Color(0xFFEF4444);
+        ? AppColors.success
+        : AppColors.danger;
     final sign = transaction.isIncome ? '+' : '';
 
     return Row(

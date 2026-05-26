@@ -187,12 +187,12 @@ class _DocTile extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: isUploaded
-                  ? const Color(0xFF10B981).withAlpha(13)
+                  ? AppColors.success.withAlpha(13)
                   : AppColors.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isUploaded
-                    ? const Color(0xFF10B981).withAlpha(80)
+                    ? AppColors.success.withAlpha(80)
                     : isUploading
                         ? AppColors.primary.withAlpha(80)
                         : AppColors.border,
@@ -213,7 +213,7 @@ class _DocTile extends StatelessWidget {
                   height: 48,
                   decoration: BoxDecoration(
                     color: isUploaded
-                        ? const Color(0xFF10B981).withAlpha(26)
+                        ? AppColors.successSoft
                         : AppColors.background,
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -231,7 +231,7 @@ class _DocTile extends StatelessWidget {
                       : Icon(
                           isUploaded ? Icons.check_circle_rounded : icon,
                           color: isUploaded
-                              ? const Color(0xFF10B981)
+                              ? AppColors.success
                               : AppColors.mutedText,
                           size: 24,
                         ),
@@ -251,7 +251,7 @@ class _DocTile extends StatelessWidget {
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: isUploaded
-                              ? const Color(0xFF10B981)
+                              ? AppColors.success
                               : AppColors.darkText,
                         ),
                       ),

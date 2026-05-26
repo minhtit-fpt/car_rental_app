@@ -140,7 +140,7 @@ class _RenterCard extends StatelessWidget {
             children: [
               StatusChip(
                   label: '🟡 Chờ xác nhận',
-                  color: const Color(0xFFF59E0B)),
+                  color: AppColors.warning),
               const SizedBox(width: 8),
               const Text(
                 'Yêu cầu lúc 14:32 hôm nay',

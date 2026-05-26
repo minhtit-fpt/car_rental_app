@@ -160,7 +160,7 @@ class _ActiveStatusCard extends StatelessWidget {
                       children: [
                         StatusChip(
                           label: '🟢 Đang chạy',
-                          color: const Color(0xFF10B981),
+                          color: AppColors.success,
                         ),
                       ],
                     ),

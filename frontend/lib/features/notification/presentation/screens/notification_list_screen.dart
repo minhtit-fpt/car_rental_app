@@ -243,7 +243,7 @@ class _NotifTile extends StatelessWidget {
         ),
       _NotifType.payment => (
           emoji: '💳',
-          color: const Color(0xFF10B981),
+          color: AppColors.success,
         ),
       _NotifType.system => (
           emoji: '🛡️',

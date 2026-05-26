@@ -158,7 +158,7 @@ class _DetailAppBar extends StatelessWidget {
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
                       color: isFavorite
-                          ? const Color(0xFFEF4444)
+                          ? AppColors.danger
                           : AppColors.darkText,
                       size: 20,
                     ),

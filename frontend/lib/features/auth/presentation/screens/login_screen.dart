@@ -49,7 +49,7 @@ class _LoginViewState extends State<_LoginView> {
         }
         if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(content: Text(state.message), backgroundColor: AppColors.danger),
           );
         }
       },
@@ -216,7 +216,7 @@ class _PhoneField extends StatelessWidget {
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red),
+              borderSide: const BorderSide(color: AppColors.danger),
             ),
           ),
           validator: (v) {

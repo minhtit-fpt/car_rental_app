@@ -66,7 +66,7 @@ class _RegisterViewState extends State<_RegisterView> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.danger,
             ),
           );
         }
@@ -249,7 +249,7 @@ class _LabeledField extends StatelessWidget {
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red),
+              borderSide: const BorderSide(color: AppColors.danger),
             ),
           ),
           validator: validator,

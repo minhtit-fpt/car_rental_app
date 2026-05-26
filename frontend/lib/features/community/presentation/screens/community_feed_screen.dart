@@ -375,7 +375,7 @@ class _StoryCard extends StatelessWidget {
                                   : Icons.favorite_border_rounded,
                               size: 18,
                               color: isLiked
-                                  ? const Color(0xFFEF4444)
+                                  ? AppColors.danger
                                   : AppColors.mutedText,
                             ),
                             const SizedBox(width: 4),

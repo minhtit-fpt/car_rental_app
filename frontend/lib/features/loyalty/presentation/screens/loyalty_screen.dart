@@ -158,17 +158,17 @@ class _TierCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withAlpha(26),
+                  color: AppColors.warningSoft,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                      color: const Color(0xFFF59E0B).withAlpha(80)),
+                      color: AppColors.warning.withAlpha(80)),
                 ),
                 child: const Text(
                   '🥇 Gold',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFFF59E0B),
+                    color: AppColors.warning,
                   ),
                 ),
               ),
@@ -187,7 +187,7 @@ class _TierCard extends StatelessWidget {
               minHeight: 8,
               backgroundColor: AppColors.border,
               valueColor: const AlwaysStoppedAnimation<Color>(
-                  Color(0xFFF59E0B)),
+                  AppColors.warning),
             ),
           ),
           const SizedBox(height: 8),
@@ -370,8 +370,8 @@ class _HistorySection extends StatelessWidget {
                           height: 36,
                           decoration: BoxDecoration(
                             color: h.isEarn
-                                ? const Color(0xFF10B981).withAlpha(26)
-                                : const Color(0xFFEF4444).withAlpha(26),
+                                ? AppColors.successSoft
+                                : AppColors.dangerSoft,
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -381,8 +381,8 @@ class _HistorySection extends StatelessWidget {
                                   : Icons.remove_rounded,
                               size: 18,
                               color: h.isEarn
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFFEF4444),
+                                  ? AppColors.success
+                                  : AppColors.danger,
                             ),
                           ),
                         ),
@@ -410,8 +410,8 @@ class _HistorySection extends StatelessWidget {
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: h.isEarn
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFFEF4444),
+                                ? AppColors.success
+                                : AppColors.danger,
                           ),
                         ),
                       ],

@@ -219,7 +219,7 @@ class _OwnerStatsRow extends StatelessWidget {
             value: '24.5M',
             unit: 'VNĐ',
             label: 'Doanh thu tháng',
-            color: const Color(0xFFF59E0B),
+            color: AppColors.warning,
           ),
         ),
         const SizedBox(width: 10),
@@ -229,7 +229,7 @@ class _OwnerStatsRow extends StatelessWidget {
             value: '3',
             unit: 'xe',
             label: 'Đang cho thuê',
-            color: const Color(0xFFEF4444),
+            color: AppColors.danger,
           ),
         ),
         const SizedBox(width: 10),
@@ -379,7 +379,7 @@ class _OwnerProfileCard extends StatelessWidget {
                   width: 22,
                   height: 22,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFF59E0B),
+                    color: AppColors.warning,
                     shape: BoxShape.circle,
                   ),
                   child: const Center(
@@ -448,14 +448,14 @@ class _OwnerProfileCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withAlpha(26),
+                  color: AppColors.successSoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(
                   '✓ KYC Đã xác minh',
                   style: TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF10B981),
+                    color: AppColors.success,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -883,9 +883,9 @@ class _OwnedCarRow extends StatelessWidget {
         ),
       _CarStatus.available => (
           label: 'Sẵn sàng',
-          bgColor: const Color(0xFF10B981).withAlpha(26),
-          textColor: const Color(0xFF10B981),
-          borderColor: const Color(0xFF10B981).withAlpha(77),
+          bgColor: AppColors.successSoft,
+          textColor: AppColors.success,
+          borderColor: AppColors.success.withAlpha(77),
         ),
       _CarStatus.maintenance => (
           label: 'Bảo dưỡng',

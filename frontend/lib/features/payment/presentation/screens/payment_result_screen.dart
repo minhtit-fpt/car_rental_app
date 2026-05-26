@@ -35,8 +35,8 @@ class PaymentResultScreen extends StatelessWidget {
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: success
-                        ? const Color(0xFF10B981)
-                        : const Color(0xFFEF4444),
+                        ? AppColors.success
+                        : AppColors.danger,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -96,7 +96,7 @@ class _ResultIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color =
-        success ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+        success ? AppColors.success : AppColors.danger;
 
     return Container(
       width: 100,
@@ -130,9 +130,9 @@ class _SuccessDetails extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF10B981).withAlpha(13),
+        color: AppColors.success.withAlpha(13),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF10B981).withAlpha(60)),
+        border: Border.all(color: AppColors.success.withAlpha(60)),
       ),
       child: Column(
         children: [
