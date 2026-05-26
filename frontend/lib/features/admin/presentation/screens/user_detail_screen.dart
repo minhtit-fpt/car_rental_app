@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
-
-const _kAdminBg = Color(0xFF0A1628);
-const _kAdminCard = Color(0xFF1A2A40);
-const _kAdminBorder = Color(0xFF253A54);
-const _kAdminText = Color(0xFFE8F0FC);
-const _kAdminMuted = Color(0xFF6B8AAD);
-const _kAdminPrimary = Color(0xFF3B82F6);
 
 class UserDetailScreen extends StatelessWidget {
   const UserDetailScreen({super.key});
@@ -20,7 +14,7 @@ class UserDetailScreen extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: _kAdminBg,
+        backgroundColor: AppColors.adminBg,
         body: CustomScrollView(
           slivers: [
             _AdminAppBar(
@@ -62,10 +56,10 @@ class _AdminAppBar extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 100,
       pinned: true,
-      backgroundColor: _kAdminBg,
+      backgroundColor: AppColors.adminBg,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_rounded,
-            color: _kAdminText, size: 20),
+            color: AppColors.adminText, size: 20),
         onPressed: () => context.pop(),
       ),
       flexibleSpace: FlexibleSpaceBar(
@@ -78,9 +72,10 @@ class _AdminAppBar extends StatelessWidget {
                 style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _kAdminText)),
+                    color: AppColors.adminText)),
             Text(subtitle,
-                style: const TextStyle(fontSize: 11, color: _kAdminMuted)),
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.adminMuted)),
           ],
         ),
         background: Container(
@@ -88,7 +83,7 @@ class _AdminAppBar extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF1E3A5F), _kAdminBg],
+              colors: [Color(0xFF1E3A5F), AppColors.adminBg],
             ),
           ),
         ),
@@ -103,9 +98,9 @@ class _UserProfileCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _kAdminCard,
+        color: AppColors.adminCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: Column(
         children: [
@@ -115,7 +110,7 @@ class _UserProfileCard extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: _kAdminPrimary.withAlpha(40),
+                  color: AppColors.adminBlue.withAlpha(40),
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
@@ -132,24 +127,24 @@ class _UserProfileCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: _kAdminText,
+                        color: AppColors.adminText,
                       ),
                     ),
                     const SizedBox(height: 3),
                     const Text(
                       'lan.tran@email.com · 0912 xxx 678',
-                      style: TextStyle(fontSize: 12, color: _kAdminMuted),
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.adminMuted),
                     ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
                         StatusChip(
                             label: '✅ KYC Đã xác minh',
-                            color: const Color(0xFF10B981)),
+                            color: AppColors.success),
                         const SizedBox(width: 6),
                         StatusChip(
-                            label: 'Renter',
-                            color: _kAdminPrimary),
+                            label: 'Renter', color: AppColors.adminBlue),
                       ],
                     ),
                   ],
@@ -158,13 +153,15 @@ class _UserProfileCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Divider(color: _kAdminBorder, height: 1),
+          const Divider(color: AppColors.adminBorder, height: 1),
           const SizedBox(height: 12),
-          _InfoRow(label: 'Ngày đăng ký', value: '12/01/2025'),
+          const _InfoRow(label: 'Ngày đăng ký', value: '12/01/2025'),
           const SizedBox(height: 8),
-          _InfoRow(label: 'Lần đăng nhập cuối', value: '05/06/2025 09:14'),
+          const _InfoRow(
+              label: 'Lần đăng nhập cuối', value: '05/06/2025 09:14'),
           const SizedBox(height: 8),
-          _InfoRow(label: 'Địa chỉ IP', value: '118.70.xxx.xxx · TP.HCM'),
+          const _InfoRow(
+              label: 'Địa chỉ IP', value: '118.70.xxx.xxx · TP.HCM'),
         ],
       ),
     );
@@ -182,12 +179,13 @@ class _InfoRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
-            style: const TextStyle(fontSize: 13, color: _kAdminMuted)),
+            style:
+                const TextStyle(fontSize: 13, color: AppColors.adminMuted)),
         Text(value,
             style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: _kAdminText)),
+                color: AppColors.adminText)),
       ],
     );
   }
@@ -199,9 +197,9 @@ class _AccountStatsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _kAdminCard,
+        color: AppColors.adminCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,7 +209,7 @@ class _AccountStatsCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: _kAdminText,
+              color: AppColors.adminText,
             ),
           ),
           const SizedBox(height: 14),
@@ -221,22 +219,22 @@ class _AccountStatsCard extends StatelessWidget {
                   icon: Icons.directions_car_rounded,
                   label: 'Chuyến',
                   value: '14',
-                  color: _kAdminPrimary),
+                  color: AppColors.adminBlue),
               _StatTile(
                   icon: Icons.star_rounded,
                   label: 'Đánh giá',
                   value: '4.8',
-                  color: const Color(0xFFF59E0B)),
+                  color: AppColors.warning),
               _StatTile(
                   icon: Icons.payments_outlined,
                   label: 'Chi tiêu',
                   value: '12M',
-                  color: const Color(0xFF10B981)),
+                  color: AppColors.success),
               _StatTile(
                   icon: Icons.report_outlined,
                   label: 'Tranh chấp',
                   value: '0',
-                  color: const Color(0xFFEF4444)),
+                  color: AppColors.danger),
             ],
           ),
         ],
@@ -279,7 +277,7 @@ class _StatTile extends StatelessWidget {
                   color: color)),
           Text(label,
               style:
-                  const TextStyle(fontSize: 10, color: _kAdminMuted)),
+                  const TextStyle(fontSize: 10, color: AppColors.adminMuted)),
         ],
       ),
     );
@@ -292,9 +290,9 @@ class _ActivityCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _kAdminCard,
+        color: AppColors.adminCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,7 +302,7 @@ class _ActivityCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: _kAdminText,
+              color: AppColors.adminText,
             ),
           ),
           const SizedBox(height: 12),
@@ -312,19 +310,19 @@ class _ActivityCard extends StatelessWidget {
               icon: Icons.directions_car_rounded,
               text: 'Hoàn thành chuyến Tesla Model 3',
               time: '05/06/2025',
-              color: const Color(0xFF10B981)),
-          const Divider(color: _kAdminBorder, height: 16),
+              color: AppColors.success),
+          const Divider(color: AppColors.adminBorder, height: 16),
           _ActivityRow(
               icon: Icons.payments_outlined,
               text: 'Thanh toán 2,403K VNĐ qua MoMo',
               time: '05/06/2025',
-              color: _kAdminPrimary),
-          const Divider(color: _kAdminBorder, height: 16),
+              color: AppColors.adminBlue),
+          const Divider(color: AppColors.adminBorder, height: 16),
           _ActivityRow(
               icon: Icons.star_rounded,
               text: 'Đánh giá 5⭐ cho chủ xe',
               time: '08/06/2025',
-              color: const Color(0xFFF59E0B)),
+              color: AppColors.warning),
         ],
       ),
     );
@@ -360,11 +358,11 @@ class _ActivityRow extends StatelessWidget {
         Expanded(
           child: Text(text,
               style:
-                  const TextStyle(fontSize: 13, color: _kAdminText)),
+                  const TextStyle(fontSize: 13, color: AppColors.adminText)),
         ),
         Text(time,
             style:
-                const TextStyle(fontSize: 11, color: _kAdminMuted)),
+                const TextStyle(fontSize: 11, color: AppColors.adminMuted)),
       ],
     );
   }

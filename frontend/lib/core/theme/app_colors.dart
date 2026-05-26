@@ -87,6 +87,22 @@ class AppColors {
     colors: [Color(0x1414336B), Color(0x0A14336B)],
   );
 
+  // ── Admin dark theme ─────────────────────────────────────────────
+  // Deep-navy dark surface system used exclusively on admin screens.
+  static const Color adminBg = Color(0xFF0A1628); // page background
+  static const Color adminSurface = Color(0xFF142035); // primary card surface
+  static const Color adminCard = Color(0xFF1A2A40); // elevated card
+  static const Color adminBorder = Color(0xFF253A54); // dividers / borders
+  static const Color adminText = Color(0xFFE8F0FC); // primary text on dark
+  static const Color adminMuted = Color(0xFF6B8AAD); // secondary text on dark
+  static const Color adminBlue = Color(0xFF3B82F6); // interactive blue
+  static const Color adminTeal = Color(0xFF14B8A6); // teal accent on dark
+  static const LinearGradient adminHeaderGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF0A1628), Color(0xFF142035)],
+  );
+
   // Orange CTA shadow — used for primary CTA only (keeps orange scarce)
   static const List<BoxShadow> accentShadow = [
     BoxShadow(

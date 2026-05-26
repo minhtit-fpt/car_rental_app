@@ -1,21 +1,9 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-
-// ─────────────────────────────────────────────
-// Admin Design Tokens (dark theme)
-// ─────────────────────────────────────────────
-
-const _kAdminBg = Color(0xFF0A1628);
-const _kAdminSurface = Color(0xFF142035);
-const _kAdminCard = Color(0xFF1A2A40);
-const _kAdminBorder = Color(0xFF253A54);
-const _kAdminText = Color(0xFFE8F0FC);
-const _kAdminMuted = Color(0xFF6B8AAD);
-const _kAdminPrimary = Color(0xFF3B82F6);
-const _kAdminTeal = Color(0xFF14B8A6);
+import 'package:frontend/core/theme/app_colors.dart';
 
 // ─────────────────────────────────────────────
 // Mock Data
@@ -186,7 +174,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: _kAdminBg,
+        backgroundColor: AppColors.adminBg,
         body: NestedScrollView(
           headerSliverBuilder: (context, _) => [
             _AdminSliverAppBar(
@@ -219,7 +207,7 @@ class _AdminSliverAppBar extends StatelessWidget {
     return SliverAppBar(
       pinned: true,
       expandedHeight: 140,
-      backgroundColor: _kAdminSurface,
+      backgroundColor: AppColors.adminSurface,
       systemOverlayStyle: SystemUiOverlayStyle.light,
       title: Row(
         children: [
@@ -237,7 +225,7 @@ class _AdminSliverAppBar extends StatelessWidget {
           const Text(
             'RideVN',
             style: TextStyle(
-              color: _kAdminText,
+              color: AppColors.adminText,
               fontWeight: FontWeight.bold,
               fontSize: 18,
             ),
@@ -247,13 +235,13 @@ class _AdminSliverAppBar extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: const Color(0xFFEF4444).withAlpha(51),
+              color: AppColors.danger.withAlpha(51),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Text(
               'ADMIN',
               style: TextStyle(
-                color: Color(0xFFEF4444),
+                color: AppColors.danger,
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1,
@@ -268,7 +256,7 @@ class _AdminSliverAppBar extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF0A1628), Color(0xFF142035)],
+              colors: [AppColors.adminBg, AppColors.adminSurface],
             ),
           ),
           child: SafeArea(
@@ -280,7 +268,7 @@ class _AdminSliverAppBar extends StatelessWidget {
                   const Text(
                     'Quản trị',
                     style: TextStyle(
-                      color: _kAdminText,
+                      color: AppColors.adminText,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                     ),
@@ -289,7 +277,7 @@ class _AdminSliverAppBar extends StatelessWidget {
                   const Text(
                     '14/04/2026 · 09:30',
                     style: TextStyle(
-                      color: _kAdminMuted,
+                      color: AppColors.adminMuted,
                       fontSize: 12,
                     ),
                   ),
@@ -302,7 +290,7 @@ class _AdminSliverAppBar extends StatelessWidget {
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(44),
         child: Container(
-          color: _kAdminSurface,
+          color: AppColors.adminSurface,
           child: Row(
             children: [
               _AdminTab(
@@ -364,7 +352,7 @@ class _AdminTab extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: isActive ? _kAdminPrimary : Colors.transparent,
+                color: isActive ? AppColors.adminBlue : Colors.transparent,
                 width: 2,
               ),
             ),
@@ -379,7 +367,7 @@ class _AdminTab extends StatelessWidget {
                     fontSize: 12,
                     fontWeight:
                         isActive ? FontWeight.w600 : FontWeight.normal,
-                    color: isActive ? _kAdminPrimary : _kAdminMuted,
+                    color: isActive ? AppColors.adminBlue : AppColors.adminMuted,
                   ),
                 ),
                 if (badge != null) ...[
@@ -390,7 +378,7 @@ class _AdminTab extends StatelessWidget {
                       vertical: 1,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444),
+                      color: AppColors.danger,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -480,28 +468,28 @@ class _AdminStatsGrid extends StatelessWidget {
           label: 'Tổng người dùng',
           icon: '👥',
           trend: '+12%',
-          color: _kAdminPrimary,
+          color: AppColors.adminBlue,
         ),
         _AdminStatCard(
           value: '184',
           label: 'Booking đang hoạt động',
           icon: '📋',
           trend: '+8%',
-          color: _kAdminTeal,
+          color: AppColors.adminTeal,
         ),
         _AdminStatCard(
           value: '23',
           label: 'KYC chờ duyệt',
           icon: '🔍',
           trend: '-2',
-          color: Color(0xFFF59E0B),
+          color: AppColors.warning,
         ),
         _AdminStatCard(
           value: '485M',
           label: 'Doanh thu tháng (VNĐ)',
           icon: '💰',
           trend: '+15%',
-          color: Color(0xFF10B981),
+          color: AppColors.success,
         ),
       ],
     );
@@ -528,9 +516,9 @@ class _AdminStatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _kAdminCard,
+        color: AppColors.adminCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -571,7 +559,7 @@ class _AdminStatCard extends StatelessWidget {
             label,
             style: const TextStyle(
               fontSize: 10,
-              color: _kAdminMuted,
+              color: AppColors.adminMuted,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -599,9 +587,9 @@ class _KycQueueCardState extends State<_KycQueueCard> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: _kAdminCard,
+        color: AppColors.adminCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -618,7 +606,7 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: _kAdminText,
+                        color: AppColors.adminText,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -628,13 +616,13 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEF4444).withAlpha(51),
+                        color: AppColors.danger.withAlpha(51),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Text(
                         '23',
                         style: TextStyle(
-                          color: Color(0xFFEF4444),
+                          color: AppColors.danger,
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
@@ -647,7 +635,7 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                   child: const Text(
                     'Xem tất cả →',
                     style: TextStyle(
-                      color: _kAdminPrimary,
+                      color: AppColors.adminBlue,
                       fontSize: 12,
                     ),
                   ),
@@ -655,13 +643,13 @@ class _KycQueueCardState extends State<_KycQueueCard> {
               ],
             ),
           ),
-          const Divider(height: 1, color: _kAdminBorder),
+          const Divider(height: 1, color: AppColors.adminBorder),
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _kKycItems.length,
             separatorBuilder: (_, _) =>
-                const Divider(height: 1, color: _kAdminBorder),
+                const Divider(height: 1, color: AppColors.adminBorder),
             itemBuilder: (_, i) {
               final item = _kKycItems[i];
               final isApproved = _approved.contains(i);
@@ -681,7 +669,7 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: _kAdminBorder,
+                        color: AppColors.adminBorder,
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -702,7 +690,7 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: _kAdminText,
+                              color: AppColors.adminText,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -714,7 +702,7 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: _kAdminBorder,
+                                  color: AppColors.adminBorder,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -723,7 +711,7 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                                       : 'CCCD',
                                   style: const TextStyle(
                                     fontSize: 10,
-                                    color: _kAdminMuted,
+                                    color: AppColors.adminMuted,
                                   ),
                                 ),
                               ),
@@ -732,7 +720,7 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                                 item.timeAgo,
                                 style: const TextStyle(
                                   fontSize: 10,
-                                  color: _kAdminMuted,
+                                  color: AppColors.adminMuted,
                                 ),
                               ),
                             ],
@@ -748,14 +736,14 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withAlpha(51),
+                          color: AppColors.success.withAlpha(51),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
                           '✓ Đã duyệt',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF10B981),
+                            color: AppColors.success,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -767,14 +755,14 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withAlpha(51),
+                          color: AppColors.danger.withAlpha(51),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
                           '✗ Từ chối',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFFEF4444),
+                            color: AppColors.danger,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -792,8 +780,8 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                             ),
                             decoration: BoxDecoration(
                               color: item.status == _KycStatus.pending
-                                  ? const Color(0xFFF59E0B).withAlpha(38)
-                                  : _kAdminPrimary.withAlpha(38),
+                                  ? AppColors.warning.withAlpha(38)
+                                  : AppColors.adminBlue.withAlpha(38),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -803,8 +791,8 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                               style: TextStyle(
                                 fontSize: 9,
                                 color: item.status == _KycStatus.pending
-                                    ? const Color(0xFFF59E0B)
-                                    : _kAdminPrimary,
+                                    ? AppColors.warning
+                                    : AppColors.adminBlue,
                               ),
                             ),
                           ),
@@ -820,14 +808,14 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981).withAlpha(38),
+                                    color: AppColors.success.withAlpha(38),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Text(
                                     'Duyệt',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: Color(0xFF10B981),
+                                      color: AppColors.success,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -842,14 +830,14 @@ class _KycQueueCardState extends State<_KycQueueCard> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFEF4444).withAlpha(38),
+                                    color: AppColors.danger.withAlpha(38),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Text(
                                     'Từ chối',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: Color(0xFFEF4444),
+                                      color: AppColors.danger,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -879,9 +867,9 @@ class _DisputesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: _kAdminCard,
+        color: AppColors.adminCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -896,7 +884,7 @@ class _DisputesCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: _kAdminText,
+                    color: AppColors.adminText,
                   ),
                 ),
                 Container(
@@ -905,13 +893,13 @@ class _DisputesCard extends StatelessWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: _kAdminBorder,
+                    color: AppColors.adminBorder,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     '${_kDisputes.length}',
                     style: const TextStyle(
-                      color: _kAdminMuted,
+                      color: AppColors.adminMuted,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -920,13 +908,13 @@ class _DisputesCard extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(height: 1, color: _kAdminBorder),
+          const Divider(height: 1, color: AppColors.adminBorder),
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _kDisputes.length,
             separatorBuilder: (_, _) =>
-                const Divider(height: 1, color: _kAdminBorder),
+                const Divider(height: 1, color: AppColors.adminBorder),
             itemBuilder: (_, i) => _DisputeRow(dispute: _kDisputes[i]),
           ),
         ],
@@ -966,7 +954,7 @@ class _DisputeRow extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: _kAdminText,
+                    color: AppColors.adminText,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -974,7 +962,7 @@ class _DisputeRow extends StatelessWidget {
                   '${dispute.title} · ${dispute.timeAgo}',
                   style: const TextStyle(
                     fontSize: 11,
-                    color: _kAdminMuted,
+                    color: AppColors.adminMuted,
                   ),
                 ),
               ],
@@ -1002,7 +990,7 @@ class _DisputeRow extends StatelessWidget {
               'Tiếp nhận →',
               style: TextStyle(
                 fontSize: 11,
-                color: _kAdminPrimary,
+                color: AppColors.adminBlue,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1016,15 +1004,15 @@ class _DisputeRow extends StatelessWidget {
     return switch (priority) {
       _DisputePriority.high => (
           label: 'Cao',
-          color: const Color(0xFFEF4444),
+          color: AppColors.danger,
         ),
       _DisputePriority.medium => (
           label: 'TB',
-          color: const Color(0xFFF59E0B),
+          color: AppColors.warning,
         ),
       _DisputePriority.low => (
           label: 'Thấp',
-          color: const Color(0xFF6B7280),
+          color: AppColors.adminMuted,
         ),
     };
   }
@@ -1039,9 +1027,9 @@ class _RecentUsersCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: _kAdminCard,
+        color: AppColors.adminCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1053,17 +1041,17 @@ class _RecentUsersCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: _kAdminText,
+                color: AppColors.adminText,
               ),
             ),
           ),
-          const Divider(height: 1, color: _kAdminBorder),
+          const Divider(height: 1, color: AppColors.adminBorder),
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _kRecentUsers.length,
             separatorBuilder: (_, _) =>
-                const Divider(height: 1, color: _kAdminBorder),
+                const Divider(height: 1, color: AppColors.adminBorder),
             itemBuilder: (_, i) => _RecentUserRow(user: _kRecentUsers[i]),
           ),
           Padding(
@@ -1073,7 +1061,7 @@ class _RecentUsersCard extends StatelessWidget {
                 onPressed: () {},
                 child: const Text(
                   'Xem tất cả người dùng →',
-                  style: TextStyle(color: _kAdminPrimary, fontSize: 12),
+                  style: TextStyle(color: AppColors.adminBlue, fontSize: 12),
                 ),
               ),
             ),
@@ -1103,7 +1091,7 @@ class _RecentUserRow extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _kAdminBorder,
+              color: AppColors.adminBorder,
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -1120,7 +1108,7 @@ class _RecentUserRow extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: _kAdminText,
+                    color: AppColors.adminText,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -1128,7 +1116,7 @@ class _RecentUserRow extends StatelessWidget {
                   user.location,
                   style: const TextStyle(
                     fontSize: 11,
-                    color: _kAdminMuted,
+                    color: AppColors.adminMuted,
                   ),
                 ),
               ],
@@ -1138,8 +1126,8 @@ class _RecentUserRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: isOwner
-                  ? const Color(0xFFF59E0B).withAlpha(38)
-                  : _kAdminPrimary.withAlpha(38),
+                  ? AppColors.warning.withAlpha(38)
+                  : AppColors.adminBlue.withAlpha(38),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -1147,7 +1135,7 @@ class _RecentUserRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: isOwner ? const Color(0xFFF59E0B) : _kAdminPrimary,
+                color: isOwner ? AppColors.warning : AppColors.adminBlue,
               ),
             ),
           ),
@@ -1155,14 +1143,14 @@ class _RecentUserRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withAlpha(38),
+              color: AppColors.success.withAlpha(38),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Text(
               'Hoạt động',
               style: TextStyle(
                 fontSize: 11,
-                color: Color(0xFF10B981),
+                color: AppColors.success,
               ),
             ),
           ),
@@ -1182,9 +1170,9 @@ class _RevenueChartCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _kAdminCard,
+        color: AppColors.adminCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1194,13 +1182,13 @@ class _RevenueChartCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: _kAdminText,
+              color: AppColors.adminText,
             ),
           ),
           const SizedBox(height: 4),
           const Text(
             'Th.11 2025 - Th.4 2026 · Tổng: 2.265M VNĐ',
-            style: TextStyle(fontSize: 11, color: _kAdminMuted),
+            style: TextStyle(fontSize: 11, color: AppColors.adminMuted),
           ),
           const SizedBox(height: 20),
           SizedBox(
@@ -1235,7 +1223,7 @@ class _RevenueBarChart extends StatelessWidget {
                   '${value.toInt()}M',
                   style: TextStyle(
                     fontSize: 9,
-                    color: isHighest ? _kAdminPrimary : _kAdminMuted,
+                    color: isHighest ? AppColors.adminBlue : AppColors.adminMuted,
                     fontWeight: isHighest
                         ? FontWeight.bold
                         : FontWeight.normal,
@@ -1252,12 +1240,12 @@ class _RevenueBarChart extends StatelessWidget {
                       end: Alignment.topCenter,
                       colors: isHighest
                           ? [
-                              _kAdminPrimary,
-                              _kAdminPrimary.withAlpha(178),
+                              AppColors.adminBlue,
+                              AppColors.adminBlue.withAlpha(178),
                             ]
                           : [
-                              _kAdminTeal.withAlpha(77),
-                              _kAdminTeal.withAlpha(46),
+                              AppColors.adminTeal.withAlpha(77),
+                              AppColors.adminTeal.withAlpha(46),
                             ],
                     ),
                     borderRadius: const BorderRadius.vertical(
@@ -1270,7 +1258,7 @@ class _RevenueBarChart extends StatelessWidget {
                   _kRevenueLabels[i],
                   style: const TextStyle(
                     fontSize: 10,
-                    color: _kAdminMuted,
+                    color: AppColors.adminMuted,
                   ),
                 ),
               ],
@@ -1373,9 +1361,9 @@ class _AdminSummaryRow extends StatelessWidget {
             margin: EdgeInsets.only(right: i < items.length - 1 ? 8 : 0),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: _kAdminCard,
+              color: AppColors.adminCard,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _kAdminBorder),
+              border: Border.all(color: AppColors.adminBorder),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1388,14 +1376,14 @@ class _AdminSummaryRow extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(it.value,
                     style: const TextStyle(
-                      color: _kAdminText,
+                      color: AppColors.adminText,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                     )),
                 const SizedBox(height: 2),
                 Text(it.label,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: _kAdminMuted, fontSize: 11)),
+                    style: const TextStyle(color: AppColors.adminMuted, fontSize: 11)),
               ],
             ),
           ),
@@ -1420,18 +1408,18 @@ class _AdminSearchBar extends StatelessWidget {
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color: _kAdminSurface,
+        color: AppColors.adminSurface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
-        style: const TextStyle(color: _kAdminText, fontSize: 14),
+        style: const TextStyle(color: AppColors.adminText, fontSize: 14),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(color: _kAdminMuted, fontSize: 14),
-          prefixIcon: const Icon(Icons.search, color: _kAdminMuted, size: 20),
+          hintStyle: const TextStyle(color: AppColors.adminMuted, fontSize: 14),
+          prefixIcon: const Icon(Icons.search, color: AppColors.adminMuted, size: 20),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
@@ -1459,16 +1447,16 @@ class _AdminFilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
           gradient: selected
-              ? const LinearGradient(colors: [_kAdminPrimary, _kAdminTeal])
+              ? const LinearGradient(colors: [AppColors.adminBlue, AppColors.adminTeal])
               : null,
-          color: selected ? null : _kAdminSurface,
+          color: selected ? null : AppColors.adminSurface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? Colors.transparent : _kAdminBorder),
+          border: Border.all(color: selected ? Colors.transparent : AppColors.adminBorder),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : _kAdminText,
+            color: selected ? Colors.white : AppColors.adminText,
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
@@ -1510,9 +1498,9 @@ class _KycTabState extends State<_KycTab> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _AdminSummaryRow(items: [
-          _SummaryItem(label: 'Chờ duyệt', value: '$pending', color: const Color(0xFFF59E0B)),
-          _SummaryItem(label: 'Đang xem xét', value: '$reviewing', color: _kAdminTeal),
-          _SummaryItem(label: 'Duyệt hôm nay', value: '142', color: const Color(0xFF10B981)),
+          _SummaryItem(label: 'Chờ duyệt', value: '$pending', color: AppColors.warning),
+          _SummaryItem(label: 'Đang xem xét', value: '$reviewing', color: AppColors.adminTeal),
+          _SummaryItem(label: 'Duyệt hôm nay', value: '142', color: AppColors.success),
         ]),
         const SizedBox(height: 16),
         _AdminSearchBar(
@@ -1523,9 +1511,9 @@ class _KycTabState extends State<_KycTab> {
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: _kAdminCard,
+            color: AppColors.adminCard,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _kAdminBorder),
+            border: Border.all(color: AppColors.adminBorder),
           ),
           child: Column(
             children: [
@@ -1537,23 +1525,23 @@ class _KycTabState extends State<_KycTab> {
                     Text(
                       'Hàng đợi KYC (${filtered.length})',
                       style: const TextStyle(
-                        color: _kAdminText,
+                        color: AppColors.adminText,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const Text('Mới nhất',
-                        style: TextStyle(color: _kAdminMuted, fontSize: 12)),
+                        style: TextStyle(color: AppColors.adminMuted, fontSize: 12)),
                   ],
                 ),
               ),
-              const Divider(color: _kAdminBorder, height: 1),
+              const Divider(color: AppColors.adminBorder, height: 1),
               ...filtered.map((k) => _KycListItem(req: k)),
               if (filtered.isEmpty)
                 const Padding(
                   padding: EdgeInsets.all(32),
                   child: Text('Không tìm thấy yêu cầu KYC',
-                      style: TextStyle(color: _kAdminMuted)),
+                      style: TextStyle(color: AppColors.adminMuted)),
                 ),
             ],
           ),
@@ -1571,10 +1559,10 @@ class _KycListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = req.status == 'pending'
-        ? const Color(0xFFF59E0B)
+        ? AppColors.warning
         : req.status == 'reviewing'
-            ? _kAdminTeal
-            : const Color(0xFF10B981);
+            ? AppColors.adminTeal
+            : AppColors.success;
     final statusLabel = req.status == 'pending'
         ? 'Chờ duyệt'
         : req.status == 'reviewing'
@@ -1583,7 +1571,7 @@ class _KycListItem extends StatelessWidget {
 
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: _kAdminBorder, width: 0.5)),
+        border: Border(bottom: BorderSide(color: AppColors.adminBorder, width: 0.5)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -1593,7 +1581,7 @@ class _KycListItem extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [_kAdminPrimary, _kAdminTeal],
+                colors: [AppColors.adminBlue, AppColors.adminTeal],
               ),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -1614,14 +1602,14 @@ class _KycListItem extends StatelessWidget {
               children: [
                 Text(req.name,
                     style: const TextStyle(
-                      color: _kAdminText,
+                      color: AppColors.adminText,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     )),
                 const SizedBox(height: 2),
                 Text(
                   '${req.docType} · ${req.submittedAt}',
-                  style: const TextStyle(color: _kAdminMuted, fontSize: 12),
+                  style: const TextStyle(color: AppColors.adminMuted, fontSize: 12),
                 ),
               ],
             ),
@@ -1642,7 +1630,7 @@ class _KycListItem extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right, color: _kAdminMuted, size: 20),
+            icon: const Icon(Icons.chevron_right, color: AppColors.adminMuted, size: 20),
             onPressed: () {},
           ),
         ],
@@ -1689,9 +1677,9 @@ class _UsersTabState extends State<_UsersTab> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _AdminSummaryRow(items: [
-          _SummaryItem(label: 'Tổng người dùng', value: '2,847', color: _kAdminPrimary),
-          _SummaryItem(label: 'Người thuê', value: '1,203', color: _kAdminTeal),
-          _SummaryItem(label: 'Chủ xe', value: '1,644', color: Color(0xFF10B981)),
+          _SummaryItem(label: 'Tổng người dùng', value: '2,847', color: AppColors.adminBlue),
+          _SummaryItem(label: 'Người thuê', value: '1,203', color: AppColors.adminTeal),
+          _SummaryItem(label: 'Chủ xe', value: '1,644', color: AppColors.success),
         ]),
         const SizedBox(height: 16),
         _AdminSearchBar(
@@ -1727,9 +1715,9 @@ class _UsersTabState extends State<_UsersTab> {
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: _kAdminCard,
+            color: AppColors.adminCard,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _kAdminBorder),
+            border: Border.all(color: AppColors.adminBorder),
           ),
           child: Column(
             children: [
@@ -1741,23 +1729,23 @@ class _UsersTabState extends State<_UsersTab> {
                     Text(
                       'Người dùng (${filtered.length})',
                       style: const TextStyle(
-                        color: _kAdminText,
+                        color: AppColors.adminText,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const Text('Mới nhất',
-                        style: TextStyle(color: _kAdminMuted, fontSize: 12)),
+                        style: TextStyle(color: AppColors.adminMuted, fontSize: 12)),
                   ],
                 ),
               ),
-              const Divider(color: _kAdminBorder, height: 1),
+              const Divider(color: AppColors.adminBorder, height: 1),
               ...filtered.map((u) => _UserListItem(user: u)),
               if (filtered.isEmpty)
                 const Padding(
                   padding: EdgeInsets.all(32),
                   child: Text('Không tìm thấy người dùng',
-                      style: TextStyle(color: _kAdminMuted)),
+                      style: TextStyle(color: AppColors.adminMuted)),
                 ),
             ],
           ),
@@ -1775,10 +1763,10 @@ class _UserListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final roleColor = user.role == 'OWNER'
-        ? const Color(0xFF10B981)
+        ? AppColors.success
         : user.role == 'BOTH'
             ? const Color(0xFFA855F7)
-            : _kAdminTeal;
+            : AppColors.adminTeal;
     final roleLabel = user.role == 'OWNER'
         ? 'Chủ xe'
         : user.role == 'BOTH'
@@ -1787,7 +1775,7 @@ class _UserListItem extends StatelessWidget {
 
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: _kAdminBorder, width: 0.5)),
+        border: Border(bottom: BorderSide(color: AppColors.adminBorder, width: 0.5)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -1799,7 +1787,7 @@ class _UserListItem extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [_kAdminPrimary, _kAdminTeal],
+                    colors: [AppColors.adminBlue, AppColors.adminTeal],
                   ),
                   borderRadius: BorderRadius.circular(22),
                 ),
@@ -1821,9 +1809,9 @@ class _UserListItem extends StatelessWidget {
                     width: 14,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981),
+                      color: AppColors.success,
                       shape: BoxShape.circle,
-                      border: Border.all(color: _kAdminCard, width: 2),
+                      border: Border.all(color: AppColors.adminCard, width: 2),
                     ),
                     child: const Icon(Icons.check, size: 8, color: Colors.white),
                   ),
@@ -1839,7 +1827,7 @@ class _UserListItem extends StatelessWidget {
                   user.name,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: _kAdminText,
+                    color: AppColors.adminText,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1848,13 +1836,13 @@ class _UserListItem extends StatelessWidget {
                 Row(
                   children: [
                     const Icon(Icons.location_on_outlined,
-                        size: 12, color: _kAdminMuted),
+                        size: 12, color: AppColors.adminMuted),
                     const SizedBox(width: 2),
                     Expanded(
                       child: Text(
                         '${user.city} · ${user.trips} chuyến · ${user.joinedAt}',
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: _kAdminMuted, fontSize: 12),
+                        style: const TextStyle(color: AppColors.adminMuted, fontSize: 12),
                       ),
                     ),
                   ],
@@ -1899,3 +1887,4 @@ class _RevenueTab extends StatelessWidget {
     );
   }
 }
+

@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
-
-const _kAdminBg = Color(0xFF0A1628);
-const _kAdminCard = Color(0xFF1A2A40);
-const _kAdminBorder = Color(0xFF253A54);
-const _kAdminText = Color(0xFFE8F0FC);
-const _kAdminMuted = Color(0xFF6B8AAD);
-const _kAdminPrimary = Color(0xFF3B82F6);
 
 class KycDetailScreen extends StatelessWidget {
   const KycDetailScreen({super.key});
@@ -20,7 +14,7 @@ class KycDetailScreen extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: _kAdminBg,
+        backgroundColor: AppColors.adminBg,
         body: CustomScrollView(
           slivers: [
             _AdminAppBar(
@@ -62,10 +56,10 @@ class _AdminAppBar extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 100,
       pinned: true,
-      backgroundColor: _kAdminBg,
+      backgroundColor: AppColors.adminBg,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_rounded,
-            color: _kAdminText, size: 20),
+            color: AppColors.adminText, size: 20),
         onPressed: () => context.pop(),
       ),
       flexibleSpace: FlexibleSpaceBar(
@@ -78,10 +72,10 @@ class _AdminAppBar extends StatelessWidget {
                 style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _kAdminText)),
+                    color: AppColors.adminText)),
             Text(subtitle,
                 style: const TextStyle(
-                    fontSize: 11, color: _kAdminMuted)),
+                    fontSize: 11, color: AppColors.adminMuted)),
           ],
         ),
         background: Container(
@@ -89,7 +83,7 @@ class _AdminAppBar extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF1E3A5F), _kAdminBg],
+              colors: [Color(0xFF1E3A5F), AppColors.adminBg],
             ),
           ),
         ),
@@ -104,9 +98,9 @@ class _UserInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _kAdminCard,
+        color: AppColors.adminCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: Row(
         children: [
@@ -114,7 +108,7 @@ class _UserInfoCard extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: _kAdminPrimary.withAlpha(40),
+              color: AppColors.adminBlue.withAlpha(40),
               shape: BoxShape.circle,
             ),
             child: const Center(
@@ -131,16 +125,16 @@ class _UserInfoCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _kAdminText,
+                    color: AppColors.adminText,
                   ),
                 ),
                 const SizedBox(height: 3),
                 const Text(
                   '0912 345 678 · an.nguyen@email.com',
-                  style: TextStyle(fontSize: 12, color: _kAdminMuted),
+                  style: TextStyle(fontSize: 12, color: AppColors.adminMuted),
                 ),
                 const SizedBox(height: 6),
-                StatusChip(label: '🟡 Đang chờ', color: const Color(0xFFF59E0B)),
+                StatusChip(label: '🟡 Đang chờ', color: AppColors.warning),
               ],
             ),
           ),
@@ -156,9 +150,9 @@ class _DocumentsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _kAdminCard,
+        color: AppColors.adminCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,7 +162,7 @@ class _DocumentsCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: _kAdminText,
+              color: AppColors.adminText,
             ),
           ),
           const SizedBox(height: 14),
@@ -203,9 +197,9 @@ class _DocTile extends StatelessWidget {
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color: _kAdminBorder.withAlpha(80),
+        color: AppColors.adminBorder.withAlpha(80),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -215,7 +209,7 @@ class _DocTile extends StatelessWidget {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10, color: _kAdminMuted),
+            style: const TextStyle(fontSize: 10, color: AppColors.adminMuted),
           ),
         ],
       ),
@@ -229,18 +223,18 @@ class _SubmissionInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _kAdminCard,
+        color: AppColors.adminCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kAdminBorder),
+        border: Border.all(color: AppColors.adminBorder),
       ),
-      child: Column(
+      child: const Column(
         children: [
           _InfoRow(label: 'Loại xác minh', value: 'CCCD + Bằng lái xe'),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           _InfoRow(label: 'Thời gian nộp', value: '10:32 · 05/06/2025'),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           _InfoRow(label: 'Lần thứ', value: '1 (lần đầu)'),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           _InfoRow(label: 'IP nộp', value: '192.168.1.xxx'),
         ],
       ),
@@ -259,12 +253,12 @@ class _InfoRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
-            style: const TextStyle(fontSize: 13, color: _kAdminMuted)),
+            style: const TextStyle(fontSize: 13, color: AppColors.adminMuted)),
         Text(value,
             style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: _kAdminText)),
+                color: AppColors.adminText)),
       ],
     );
   }
