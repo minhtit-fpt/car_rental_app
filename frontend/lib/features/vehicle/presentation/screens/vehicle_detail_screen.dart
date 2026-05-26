@@ -1,9 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
-import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
@@ -50,25 +51,32 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                   setState(() => _selectedImageIndex = i),
             ),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _TitleSection(vehicle: v),
-                    const SizedBox(height: 20),
-                    _SpecsRow(vehicle: v),
-                    const SizedBox(height: 20),
-                    const _DescriptionCard(),
-                    const SizedBox(height: 20),
-                    _FeaturesCard(vehicle: v),
-                    const SizedBox(height: 20),
-                    _OwnerCard(vehicle: v),
-                    const SizedBox(height: 20),
-                    _ReviewsSection(vehicle: v),
-                    const SizedBox(height: 100),
-                  ],
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Badge strip
+                  _BadgeStrip(vehicle: v),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _TitleSection(vehicle: v),
+                        const SizedBox(height: 20),
+                        _SpecsGrid(vehicle: v),
+                        const SizedBox(height: 20),
+                        _OwnerCard(vehicle: v),
+                        const SizedBox(height: 20),
+                        const _TripRulesCard(),
+                        const SizedBox(height: 20),
+                        const _PickupMapBlock(),
+                        const SizedBox(height: 20),
+                        _ReviewsSection(vehicle: v),
+                        const SizedBox(height: 100),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -78,6 +86,10 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     );
   }
 }
+
+// ─────────────────────────────────────────────
+// Hero app bar — 260px, frosted glass buttons
+// ─────────────────────────────────────────────
 
 class _DetailAppBar extends StatelessWidget {
   const _DetailAppBar({
@@ -96,58 +108,20 @@ class _DetailAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top;
     return SliverAppBar(
-      expandedHeight: 280,
+      expandedHeight: 260,
       pinned: true,
       backgroundColor: AppColors.surface,
-      leading: GestureDetector(
-        onTap: () => context.pop(),
-        child: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.surface.withAlpha(230),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.arrow_back_rounded, color: AppColors.darkText),
-        ),
-      ),
-      actions: [
-        GestureDetector(
-          onTap: onFavoriteToggle,
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.surface.withAlpha(230),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isFavorite ? const Color(0xFFEF4444) : AppColors.darkText,
-              size: 20,
-            ),
-          ),
-        ),
-        GestureDetector(
-          onTap: () {},
-          child: Container(
-            margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.surface.withAlpha(230),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.share_outlined, color: AppColors.darkText, size: 20),
-          ),
-        ),
-      ],
+      automaticallyImplyLeading: false,
+      systemOverlayStyle: SystemUiOverlayStyle.dark,
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           children: [
+            // Hero image area
             Container(
               width: double.infinity,
+              height: double.infinity,
               decoration: const BoxDecoration(
                 gradient: AppColors.cardImageGradient,
               ),
@@ -158,50 +132,76 @@ class _DetailAppBar extends StatelessWidget {
                 ),
               ),
             ),
-            if (vehicle.isElectric)
-              Positioned(
-                bottom: 40,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.teal,
-                    borderRadius: BorderRadius.circular(20),
+            // Back button — frosted glass
+            Positioned(
+              top: top + 8,
+              left: 12,
+              child: _GlassCircleButton(
+                onTap: () => context.pop(),
+                child: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: AppColors.darkText,
+                  size: 20,
+                ),
+              ),
+            ),
+            // Heart + share — frosted glass
+            Positioned(
+              top: top + 8,
+              right: 12,
+              child: Row(
+                children: [
+                  _GlassCircleButton(
+                    onTap: onFavoriteToggle,
+                    child: Icon(
+                      isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      color: isFavorite
+                          ? const Color(0xFFEF4444)
+                          : AppColors.darkText,
+                      size: 20,
+                    ),
                   ),
-                  child: const Text(
-                    '⚡ EV',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                  const SizedBox(width: 8),
+                  _GlassCircleButton(
+                    onTap: () {},
+                    child: const Icon(
+                      Icons.share_outlined,
+                      color: AppColors.darkText,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Gallery counter pill "1 / 3"
+            Positioned(
+              bottom: 14,
+              right: 14,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withAlpha(100),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${selectedIndex + 1} / 3',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            Positioned(
-              bottom: 12,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(3, (i) {
-                  final active = i == selectedIndex;
-                  return GestureDetector(
-                    onTap: () => onImageChanged(i),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      width: active ? 20 : 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: active
-                            ? AppColors.primary
-                            : AppColors.border,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                  );
-                }),
               ),
             ),
           ],
@@ -210,6 +210,114 @@ class _DetailAppBar extends StatelessWidget {
     );
   }
 }
+
+class _GlassCircleButton extends StatelessWidget {
+  const _GlassCircleButton({required this.onTap, required this.child});
+
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(210),
+              shape: BoxShape.circle,
+              boxShadow: const [
+                BoxShadow(
+                  color: AppColors.cardShadowColor,
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Badge strip — Đặt nhanh / Xe điện / −15%
+// ─────────────────────────────────────────────
+
+class _BadgeStrip extends StatelessWidget {
+  const _BadgeStrip({required this.vehicle});
+  final Vehicle vehicle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          _Badge(
+            label: '⚡ Đặt nhanh',
+            bg: AppColors.navySoft,
+            textColor: AppColors.primary,
+          ),
+          if (vehicle.isElectric)
+            _Badge(
+              label: '🔋 Xe điện',
+              bg: AppColors.tealSoft,
+              textColor: AppColors.tealDark,
+            ),
+          _Badge(
+            label: '🏷 −15% cuối tuần',
+            bg: AppColors.warningSoft,
+            textColor: AppColors.warning,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge({
+    required this.label,
+    required this.bg,
+    required this.textColor,
+  });
+  final String label;
+  final Color bg;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: textColor,
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Title + rating row
+// ─────────────────────────────────────────────
 
 class _TitleSection extends StatelessWidget {
   const _TitleSection({required this.vehicle});
@@ -220,85 +328,85 @@ class _TitleSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Name + price
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    vehicle.name,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkText,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.mutedText,
-                    ),
-                  ),
-                ],
+              child: Text(
+                vehicle.name,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.darkText,
+                  height: 1.2,
+                  letterSpacing: -0.4,
+                ),
               ),
             ),
+            const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '${_fmtVnd(vehicle.pricePerDay)} VNĐ',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
+                Text(
+                  '${_fmtVnd(vehicle.pricePerDay)} VNĐ',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navyDark,
+                    height: 1,
                   ),
                 ),
                 const Text(
                   '/ngày',
-                  style: TextStyle(fontSize: 12, color: AppColors.mutedText),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.mutedText,
+                  ),
                 ),
               ],
             ),
           ],
         ),
+        const SizedBox(height: 6),
+        Text(
+          '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
+          style: const TextStyle(fontSize: 13, color: AppColors.mutedText),
+        ),
         const SizedBox(height: 10),
+        // Rating + location + status
         Row(
           children: [
             RatingStars(rating: vehicle.rating, size: 14),
             const SizedBox(width: 6),
             Text(
-              '${vehicle.rating.toStringAsFixed(1)} (${vehicle.reviewCount} đánh giá)',
+              '${vehicle.rating.toStringAsFixed(1)} (${vehicle.reviewCount})',
               style: const TextStyle(
                 fontSize: 13,
                 color: AppColors.secondaryText,
                 fontWeight: FontWeight.w500,
               ),
             ),
+            const SizedBox(width: 10),
+            StatusChip(label: 'Còn xe', color: AppColors.success),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Row(
           children: [
-            const Icon(Icons.location_on_rounded,
-                size: 14, color: AppColors.mutedText),
+            const Icon(
+              Icons.location_on_rounded,
+              size: 14,
+              color: AppColors.mutedText,
+            ),
             const SizedBox(width: 4),
             Text(
-              vehicle.location.isNotEmpty ? vehicle.location : 'Hà Nội',
-              style: const TextStyle(fontSize: 13, color: AppColors.mutedText),
+              vehicle.location.isNotEmpty ? vehicle.location : 'TP. HCM',
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.mutedText,
+              ),
             ),
-            const SizedBox(width: 12),
-            StatusChip(label: 'Còn xe', color: const Color(0xFF10B981)),
           ],
         ),
       ],
@@ -306,20 +414,24 @@ class _TitleSection extends StatelessWidget {
   }
 }
 
-class _SpecsRow extends StatelessWidget {
-  const _SpecsRow({required this.vehicle});
+// ─────────────────────────────────────────────
+// Specs grid — 4 cols
+// ─────────────────────────────────────────────
+
+class _SpecsGrid extends StatelessWidget {
+  const _SpecsGrid({required this.vehicle});
   final Vehicle vehicle;
 
   @override
   Widget build(BuildContext context) {
     final specs = [
       _SpecItem(icon: '🪑', label: '5 chỗ'),
+      _SpecItem(icon: '⚙️', label: 'Tự động'),
       _SpecItem(
         icon: vehicle.isElectric ? '⚡' : '⛽',
         label: vehicle.isElectric ? 'Điện' : 'Xăng',
       ),
-      _SpecItem(icon: '🔧', label: 'Tự động'),
-      _SpecItem(icon: '📦', label: 'Giao xe'),
+      _SpecItem(icon: '🚪', label: '4 cửa'),
     ];
 
     return Row(
@@ -343,7 +455,7 @@ class _SpecCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 3),
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -352,7 +464,7 @@ class _SpecCard extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: AppColors.cardShadowColor,
-            blurRadius: 8,
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -375,150 +487,9 @@ class _SpecCard extends StatelessWidget {
   }
 }
 
-class _DescriptionCard extends StatefulWidget {
-  const _DescriptionCard();
-
-  @override
-  State<_DescriptionCard> createState() => _DescriptionCardState();
-}
-
-class _DescriptionCardState extends State<_DescriptionCard> {
-  bool _expanded = false;
-
-  static const _full =
-      'Xe được bảo dưỡng định kỳ, nội thất sạch sẽ và đầy đủ tiện nghi. '
-      'Trang bị camera 360°, cảm biến lùi, màn hình cảm ứng 10", kết nối Apple CarPlay/Android Auto. '
-      'Xe có bảo hiểm toàn diện và hỗ trợ đường dài 24/7. '
-      'Phù hợp cho gia đình, công tác và du lịch dài ngày.';
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.cardShadowColor,
-            blurRadius: 12,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SectionHeader(title: 'Mô tả xe'),
-          const SizedBox(height: 10),
-          Text(
-            _full,
-            maxLines: _expanded ? null : 3,
-            overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.secondaryText,
-              height: 1.6,
-            ),
-          ),
-          const SizedBox(height: 6),
-          GestureDetector(
-            onTap: () => setState(() => _expanded = !_expanded),
-            child: Text(
-              _expanded ? 'Thu gọn' : 'Xem thêm',
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FeaturesCard extends StatelessWidget {
-  const _FeaturesCard({required this.vehicle});
-  final Vehicle vehicle;
-
-  @override
-  Widget build(BuildContext context) {
-    final features = [
-      ('📷', 'Camera 360°'),
-      ('🎵', 'CarPlay / AA'),
-      ('❄️', 'Điều hoà tự động'),
-      ('🔌', vehicle.isElectric ? 'Sạc nhanh DC' : 'GPS tích hợp'),
-      ('🛡️', 'Bảo hiểm toàn diện'),
-      ('📦', 'Giao xe tận nơi'),
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.cardShadowColor,
-            blurRadius: 12,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SectionHeader(title: 'Trang bị nổi bật'),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: features
-                .map((f) => _FeatureChip(icon: f.$1, label: f.$2))
-                .toList(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FeatureChip extends StatelessWidget {
-  const _FeatureChip({required this.icon, required this.label});
-  final String icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(icon, style: const TextStyle(fontSize: 13)),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.secondaryText,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// ─────────────────────────────────────────────
+// Owner card — avatar + verified teal badge
+// ─────────────────────────────────────────────
 
 class _OwnerCard extends StatelessWidget {
   const _OwnerCard({required this.vehicle});
@@ -530,28 +501,52 @@ class _OwnerCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: const [
           BoxShadow(
             color: AppColors.cardShadowColor,
-            blurRadius: 12,
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withAlpha(26),
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Text('👤', style: TextStyle(fontSize: 24)),
-            ),
+          // Avatar + verified badge
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: AppColors.navySoft,
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Text('👤', style: TextStyle(fontSize: 24)),
+                ),
+              ),
+              Positioned(
+                bottom: -2,
+                right: -2,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: AppColors.teal,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    size: 11,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -567,13 +562,28 @@ class _OwnerCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                const Text(
-                  '⭐ 4.9 · 36 chuyến · Phản hồi nhanh',
-                  style: TextStyle(fontSize: 12, color: AppColors.mutedText),
+                const Row(
+                  children: [
+                    Text(
+                      '⭐ 4.9',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.mutedText,
+                      ),
+                    ),
+                    Text(
+                      ' · 36 chuyến · Phản hồi nhanh',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.mutedText,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
+          // Message button
           OutlinedButton(
             onPressed: () {},
             style: OutlinedButton.styleFrom(
@@ -582,6 +592,8 @@ class _OwnerCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: const Text(
               'Nhắn tin',
@@ -597,6 +609,187 @@ class _OwnerCard extends StatelessWidget {
     );
   }
 }
+
+// ─────────────────────────────────────────────
+// Trip rules — teal check icons
+// ─────────────────────────────────────────────
+
+class _TripRulesCard extends StatelessWidget {
+  const _TripRulesCard();
+
+  static const _rules = [
+    'Không hút thuốc trong xe',
+    'Không chở hàng hoá cồng kềnh',
+    'Trả xe đúng giờ, đúng địa điểm',
+    'Vệ sinh xe trước khi trả',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.cardShadowColor,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(title: 'Quy định chuyến đi'),
+          const SizedBox(height: 12),
+          ..._rules.map((r) => _RuleItem(rule: r)),
+        ],
+      ),
+    );
+  }
+}
+
+class _RuleItem extends StatelessWidget {
+  const _RuleItem({required this.rule});
+  final String rule;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 18,
+            height: 18,
+            decoration: const BoxDecoration(
+              color: AppColors.tealSoft,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check_rounded,
+              size: 11,
+              color: AppColors.teal,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              rule,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.secondaryText,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Pickup map block — styled placeholder
+// ─────────────────────────────────────────────
+
+class _PickupMapBlock extends StatelessWidget {
+  const _PickupMapBlock();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionHeader(title: 'Địa điểm nhận xe'),
+        const SizedBox(height: 10),
+        Container(
+          height: 120,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceSunken,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Stack(
+            children: [
+              // Grid lines for map feel
+              CustomPaint(
+                painter: _MapGridPainter(),
+                child: const SizedBox.expand(),
+              ),
+              // Location pin
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: AppColors.brandShadow,
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.location_on_rounded,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Quận 1, TP. HCM',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MapGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.border.withAlpha(120)
+      ..strokeWidth = 1;
+
+    const step = 24.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_MapGridPainter oldDelegate) => false;
+}
+
+// ─────────────────────────────────────────────
+// Reviews — 2 preview + see all
+// ─────────────────────────────────────────────
 
 class _ReviewsSection extends StatelessWidget {
   const _ReviewsSection({required this.vehicle});
@@ -633,7 +826,8 @@ class _ReviewsSection extends StatelessWidget {
           name: 'Hùng T.',
           rating: 4,
           date: '03/05/2025',
-          comment: 'Xe tốt, điều hoà mát. Giao xe hơi muộn 15 phút nhưng ổn.',
+          comment:
+              'Xe tốt, điều hoà mát. Giao xe hơi muộn 15 phút nhưng ổn.',
         ),
       ],
     );
@@ -664,7 +858,7 @@ class _ReviewCard extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: AppColors.cardShadowColor,
-            blurRadius: 8,
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -677,8 +871,8 @@ class _ReviewCard extends StatelessWidget {
               Container(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(26),
+                decoration: const BoxDecoration(
+                  color: AppColors.navySoft,
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
@@ -701,7 +895,9 @@ class _ReviewCard extends StatelessWidget {
                     Text(
                       date,
                       style: const TextStyle(
-                          fontSize: 11, color: AppColors.mutedText),
+                        fontSize: 11,
+                        color: AppColors.mutedText,
+                      ),
                     ),
                   ],
                 ),
@@ -724,55 +920,81 @@ class _ReviewCard extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────
+// Sticky CTA footer — backdrop blur
+// ─────────────────────────────────────────────
+
 class _BottomBar extends StatelessWidget {
   const _BottomBar({required this.vehicle});
   final Vehicle vehicle;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        12,
-        16,
-        12 + MediaQuery.of(context).padding.bottom,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
-      ),
-      child: Row(
-        children: [
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPad),
+          decoration: BoxDecoration(
+            color: Colors.white.withAlpha(230),
+            border: const Border(
+              top: BorderSide(color: AppColors.inkLight),
+            ),
+          ),
+          child: Row(
             children: [
-              Text(
-                '${_fmtVnd(vehicle.pricePerDay)} VNĐ',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
+              // Price block
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${_fmtVnd(vehicle.pricePerDay)} VNĐ',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.navyDark,
+                      height: 1,
+                    ),
+                  ),
+                  const Text(
+                    '/ngày',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.mutedText,
+                    ),
+                  ),
+                ],
               ),
-              const Text(
-                '/ngày',
-                style: TextStyle(fontSize: 12, color: AppColors.mutedText),
+              const SizedBox(width: 16),
+              // CTA button
+              Expanded(
+                child: SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () => context.push('/booking/dates', extra: vehicle),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Đặt xe ngay',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: PrimaryButton(
-              label: 'Đặt xe ngay',
-              onPressed: () => context.push(
-                '/booking/dates',
-                extra: vehicle,
-              ),
-              icon: Icons.directions_car_rounded,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

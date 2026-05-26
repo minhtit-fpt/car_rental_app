@@ -98,6 +98,17 @@ class _BookingConfirmView extends StatelessWidget {
                               icon: Icons.lock_outline_rounded,
                             ),
                           ),
+                          const SizedBox(height: 10),
+                          // T&C note
+                          const Text(
+                            'Bằng cách tiếp tục, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của RideVN.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.mutedText,
+                              height: 1.5,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           SecondaryButton(
                             label: 'Quay lại',
@@ -129,27 +140,28 @@ class _VehicleCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: const [
           BoxShadow(
             color: AppColors.cardShadowColor,
-            blurRadius: 12,
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
+          // 72×72 thumbnail
           Container(
-            width: 64,
-            height: 64,
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
               gradient: AppColors.cardImageGradient,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: Text(vehicle.emoji, style: const TextStyle(fontSize: 32)),
+              child: Text(vehicle.emoji, style: const TextStyle(fontSize: 36)),
             ),
           ),
           const SizedBox(width: 14),
@@ -160,8 +172,8 @@ class _VehicleCard extends StatelessWidget {
                 Text(
                   vehicle.name,
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.darkText,
                   ),
                 ),
@@ -169,21 +181,55 @@ class _VehicleCard extends StatelessWidget {
                 Text(
                   '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
                   style: const TextStyle(
-                      fontSize: 12, color: AppColors.mutedText),
+                    fontSize: 12,
+                    color: AppColors.mutedText,
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
+                // Dates split
                 Row(
                   children: [
-                    const Text('★',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.starYellow,
-                            fontWeight: FontWeight.bold)),
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 12,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    const Text(
+                      '15/06 → 17/06',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.secondaryText,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    const Text(
+                      '★',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.starYellow,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(width: 3),
                     Text(
-                      '${vehicle.rating.toStringAsFixed(1)} · ${vehicle.ownerName}',
+                      vehicle.rating.toStringAsFixed(1),
                       style: const TextStyle(
-                          fontSize: 12, color: AppColors.secondaryText),
+                        fontSize: 12,
+                        color: AppColors.secondaryText,
+                      ),
+                    ),
+                    Text(
+                      ' · ${vehicle.ownerName}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.mutedText,
+                      ),
                     ),
                   ],
                 ),
@@ -206,12 +252,12 @@ class _TripDetailsCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: const [
           BoxShadow(
             color: AppColors.cardShadowColor,
-            blurRadius: 12,
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -302,43 +348,55 @@ class _PaymentMethodCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: const [
           BoxShadow(
             color: AppColors.cardShadowColor,
-            blurRadius: 12,
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
+          // VISA card visual
           Container(
-            width: 40,
-            height: 40,
+            width: 52,
+            height: 34,
             decoration: BoxDecoration(
-              color: AppColors.primary.withAlpha(26),
-              borderRadius: BorderRadius.circular(10),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1A1F71), Color(0xFF2563EB)],
+              ),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: const Center(
-              child: Text('💳', style: TextStyle(fontSize: 20)),
+              child: Text(
+                'VISA',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Phương thức thanh toán',
+                  'Thẻ tín dụng',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     color: AppColors.mutedText,
                   ),
                 ),
                 Text(
-                  'VNPay · Ví điện tử',
+                  '**** **** **** 4242',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -348,8 +406,11 @@ class _PaymentMethodCard extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded,
-              size: 20, color: AppColors.mutedText),
+          const Icon(
+            Icons.chevron_right_rounded,
+            size: 20,
+            color: AppColors.mutedText,
+          ),
         ],
       ),
     );
@@ -375,9 +436,16 @@ class _TotalCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withAlpha(13),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withAlpha(40)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.cardShadowColor,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -388,9 +456,10 @@ class _TotalCard extends StatelessWidget {
           if (state.withDelivery)
             const _SummaryLine(label: 'Giao xe', value: '50K'),
           _SummaryLine(label: 'Bảo hiểm (5%)', value: '${insurance.toInt()}K'),
+          _SummaryLine(label: 'Phí dịch vụ (3%)', value: '${(rentalTotal * 0.03).toInt()}K'),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
-            child: Divider(color: AppColors.primary, height: 1),
+            child: Divider(color: AppColors.border, height: 1),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -399,16 +468,16 @@ class _TotalCard extends StatelessWidget {
                 'Tổng thanh toán',
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.darkText,
                 ),
               ),
               Text(
                 '${total.toInt()}K VNĐ',
                 style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.navyDark,
                 ),
               ),
             ],
@@ -449,22 +518,43 @@ class _InfoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF59E0B).withAlpha(20),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFF59E0B).withAlpha(60)),
+        color: AppColors.warningSoft,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.warning.withAlpha(60)),
       ),
-      child: const Row(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline_rounded,
-              size: 16, color: Color(0xFFF59E0B)),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Bạn sẽ ký hợp đồng điện tử sau khi xác nhận. Hủy miễn phí trước 24 giờ nhận xe.',
-              style: TextStyle(
-                  fontSize: 12, color: Color(0xFF92400E)),
+          const Icon(
+            Icons.info_outline_rounded,
+            size: 16,
+            color: AppColors.warning,
+          ),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Đặt cọc & Hủy chuyến',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.darkText,
+                  ),
+                ),
+                SizedBox(height: 3),
+                Text(
+                  'Đặt cọc 30% khi xác nhận. Hoàn 100% nếu hủy trước 24h nhận xe.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.secondaryText,
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

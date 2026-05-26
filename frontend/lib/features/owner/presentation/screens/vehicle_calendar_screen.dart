@@ -16,7 +16,7 @@ class VehicleCalendarScreen extends StatefulWidget {
 class _VehicleCalendarScreenState extends State<VehicleCalendarScreen> {
   DateTime _focusedMonth = DateTime.now();
 
-  // Mock: day 5-8 booked, day 15-16 blocked, rest available
+    // confirmed=navy / pending=orange / blocked=ink
   _DayStatus _statusFor(int day) {
     final today = DateTime.now();
     if (day == today.day &&
@@ -24,8 +24,9 @@ class _VehicleCalendarScreenState extends State<VehicleCalendarScreen> {
         _focusedMonth.year == today.year) {
       return _DayStatus.today;
     }
-    if (day >= 5 && day <= 8) { return _DayStatus.booked; }
-    if (day == 15 || day == 16) { return _DayStatus.blocked; }
+    if (day >= 5 && day <= 8) return _DayStatus.booked;   // confirmed
+    if (day == 12 || day == 13) return _DayStatus.blocked; // pending (blocked slot)
+    if (day == 20 || day == 21) return _DayStatus.blocked; // blocked
     return _DayStatus.available;
   }
 
@@ -48,6 +49,8 @@ class _VehicleCalendarScreenState extends State<VehicleCalendarScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: 8),
+                    const _EarningsHero(),
+                    const SizedBox(height: 16),
                     _VehiclePicker(),
                     const SizedBox(height: 16),
                     _CalendarCard(
@@ -72,6 +75,105 @@ class _VehicleCalendarScreenState extends State<VehicleCalendarScreen> {
   }
 }
 
+// ─────────────────────────────────────────────
+// Earnings hero — navy gradient + 3 stats
+// ─────────────────────────────────────────────
+
+class _EarningsHero extends StatelessWidget {
+  const _EarningsHero();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: AppColors.ownerHeaderGradient,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppColors.brandShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'DOANH THU THÁNG NÀY',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Colors.white60,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            '12.5M VNĐ',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // 3 stats row
+          Row(
+            children: [
+              _EarningsStat(label: 'Chuyến', value: '8'),
+              Container(
+                width: 1,
+                height: 28,
+                color: Colors.white24,
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              _EarningsStat(label: 'Chờ duyệt', value: '2'),
+              Container(
+                width: 1,
+                height: 28,
+                color: Colors.white24,
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              _EarningsStat(label: 'Đánh giá', value: '4.9 ★'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EarningsStat extends StatelessWidget {
+  const _EarningsStat({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: Colors.white60,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Vehicle switcher — monospace plate
+// ─────────────────────────────────────────────
+
 class _VehiclePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -84,7 +186,7 @@ class _VehiclePicker extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: AppColors.cardShadowColor,
-            blurRadius: 8,
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -92,14 +194,14 @@ class _VehiclePicker extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               gradient: AppColors.cardImageGradient,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: const Center(
-              child: Text('🚗', style: TextStyle(fontSize: 22)),
+              child: Text('🚗', style: TextStyle(fontSize: 24)),
             ),
           ),
           const SizedBox(width: 12),
@@ -115,16 +217,22 @@ class _VehiclePicker extends StatelessWidget {
                     color: AppColors.darkText,
                   ),
                 ),
+                SizedBox(height: 2),
+                // Monospace license plate
                 Text(
-                  '2024 · Sedan · Điện',
+                  '51F-123.45',
                   style: TextStyle(
-                      fontSize: 12, color: AppColors.mutedText),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mutedText,
+                    fontFamily: 'monospace',
+                    letterSpacing: 0.8,
+                  ),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.expand_more_rounded,
-              color: AppColors.mutedText),
+          const Icon(Icons.expand_more_rounded, color: AppColors.mutedText),
         ],
       ),
     );
@@ -245,21 +353,22 @@ class _DayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // confirmed=navy, pending=orange, blocked=ink per OwnerCalendar.jsx
     final (bg, textColor, borderColor) = switch (status) {
       _DayStatus.today => (
+          AppColors.accent,
+          Colors.white,
+          AppColors.accent,
+        ),
+      _DayStatus.booked => (
           AppColors.primary,
           Colors.white,
           AppColors.primary,
         ),
-      _DayStatus.booked => (
-          const Color(0xFF10B981).withAlpha(26),
-          const Color(0xFF10B981),
-          const Color(0xFF10B981).withAlpha(80),
-        ),
       _DayStatus.blocked => (
-          const Color(0xFFEF4444).withAlpha(26),
-          const Color(0xFFEF4444),
-          const Color(0xFFEF4444).withAlpha(80),
+          AppColors.inkLight,
+          AppColors.mutedText,
+          AppColors.border,
         ),
       _DayStatus.available => (
           AppColors.surface,
@@ -300,11 +409,11 @@ class _LegendRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        StatusChip(label: 'Đã đặt', color: const Color(0xFF10B981)),
+        StatusChip(label: 'Đã xác nhận', color: AppColors.primary),
         const SizedBox(width: 8),
-        StatusChip(label: 'Khoá', color: const Color(0xFFEF4444)),
+        StatusChip(label: 'Khoá', color: AppColors.mutedText),
         const SizedBox(width: 8),
-        StatusChip(label: 'Hôm nay', color: AppColors.primary),
+        StatusChip(label: 'Hôm nay', color: AppColors.accent),
       ],
     );
   }
@@ -317,12 +426,12 @@ class _UpcomingBookings extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: const [
           BoxShadow(
             color: AppColors.cardShadowColor,
-            blurRadius: 12,
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -330,27 +439,45 @@ class _UpcomingBookings extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Đặt xe sắp tới',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
-            ),
+          Row(
+            children: [
+              const Text(
+                'Cần phản hồi',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.darkText,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  '2',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          _BookingRow(
-            renter: 'Thanh N.',
-            dates: '05/06 – 08/06',
-            status: 'Đã xác nhận',
-            statusColor: const Color(0xFF10B981),
-          ),
-          const Divider(color: AppColors.border, height: 20),
-          _BookingRow(
+          const SizedBox(height: 14),
+          _PendingBookingCard(
             renter: 'Hùng T.',
             dates: '12/06 – 14/06',
-            status: 'Chờ xác nhận',
-            statusColor: const Color(0xFFF59E0B),
+            price: '1.400K',
+          ),
+          const SizedBox(height: 10),
+          _PendingBookingCard(
+            renter: 'Mai L.',
+            dates: '20/06 – 22/06',
+            price: '1.000K',
           ),
         ],
       ),
@@ -358,53 +485,118 @@ class _UpcomingBookings extends StatelessWidget {
   }
 }
 
-class _BookingRow extends StatelessWidget {
-  const _BookingRow({
+class _PendingBookingCard extends StatelessWidget {
+  const _PendingBookingCard({
     required this.renter,
     required this.dates,
-    required this.status,
-    required this.statusColor,
+    required this.price,
   });
 
   final String renter;
   final String dates;
-  final String status;
-  final Color statusColor;
+  final String price;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withAlpha(26),
-            shape: BoxShape.circle,
-          ),
-          child: const Center(
-            child: Text('👤', style: TextStyle(fontSize: 16)),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSunken,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Text(renter,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
-                  )),
-              Text(dates,
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.mutedText)),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  color: AppColors.navySoft,
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Text('👤', style: TextStyle(fontSize: 16)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      renter,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.darkText,
+                      ),
+                    ),
+                    Text(
+                      '$dates · $price VNĐ',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.mutedText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              StatusChip(label: 'Chờ duyệt', color: AppColors.warning),
             ],
           ),
-        ),
-        StatusChip(label: status, color: statusColor),
-      ],
+          const SizedBox(height: 12),
+          // Accept / Reject buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    foregroundColor: AppColors.danger,
+                  ),
+                  child: const Text(
+                    'Từ chối',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  child: const Text(
+                    'Chấp nhận',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
