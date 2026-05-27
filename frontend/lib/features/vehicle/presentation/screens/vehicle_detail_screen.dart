@@ -400,11 +400,14 @@ class _TitleSection extends StatelessWidget {
               color: AppColors.mutedText,
             ),
             const SizedBox(width: 4),
-            Text(
-              vehicle.location.isNotEmpty ? vehicle.location : 'TP. HCM',
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.mutedText,
+            Expanded(
+              child: Text(
+                vehicle.location.isNotEmpty ? vehicle.location : 'TP. HCM',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.mutedText,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -571,11 +574,14 @@ class _OwnerCard extends StatelessWidget {
                         color: AppColors.mutedText,
                       ),
                     ),
-                    Text(
-                      ' · 36 chuyến · Phản hồi nhanh',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.mutedText,
+                    Flexible(
+                      child: Text(
+                        ' · 36 chuyến · Phản hồi nhanh',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.mutedText,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
