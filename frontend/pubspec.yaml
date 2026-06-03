@@ -20,11 +20,37 @@ dependencies:
   # Google Fonts (Inter)
   google_fonts: ^6.2.1
 
+  # Local DB — Drift (SQLite) cache + offline (hướng A)
+  drift: ^2.20.0
+  sqlite3_flutter_libs: ^0.5.24
+  path_provider: ^2.1.4
+  path: ^1.9.0
+
+  # Secure storage (token) — Keychain/Keystore
+  flutter_secure_storage: ^9.2.2
+
+  # Key-value nhẹ (settings) — thay Hive cho gọn (KISS)
+  shared_preferences: ^2.3.2
+
+  # Dependency injection
+  get_it: ^8.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   bloc_test: ^10.0.0
+
+  # Drift code generation
+  drift_dev: ^2.20.0
+  build_runner: ^2.4.13
+
+# Pin path_provider platform impls về bản dùng platform-channel (không native-assets
+# hook/build.dart) — bản mới (android≥2.3.0 kéo jni, foundation≥2.6.0 kéo objective_c)
+# làm build_runner hỏng AOT compile trên Dart 3.10. Gỡ override khi build_runner hỗ trợ.
+dependency_overrides:
+  path_provider_android: 2.2.23
+  path_provider_foundation: 2.5.1
 
 flutter:
   uses-material-design: true
