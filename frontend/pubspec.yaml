@@ -10,10 +10,21 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Navigation
+  go_router: ^14.0.0
+
+  # State management
+  flutter_bloc: ^9.0.0
+  bloc: ^9.0.0
+
+  # Google Fonts (Inter)
+  google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  bloc_test: ^10.0.0
 
 flutter:
   uses-material-design: true

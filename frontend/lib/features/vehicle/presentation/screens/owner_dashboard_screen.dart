@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/shared/widgets/info_row.dart';
 
@@ -113,8 +114,8 @@ class _OwnerSliverAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverAppBar(
       pinned: true,
-      expandedHeight: 120,
-      backgroundColor: const Color(0xFF003380),
+      expandedHeight: 150,
+      backgroundColor: AppColors.ownerHeaderGradient.colors.last,
       systemOverlayStyle: SystemUiOverlayStyle.light,
       title: Row(
         children: [
@@ -164,11 +165,7 @@ class _OwnerSliverAppBar extends StatelessWidget {
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF001A3D), Color(0xFF003380)],
-            ),
+            gradient: AppColors.ownerHeaderGradient,
           ),
           child: SafeArea(
             child: Padding(
@@ -218,7 +215,7 @@ class _OwnerStatsRow extends StatelessWidget {
             value: '24.5M',
             unit: 'VNĐ',
             label: 'Doanh thu tháng',
-            color: const Color(0xFFF59E0B),
+            color: AppColors.warning,
           ),
         ),
         const SizedBox(width: 10),
@@ -228,7 +225,7 @@ class _OwnerStatsRow extends StatelessWidget {
             value: '3',
             unit: 'xe',
             label: 'Đang cho thuê',
-            color: const Color(0xFFEF4444),
+            color: AppColors.danger,
           ),
         ),
         const SizedBox(width: 10),
@@ -378,7 +375,7 @@ class _OwnerProfileCard extends StatelessWidget {
                   width: 22,
                   height: 22,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFF59E0B),
+                    color: AppColors.warning,
                     shape: BoxShape.circle,
                   ),
                   child: const Center(
@@ -447,14 +444,14 @@ class _OwnerProfileCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withAlpha(26),
+                  color: AppColors.successSoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(
                   '✓ KYC Đã xác minh',
                   style: TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF10B981),
+                    color: AppColors.success,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -466,7 +463,7 @@ class _OwnerProfileCard extends StatelessWidget {
             width: double.infinity,
             height: 42,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => context.push('/profile/edit'),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primary),
                 shape: RoundedRectangleBorder(
@@ -583,11 +580,14 @@ class _ActiveRentalCard extends StatelessWidget {
                             color: AppColors.mutedText,
                           ),
                           const SizedBox(width: 2),
-                          const Text(
-                            'HQ Guzm Office · BK-2024-002',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.mutedText,
+                          const Expanded(
+                            child: Text(
+                              'HQ Guzm Office · BK-2024-002',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.mutedText,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -686,7 +686,7 @@ class _MyCarsCard extends StatelessWidget {
                   ],
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () => context.push('/owner/vehicle/add'),
                   icon: const Icon(Icons.add, size: 16),
                   label: const Text(
                     'Thêm xe mới',
@@ -836,7 +836,7 @@ class _OwnedCarRow extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               GestureDetector(
-                onTap: () {},
+                onTap: () => context.push('/owner/vehicle/edit'),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
@@ -879,9 +879,9 @@ class _OwnedCarRow extends StatelessWidget {
         ),
       _CarStatus.available => (
           label: 'Sẵn sàng',
-          bgColor: const Color(0xFF10B981).withAlpha(26),
-          textColor: const Color(0xFF10B981),
-          borderColor: const Color(0xFF10B981).withAlpha(77),
+          bgColor: AppColors.successSoft,
+          textColor: AppColors.success,
+          borderColor: AppColors.success.withAlpha(77),
         ),
       _CarStatus.maintenance => (
           label: 'Bảo dưỡng',

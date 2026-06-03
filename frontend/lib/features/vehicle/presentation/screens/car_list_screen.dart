@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/screens/car_detail_screen.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
 
-enum _VehicleFilter { all, sedan, suv, electric, pickup }
+enum _QuickFilter { all, instant, auto, electric, five, seven }
+
+const _filterLabels = {
+  _QuickFilter.all: 'Tất cả',
+  _QuickFilter.instant: '⚡ Đặt nhanh',
+  _QuickFilter.auto: '⚙️ Số tự động',
+  _QuickFilter.electric: '🔋 Xe điện',
+  _QuickFilter.five: '5 chỗ',
+  _QuickFilter.seven: '7+ chỗ',
+};
 
 class CarListScreen extends StatefulWidget {
   const CarListScreen({super.key});
@@ -14,46 +24,34 @@ class CarListScreen extends StatefulWidget {
 }
 
 class _CarListScreenState extends State<CarListScreen> {
-  _VehicleFilter _activeFilter = _VehicleFilter.all;
-  final _searchController = TextEditingController();
-  String _searchQuery = '';
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
+  _QuickFilter _activeFilter = _QuickFilter.all;
+  bool _showMap = false;
+  String _sortBy = 'Phổ biến nhất';
 
   List<Vehicle> get _filteredVehicles {
-    var list = kMockVehicles.where((v) {
-      if (_searchQuery.isEmpty) return true;
-      return v.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          v.type.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          v.location.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
-
     switch (_activeFilter) {
-      case _VehicleFilter.sedan:
-        return list.where((v) => v.type == 'Sedan').toList();
-      case _VehicleFilter.suv:
-        return list.where((v) => v.type == 'SUV').toList();
-      case _VehicleFilter.electric:
-        return list.where((v) => v.isElectric).toList();
-      case _VehicleFilter.pickup:
-        return list.where((v) => v.type == 'Pickup').toList();
-      case _VehicleFilter.all:
-        return list;
+      case _QuickFilter.electric:
+        return kMockVehicles.where((v) => v.isElectric).toList();
+      case _QuickFilter.five:
+        return kMockVehicles.where((v) => v.type == 'Sedan').toList();
+      case _QuickFilter.seven:
+        return kMockVehicles.where((v) => v.type == 'SUV').toList();
+      case _QuickFilter.auto:
+        return kMockVehicles.where((v) => v.type != 'Pickup').toList();
+      case _QuickFilter.instant:
+      case _QuickFilter.all:
+        return kMockVehicles;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _filteredVehicles;
-
+    final vehicles = _filteredVehicles;
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+      body: CustomScrollView(
+        slivers: [
+          // App bar
           SliverAppBar(
             pinned: true,
             backgroundColor: AppColors.surface,
@@ -84,39 +82,81 @@ class _CarListScreenState extends State<CarListScreen> {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.tune_rounded, color: AppColors.primary),
+                icon: const Icon(
+                  Icons.tune_rounded,
+                  color: AppColors.primary,
+                ),
                 onPressed: () => _showFilterSheet(context),
               ),
             ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(108),
-              child: Container(
-                color: AppColors.surface,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: Column(
-                  children: [
-                    const Divider(color: AppColors.border, height: 1),
-                    const SizedBox(height: 12),
-                    // Search field
-                    _SearchBar(
-                      controller: _searchController,
-                      onChanged: (q) => setState(() => _searchQuery = q),
-                    ),
-                    const SizedBox(height: 10),
-                    // Filter chips
-                    _FilterChips(
-                      active: _activeFilter,
-                      onSelected: (f) => setState(() => _activeFilter = f),
-                    ),
-                  ],
-                ),
+          ),
+          // Map strip + search overlay
+          SliverToBoxAdapter(
+            child: _MapStrip(
+              showMap: _showMap,
+              onToggleMap: () => setState(() => _showMap = !_showMap),
+              vehicles: vehicles,
+            ),
+          ),
+          // Search bar (frosted overlay style)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: _FrostedSearchCard(),
+            ),
+          ),
+          // Filter chips
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
+              child: _FilterChips(
+                active: _activeFilter,
+                onSelected: (f) => setState(() => _activeFilter = f),
               ),
             ),
           ),
+          // Result count + sort
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${vehicles.length} xe phù hợp',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkText,
+                    ),
+                  ),
+                  _SortDropdown(
+                    value: _sortBy,
+                    onChanged: (v) => setState(() => _sortBy = v ?? _sortBy),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Vehicle list or empty
+          if (vehicles.isEmpty)
+            const SliverFillRemaining(child: _EmptyState())
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              sliver: SliverList.separated(
+                itemCount: vehicles.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final v = vehicles[index];
+                  return CarListTile(
+                    vehicle: v,
+                    onTap: () => context.push('/vehicles/${v.id}', extra: v),
+                  );
+                },
+              ),
+            ),
         ],
-        body: filtered.isEmpty
-            ? const _EmptyState()
-            : _VehicleList(vehicles: filtered),
       ),
     );
   }
@@ -133,42 +173,166 @@ class _CarListScreenState extends State<CarListScreen> {
 }
 
 // ─────────────────────────────────────────────
-// Search Bar
+// Map preview strip — 180px
 // ─────────────────────────────────────────────
 
-class _SearchBar extends StatelessWidget {
-  const _SearchBar({
-    required this.controller,
-    required this.onChanged,
+class _MapStrip extends StatelessWidget {
+  const _MapStrip({
+    required this.showMap,
+    required this.onToggleMap,
+    required this.vehicles,
   });
 
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
+  final bool showMap;
+  final VoidCallback onToggleMap;
+  final List<Vehicle> vehicles;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 44,
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border, width: 1.5),
-      ),
-      child: TextField(
-        controller: controller,
-        onChanged: onChanged,
-        textAlignVertical: TextAlignVertical.center,
-        style: const TextStyle(
-          fontSize: 14,
-          color: AppColors.darkText,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      height: showMap ? 180 : 0,
+      child: showMap
+          ? Stack(
+              children: [
+                // Map background with grid
+                Container(
+                  color: const Color(0xFFE8EDF5),
+                  child: CustomPaint(
+                    painter: _MapRoadsPainter(),
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+                // Price pills on map
+                ..._buildPricePills(vehicles),
+                // Toggle button
+                Positioned(
+                  bottom: 12,
+                  left: 0,
+                  right: 0,
+                  child: Center(child: _MapTogglePill(onTap: onToggleMap, showMap: showMap)),
+                ),
+              ],
+            )
+          : null,
+    );
+  }
+
+  List<Widget> _buildPricePills(List<Vehicle> vehicles) {
+    // Mock positions for price pills on map
+    const positions = [
+      (left: 40.0, top: 30.0),
+      (left: 140.0, top: 70.0),
+      (left: 240.0, top: 40.0),
+      (left: 80.0, top: 110.0),
+    ];
+    return List.generate(
+      vehicles.length.clamp(0, positions.length),
+      (i) => Positioned(
+        left: positions[i].left,
+        top: positions[i].top,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: AppColors.brandShadow,
+          ),
+          child: Text(
+            '${vehicles[i].pricePerDay.toInt()}K',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
-        decoration: const InputDecoration(
-          hintText: 'Search cars, brands, cities...',
-          hintStyle: TextStyle(color: AppColors.mutedText, fontSize: 13),
-          prefixIcon: Icon(Icons.search_rounded, color: AppColors.mutedText, size: 20),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 12),
-          isDense: true,
+      ),
+    );
+  }
+}
+
+class _MapRoadsPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final roadPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 6
+      ..strokeCap = StrokeCap.round;
+
+    final gridPaint = Paint()
+      ..color = const Color(0xFFD0D8E8)
+      ..strokeWidth = 1;
+
+    // Grid lines
+    for (double x = 0; x < size.width; x += 30) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+    for (double y = 0; y < size.height; y += 30) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+
+    // Roads
+    canvas.drawLine(
+      const Offset(0, 60),
+      Offset(size.width, 60),
+      roadPaint,
+    );
+    canvas.drawLine(
+      const Offset(0, 130),
+      Offset(size.width, 130),
+      roadPaint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.3, 0),
+      Offset(size.width * 0.3, size.height),
+      roadPaint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.7, 0),
+      Offset(size.width * 0.7, size.height),
+      roadPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_MapRoadsPainter oldDelegate) => false;
+}
+
+class _MapTogglePill extends StatelessWidget {
+  const _MapTogglePill({required this.onTap, required this.showMap});
+  final VoidCallback onTap;
+  final bool showMap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppColors.brandShadow,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              showMap ? Icons.list_rounded : Icons.map_rounded,
+              color: Colors.white,
+              size: 16,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              showMap ? 'Danh sách' : 'Xem bản đồ',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -176,52 +340,154 @@ class _SearchBar extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// Filter Chips
+// Frosted search card — location + dates
+// ─────────────────────────────────────────────
+
+class _FrostedSearchCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.cardShadowColor,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Location
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+              child: Row(
+                children: const [
+                  Icon(
+                    Icons.location_on_rounded,
+                    color: AppColors.primary,
+                    size: 16,
+                  ),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ĐỊA ĐIỂM',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.mutedText,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Text(
+                          'Quận 1, TP. HCM',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.darkText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Container(width: 1, height: 36, color: AppColors.inkLight),
+          // Dates
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 12, 14, 12),
+              child: Row(
+                children: const [
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    color: AppColors.primary,
+                    size: 16,
+                  ),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'THỜI GIAN',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.mutedText,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Text(
+                          '15/06 → 17/06',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.darkText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Filter chips — Vietnamese labels
 // ─────────────────────────────────────────────
 
 class _FilterChips extends StatelessWidget {
   const _FilterChips({required this.active, required this.onSelected});
 
-  final _VehicleFilter active;
-  final ValueChanged<_VehicleFilter> onSelected;
+  final _QuickFilter active;
+  final ValueChanged<_QuickFilter> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    const filters = [
-      (label: 'All', filter: _VehicleFilter.all),
-      (label: 'Sedan', filter: _VehicleFilter.sedan),
-      (label: 'SUV', filter: _VehicleFilter.suv),
-      (label: '⚡ Electric', filter: _VehicleFilter.electric),
-      (label: 'Pickup', filter: _VehicleFilter.pickup),
-    ];
-
     return SizedBox(
-      height: 32,
+      height: 34,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: filters.length,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: _QuickFilter.values.length,
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (_, i) {
-          final f = filters[i];
-          final isActive = active == f.filter;
+          final f = _QuickFilter.values[i];
+          final isActive = active == f;
           return GestureDetector(
-            onTap: () => onSelected(f.filter),
+            onTap: () => onSelected(f),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: isActive ? AppColors.primary : AppColors.background,
-                borderRadius: BorderRadius.circular(20),
+                color: isActive ? AppColors.accent : AppColors.surface,
+                borderRadius: BorderRadius.circular(9999),
                 border: Border.all(
-                  color: isActive ? AppColors.primary : AppColors.border,
-                  width: 1.5,
+                  color: isActive ? AppColors.accent : AppColors.border,
                 ),
               ),
+              alignment: Alignment.center,
               child: Text(
-                f.label,
+                _filterLabels[f]!,
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                   color: isActive ? Colors.white : AppColors.secondaryText,
                 ),
               ),
@@ -234,56 +500,44 @@ class _FilterChips extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// Vehicle List
+// Sort dropdown
 // ─────────────────────────────────────────────
 
-class _VehicleList extends StatelessWidget {
-  const _VehicleList({required this.vehicles});
-
-  final List<Vehicle> vehicles;
+class _SortDropdown extends StatelessWidget {
+  const _SortDropdown({required this.value, required this.onChanged});
+  final String value;
+  final ValueChanged<String?> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          sliver: SliverToBoxAdapter(
-            child: Text(
-              '${vehicles.length} car${vehicles.length == 1 ? '' : 's'} available',
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.secondaryText,
-              ),
-            ),
-          ),
+    return DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        value: value,
+        onChanged: onChanged,
+        isDense: true,
+        icon: const Icon(
+          Icons.keyboard_arrow_down_rounded,
+          size: 16,
+          color: AppColors.mutedText,
         ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          sliver: SliverList.separated(
-            itemCount: vehicles.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final vehicle = vehicles[index];
-              return CarListTile(
-                vehicle: vehicle,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CarDetailScreen(vehicle: vehicle),
-                  ),
-                ),
-              );
-            },
-          ),
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.secondaryText,
         ),
-      ],
+        items: const [
+          DropdownMenuItem(value: 'Phổ biến nhất', child: Text('Phổ biến nhất')),
+          DropdownMenuItem(value: 'Giá thấp nhất', child: Text('Giá thấp nhất')),
+          DropdownMenuItem(value: 'Đánh giá cao', child: Text('Đánh giá cao')),
+          DropdownMenuItem(value: 'Gần nhất', child: Text('Gần nhất')),
+        ],
+      ),
     );
   }
 }
 
 // ─────────────────────────────────────────────
-// Empty State
+// Empty state
 // ─────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
@@ -294,20 +548,20 @@ class _EmptyState extends StatelessWidget {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text('🚗', style: TextStyle(fontSize: 64)),
-          const SizedBox(height: 16),
-          const Text(
-            'No cars found',
+        children: const [
+          Text('🚗', style: TextStyle(fontSize: 56)),
+          SizedBox(height: 16),
+          Text(
+            'Không có xe phù hợp',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.darkText,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Try adjusting your search or filters',
+          SizedBox(height: 6),
+          Text(
+            'Thử thay đổi bộ lọc hoặc tìm kiếm khác',
             style: TextStyle(
               fontSize: 13,
               color: AppColors.secondaryText,
@@ -320,7 +574,7 @@ class _EmptyState extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// Filter Bottom Sheet
+// Filter bottom sheet
 // ─────────────────────────────────────────────
 
 class _FilterSheet extends StatefulWidget {
@@ -342,38 +596,48 @@ class _FilterSheetState extends State<_FilterSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Handle
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Filters',
+                'Bộ lọc',
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.darkText,
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  setState(() {
-                    _maxPrice = 1500;
-                    _minRating = 4.0;
-                  });
-                },
+                onPressed: () => setState(() {
+                  _maxPrice = 1500;
+                  _minRating = 4.0;
+                }),
                 child: const Text(
-                  'Reset',
+                  'Đặt lại',
                   style: TextStyle(color: AppColors.primary),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          // Price range
+          const SizedBox(height: 16),
+          // Price
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Giá tối đa mỗi ngày',
+                'Giá tối đa / ngày',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -384,8 +648,8 @@ class _FilterSheetState extends State<_FilterSheet> {
                 '${_maxPrice.toInt()}K VNĐ',
                 style: const TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark,
                 ),
               ),
             ],
@@ -395,17 +659,17 @@ class _FilterSheetState extends State<_FilterSheet> {
             min: 300,
             max: 2000,
             divisions: 17,
-            activeColor: AppColors.primary,
+            activeColor: AppColors.accent,
             inactiveColor: AppColors.border,
             onChanged: (v) => setState(() => _maxPrice = v),
           ),
           const SizedBox(height: 8),
-          // Min rating
+          // Rating
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Minimum rating',
+                'Đánh giá tối thiểu',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -415,19 +679,18 @@ class _FilterSheetState extends State<_FilterSheet> {
               Row(
                 children: [
                   const Text(
-                    '★',
+                    '★ ',
                     style: TextStyle(
                       color: AppColors.starYellow,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 4),
                   Text(
                     _minRating.toStringAsFixed(1),
                     style: const TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
                     ),
                   ),
                 ],
@@ -446,20 +709,23 @@ class _FilterSheetState extends State<_FilterSheet> {
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            height: 48,
+            height: 50,
             child: ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
                 elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: const Text(
-                'Apply Filters',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                'Áp dụng',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
               ),
             ),
           ),

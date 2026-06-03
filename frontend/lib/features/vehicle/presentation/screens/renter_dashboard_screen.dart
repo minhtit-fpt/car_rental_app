@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/shared/widgets/info_row.dart';
 
@@ -96,7 +97,7 @@ class _RenterDashboardScreenState extends State<RenterDashboardScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this)
+    _tabController = TabController(length: 2, vsync: this)
       ..addListener(() {
         if (!_tabController.indexIsChanging) {
           setState(() => _tabIndex = _tabController.index);
@@ -114,16 +115,13 @@ class _RenterDashboardScreenState extends State<RenterDashboardScreen>
     switch (_tabIndex) {
       case 1:
         return _kBookings
-            .where((b) => b.status == _BookingStatus.active)
-            .toList();
-      case 2:
-        return [];
-      case 3:
-        return _kBookings
             .where((b) => b.status != _BookingStatus.active)
             .toList();
       default:
-        return _kBookings;
+        // Sắp tới: active bookings
+        return _kBookings
+            .where((b) => b.status == _BookingStatus.active)
+            .toList();
     }
   }
 
@@ -171,7 +169,7 @@ class _RenterSliverAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverAppBar(
       pinned: true,
-      expandedHeight: 110,
+      expandedHeight: 150,
       backgroundColor: AppColors.primary,
       systemOverlayStyle: SystemUiOverlayStyle.light,
       title: Row(
@@ -198,11 +196,7 @@ class _RenterSliverAppBar extends StatelessWidget {
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF003380), Color(0xFF007BFF)],
-            ),
+            gradient: AppColors.renterHeaderGradient,
           ),
           child: SafeArea(
             child: Padding(
@@ -212,7 +206,7 @@ class _RenterSliverAppBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   const Text(
-                    'Trang chủ Người thuê',
+                    'Chuyến đi của tôi',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -221,7 +215,7 @@ class _RenterSliverAppBar extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Quản lý chuyến thuê xe của bạn',
+                    'Quản lý tất cả chuyến thuê xe',
                     style: TextStyle(
                       color: Colors.white.withAlpha(191),
                       fontSize: 13,
@@ -269,7 +263,7 @@ class _StatsRow extends StatelessWidget {
             value: '12',
             unit: 'chuyến',
             label: 'Tổng Chuyến',
-            color: AppColors.orange,
+            color: AppColors.accent,
           ),
         ),
         const SizedBox(width: 10),
@@ -278,7 +272,7 @@ class _StatsRow extends StatelessWidget {
             value: '850',
             unit: 'pts',
             label: 'Điểm thưởng',
-            color: const Color(0xFF10B981),
+            color: AppColors.success,
           ),
         ),
       ],
@@ -445,17 +439,16 @@ class _ProfileCard extends StatelessWidget {
                   size: 16, color: AppColors.mutedText),
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withAlpha(26),
+                  color: AppColors.successSoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(
                   '✓ KYC Đã xác minh',
                   style: TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF10B981),
+                    color: AppColors.success,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -467,7 +460,7 @@ class _ProfileCard extends StatelessWidget {
             width: double.infinity,
             height: 42,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => context.push('/profile/edit'),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primary),
                 shape: RoundedRectangleBorder(
@@ -558,25 +551,25 @@ class _BookingsCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          // Tab bar
+          // Tab bar — Sắp tới / Đã đi (orange underline per design)
           TabBar(
             controller: tabController,
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            labelColor: AppColors.primary,
+            isScrollable: false,
+            labelColor: AppColors.accent,
             unselectedLabelColor: AppColors.secondaryText,
-            indicatorColor: AppColors.primary,
-            indicatorWeight: 2,
+            indicatorColor: AppColors.accent,
+            indicatorWeight: 2.5,
             labelStyle: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
             ),
-            unselectedLabelStyle: const TextStyle(fontSize: 13),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
             tabs: const [
-              Tab(text: 'Tất cả'),
-              Tab(text: 'Đang thuê'),
               Tab(text: 'Sắp tới'),
-              Tab(text: 'Lịch sử'),
+              Tab(text: 'Đã đi'),
             ],
           ),
           const Divider(height: 1, color: AppColors.border),
@@ -657,28 +650,36 @@ class _BookingRow extends StatelessWidget {
                     color: AppColors.darkText,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
+                // Trip code — monospace
                 Text(
-                  booking.dateRange,
+                  booking.bookingRef,
                   style: const TextStyle(
                     fontSize: 11,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.mutedText,
+                    fontFamily: 'monospace',
+                    letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
+                // Date strip
                 Row(
                   children: [
                     const Icon(
-                      Icons.location_on_outlined,
-                      size: 11,
+                      Icons.calendar_today_outlined,
+                      size: 10,
                       color: AppColors.mutedText,
                     ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${booking.location} · ${booking.bookingRef}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.mutedText,
+                    const SizedBox(width: 3),
+                    Expanded(
+                      child: Text(
+                        booking.dateRange,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.mutedText,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -712,9 +713,9 @@ class _BookingRow extends StatelessWidget {
                 Text(
                   _fmtVnd(booking.price),
                   style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark,
                   ),
                 ),
             ],
@@ -735,13 +736,13 @@ class _BookingRow extends StatelessWidget {
         ),
       _BookingStatus.completed => (
           label: 'Hoàn thành',
-          bgColor: const Color(0xFF10B981).withAlpha(26),
-          textColor: const Color(0xFF10B981),
+          bgColor: AppColors.successSoft,
+          textColor: AppColors.success,
         ),
       _BookingStatus.cancelled => (
           label: 'Đã hủy',
-          bgColor: const Color(0xFFEF4444).withAlpha(26),
-          textColor: const Color(0xFFEF4444),
+          bgColor: AppColors.dangerSoft,
+          textColor: AppColors.danger,
         ),
     };
   }

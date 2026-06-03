@@ -141,8 +141,8 @@ class _CardDetails extends StatelessWidget {
                 _fmtVnd(vehicle.pricePerDay),
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.navyDark,
                   height: 1,
                 ),
               ),
@@ -319,8 +319,8 @@ class CarListTile extends StatelessWidget {
                               _fmtVnd(vehicle.pricePerDay),
                               style: const TextStyle(
                                 fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.navyDark,
                                 height: 1,
                               ),
                             ),

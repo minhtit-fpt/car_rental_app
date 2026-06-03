@@ -57,3 +57,4 @@ CLAUDE.md
 
 # Optional: dependency lock for apps (uncomment if you don't want to track it)
 # frontend/pubspec.lock
+.superpowers/
