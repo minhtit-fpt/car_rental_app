@@ -8,6 +8,15 @@ Thumbs.db
 *.iml
 .claude/
 
+# Node / Backend (Next.js + Prisma)
+**/node_modules/
+**/.next/
+**/out/
+**/dist/
+**/coverage/
+*.tsbuildinfo
+backend/next-env.d.ts
+
 # Logs
 *.log
 
