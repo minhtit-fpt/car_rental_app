@@ -22,7 +22,6 @@ frontend/.flutter-plugins
 frontend/.flutter-plugins-dependencies
 frontend/build/
 frontend/.packages
-frontend/pubspec.lock
 frontend/ios/Pods/
 frontend/android/.gradle/
 
