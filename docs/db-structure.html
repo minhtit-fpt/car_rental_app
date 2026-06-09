@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RideVN — ER Diagram (Postgres + SQLite)</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #ffffff;
+    color: #10131A;
+    margin: 0;
+    padding: 32px 28px 80px;
+    line-height: 1.5;
+  }
+  h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+  .sub { color: #6B7384; font-size: 13px; margin-bottom: 28px; }
+  h2 {
+    font-size: 16px; font-weight: 700; color: #14336B;
+    border-bottom: 2px solid #DDE3EC; padding-bottom: 8px;
+    margin: 40px 0 6px;
+  }
+  .hint { color: #6B7384; font-size: 12.5px; margin: 0 0 16px; }
+  .diagram {
+    border: 1px solid #DDE3EC; border-radius: 8px;
+    padding: 16px; overflow-x: auto; background: #FAFBFD;
+  }
+  .legend {
+    font-size: 12px; color: #4A5263; margin-top: 12px;
+    display: flex; gap: 20px; flex-wrap: wrap;
+  }
+  code { background: #F4F6FA; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  .note {
+    font-size: 12.5px; color: #4A5263; background: #F4F6FA;
+    border-left: 3px solid #14336B; padding: 10px 14px; border-radius: 4px;
+    margin: 14px 0;
+  }
+  .note.warn { border-left-color: #D64545; }
+</style>
+</head>
+<body>
+
+<h1>RideVN — Sơ đồ quan hệ Database</h1>
+<div class="sub">Hướng A · PostgreSQL = nguồn chân lý · SQLite trên máy = cache/offline (không có FK thật, chỉ mirror theo id server)</div>
+
+<!-- ============ POSTGRES ============ -->
+<h2>1. PostgreSQL (server) — quan hệ đầy đủ</h2>
+<p class="hint">Đường nối thể hiện khoá ngoại. Ký hiệu: <code>||</code> = một & chỉ một · <code>o|</code> = không hoặc một · <code>o{</code> = không hoặc nhiều.</p>
+<div class="diagram">
+<pre class="mermaid">
+erDiagram
+    User ||--o{ Vehicle : "sở hữu (ownerId)"
+    User ||--o{ Booking : "thuê (renterId)"
+    User ||--o| KYCVerification : "có 1 hồ sơ"
+    User ||--o{ RefreshToken : "có"
+    User ||--o{ OTPCode : "theo phone"
+    User ||--o{ LoyaltyPoint : "tích điểm"
+    User ||--o{ TripStory : "đăng"
+    User ||--o{ Notification : "nhận"
+    User ||--o{ Review : "viết (reviewerId)"
+    User ||--o{ Review : "bị đánh giá (targetId)"
+    User ||--o{ ChatMessage : "gửi (senderId)"
+    User ||--o{ AuditLog : "thao tác (actorId)"
+
+    Vehicle ||--o{ Booking : "được đặt"
+
+    Booking ||--o| Payment : "có 1"
+    Booking ||--o| Contract : "có 1"
+    Booking ||--o| Insurance : "có 1"
+    Booking ||--o{ Review : "phát sinh"
+    Booking ||--o| TripStory : "gắn với"
+    Booking ||--o| ChatConversation : "mở (tuỳ chọn)"
+
+    ChatConversation ||--o{ ChatMessage : "chứa"
+
+    User {
+        uuid id PK
+        string phone UK
+        string email
+        enum role "RENTER|OWNER|ADMIN"
+        enum kycStatus
+        string passwordHash
+        datetime createdAt
+    }
+    KYCVerification {
+        uuid id PK
+        uuid userId FK
+        string cccdUrl "private"
+        string licenseUrl "private"
+        string faceUrl "private"
+        enum status
+    }
+    RefreshToken {
+        uuid id PK
+        uuid userId FK
+        string tokenHash
+        datetime expiresAt
+    }
+    OTPCode {
+        uuid id PK
+        string phone
+        string codeHash
+        datetime expiresAt
+    }
+    Vehicle {
+        uuid id PK
+        uuid ownerId FK
+        enum type
+        decimal pricePerHour
+        bool isElectric
+        bool isAvailable
+        bool deliveryAvailable
+        geography location "PostGIS Point, GIST"
+    }
+    Booking {
+        uuid id PK
+        uuid vehicleId FK
+        uuid renterId FK
+        enum status
+        datetime startTime
+        datetime endTime
+        decimal totalPrice
+    }
+    Payment {
+        uuid id PK
+        uuid bookingId FK
+        enum method "VNPay|MoMo|Stripe"
+        enum status
+        decimal amount
+        string gatewayRef
+    }
+    Contract {
+        uuid id PK
+        uuid bookingId FK
+        string pdfUrl
+        datetime signedAt
+    }
+    Insurance {
+        uuid id PK
+        uuid bookingId FK
+        enum planType
+        decimal premium
+        decimal coverageAmount
+    }
+    Review {
+        uuid id PK
+        uuid bookingId FK
+        uuid reviewerId FK
+        uuid targetId FK
+        int rating "1-5"
+        text comment
+    }
+    LoyaltyPoint {
+        uuid id PK
+        uuid userId FK
+        int points
+        string action
+    }
+    TripStory {
+        uuid id PK
+        uuid userId FK
+        uuid bookingId FK
+        text content
+        string[] images
+        int likes
+    }
+    Notification {
+        uuid id PK
+        uuid userId FK
+        enum type
+        json payload
+        datetime readAt
+    }
+    ChatConversation {
+        uuid id PK
+        uuid bookingId FK
+        uuid[] participants
+        datetime lastMessageAt
+    }
+    ChatMessage {
+        uuid id PK
+        uuid conversationId FK
+        uuid senderId FK
+        text body
+        datetime sentAt
+    }
+    AuditLog {
+        uuid id PK
+        uuid actorId FK
+        string action
+        string target
+        datetime createdAt
+    }
+</pre>
+</div>
+<div class="note warn">
+  <b>Ràng buộc đặc biệt ở Booking:</b> <code>EXCLUDE USING gist (vehicleId WITH =, tstzrange(startTime,endTime) WITH &&) WHERE status IN ('CONFIRMED','IN_PROGRESS')</code> — chặn 2 booking chồng giờ trên cùng 1 xe ở tầng DB.
+</div>
+
+<!-- ============ SQLITE ============ -->
+<h2>2. SQLite trên máy (Drift) — cache & offline</h2>
+<p class="hint">Các bảng này <b>không có FK thật</b> tới server. Cột <code>id</code> = chính id của bản ghi trên Postgres (mirror). Quan hệ nội bộ duy nhất: ChatMessagesLocal nối ChatConversation theo <code>conversationId</code>.</p>
+<div class="diagram">
+<pre class="mermaid">
+erDiagram
+    VehiclesCache {
+        text id PK "= Vehicle.id server"
+        text json "snapshot"
+        real lat
+        real lng
+        int fetchedAt "TTL 10 phút"
+    }
+    BookingsCache {
+        text id PK "= Booking.id server"
+        text status
+        text json "snapshot"
+        int fetchedAt "TTL 30 phút"
+    }
+    NotificationsCache {
+        text id PK "= Notification.id server"
+        text type
+        bool readLocal
+        int fetchedAt
+    }
+    SearchHistory {
+        int id PK "auto"
+        text keyword
+        text filters "json"
+        int searchedAt
+    }
+    BookingDrafts {
+        int id PK "local"
+        text vehicleId "= Vehicle.id"
+        int startTime
+        int endTime
+        bool deliveryWanted
+        text syncState "draft|submitting"
+    }
+    ChatMessagesLocal {
+        int localId PK
+        text serverId "null khi chưa gửi"
+        text conversationId
+        text body
+        text syncState "pending|sent|failed"
+    }
+    ChatConvLocal {
+        text id PK "= ChatConversation.id"
+        text lastBody
+        int lastAt
+    }
+
+    ChatConvLocal ||--o{ ChatMessagesLocal : "chứa (conversationId)"
+</pre>
+</div>
+
+<div class="note">
+  <b>Ánh xạ máy ↔ server (theo id, không phải FK ràng buộc):</b><br>
+  <code>VehiclesCache.id</code> → <code>Vehicle.id</code> &nbsp;·&nbsp;
+  <code>BookingsCache.id</code> → <code>Booking.id</code> &nbsp;·&nbsp;
+  <code>BookingDrafts.vehicleId</code> → <code>Vehicle.id</code> &nbsp;·&nbsp;
+  <code>ChatMessagesLocal.serverId</code> → <code>ChatMessage.id</code> (sau khi gửi thành công)
+</div>
+
+<!-- ============ 2 KHO NGOÀI SQLITE ============ -->
+<h2>3. Ngoài SQLite — 2 kho riêng trên máy</h2>
+<p class="hint">Không dùng SQLite vì lý do bảo mật / đơn giản.</p>
+<div class="note warn">
+  <b>flutter_secure_storage</b> (Keychain iOS / Keystore Android — mã hoá phần cứng):
+  <code>accessToken</code> · <code>refreshToken</code> · <code>userRole</code>. Token <b>không bao giờ</b> để trong file .db.
+</div>
+<div class="note">
+  <b>Hive / SharedPreferences</b> (key-value nhẹ, không quan hệ):
+  <code>onboardingDone</code> · <code>themeMode</code> · <code>locale</code> · <code>lastSyncAt</code>.
+</div>
+
+<!-- ============ REMOTE ONLY ============ -->
+<h2>4. KHÔNG bao giờ cache — luôn hỏi server</h2>
+<div class="note warn">
+  Payment (status, amount) · Contract đã ký · Ảnh KYC (CCCD, bằng lái) · Booking status lúc đang giao dịch · Submit KYC.<br>
+  <b>Quy tắc vàng:</b> dữ liệu liên quan tiền hoặc pháp lý → luôn lấy từ Postgres, không tin bản cache trên máy.
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'neutral',
+    er: { layoutDirection: 'TB', entityPadding: 14, useMaxWidth: false }
+  });
+</script>
+</body>
+</html>
