@@ -29,3 +29,6 @@ frontend/android/.gradle/
 .DS_Store
 .idea/
 *.iml
+
+# === Claude Code ===
+.claude/
