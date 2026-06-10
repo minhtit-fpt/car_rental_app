@@ -21,3 +21,11 @@ class AuthEndpoints {
   static const String logout = '/auth/logout';
   static const String me = '/auth/me';
 }
+
+class KycEndpoints {
+  KycEndpoints._();
+
+  static const String uploadUrl = '/kyc/upload-url';
+  static const String submit = '/kyc/submit';
+  static const String status = '/kyc/status';
+}

@@ -6,6 +6,7 @@ import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_state.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
+import 'package:frontend/features/kyc/presentation/screens/kyc_screen.dart';
 
 GoRouter createRouter(AuthCubit authCubit) {
   return GoRouter(
@@ -47,6 +48,10 @@ GoRouter createRouter(AuthCubit authCubit) {
       GoRoute(
         path: '/',
         builder: (context, state) => const AppShell(),
+      ),
+      GoRoute(
+        path: '/kyc',
+        builder: (context, state) => const KycScreen(),
       ),
     ],
   );

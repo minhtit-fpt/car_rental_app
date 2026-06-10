@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_state.dart';
@@ -163,6 +164,48 @@ class _ProfileTab extends StatelessWidget {
                       ],
                     ),
                   ),
+                const SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: ListTile(
+                    onTap: () => context.push('/kyc'),
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(26),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.verified_user_outlined,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    title: const Text(
+                      'Xác minh danh tính',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.darkText,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'KYC — cần thiết để đặt xe',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.mutedText,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.mutedText,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: () => context.read<AuthCubit>().logout(),

@@ -22,6 +22,8 @@ frontend/.flutter-plugins
 frontend/.flutter-plugins-dependencies
 frontend/build/
 frontend/.packages
+# Flutter desktop ephemeral build artifacts (machine-specific symlinks)
+frontend/**/flutter/ephemeral/
 frontend/ios/Pods/
 frontend/android/.gradle/
 frontend/android/local.properties

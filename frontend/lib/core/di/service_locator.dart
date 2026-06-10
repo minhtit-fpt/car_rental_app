@@ -11,6 +11,13 @@ import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/register_usecase.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/features/kyc/data/datasources/kyc_remote_datasource.dart';
+import 'package:frontend/features/kyc/data/repositories/kyc_repository_impl.dart';
+import 'package:frontend/features/kyc/domain/repositories/kyc_repository.dart';
+import 'package:frontend/features/kyc/domain/usecases/get_kyc_status_usecase.dart';
+import 'package:frontend/features/kyc/domain/usecases/submit_kyc_usecase.dart';
+import 'package:frontend/features/kyc/domain/usecases/upload_kyc_document_usecase.dart';
+import 'package:frontend/features/kyc/presentation/cubit/kyc_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -57,6 +64,28 @@ Future<void> setupDependencies() async {
       logout: getIt(),
       getCurrentUser: getIt(),
       storage: getIt(),
+    ),
+  );
+
+  // --- KYC ---
+  getIt.registerLazySingleton<KycRemoteDataSource>(
+    () => KycRemoteDataSource(getIt()),
+  );
+  getIt.registerLazySingleton<KycRepository>(
+    () => KycRepositoryImpl(getIt()),
+  );
+  getIt.registerFactory<GetKycStatusUseCase>(
+    () => GetKycStatusUseCase(getIt()),
+  );
+  getIt.registerFactory<UploadKycDocumentUseCase>(
+    () => UploadKycDocumentUseCase(getIt()),
+  );
+  getIt.registerFactory<SubmitKycUseCase>(() => SubmitKycUseCase(getIt()));
+  getIt.registerFactory<KycCubit>(
+    () => KycCubit(
+      getStatus: getIt(),
+      upload: getIt(),
+      submit: getIt(),
     ),
   );
 }
