@@ -29,3 +29,12 @@ class KycEndpoints {
   static const String submit = '/kyc/submit';
   static const String status = '/kyc/status';
 }
+
+class VehicleEndpoints {
+  VehicleEndpoints._();
+
+  static const String list = '/vehicles';
+  static const String nearby = '/vehicles/nearby';
+
+  static String detail(String id) => '/vehicles/$id';
+}

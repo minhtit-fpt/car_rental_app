@@ -18,6 +18,12 @@ import 'package:frontend/features/kyc/domain/usecases/get_kyc_status_usecase.dar
 import 'package:frontend/features/kyc/domain/usecases/submit_kyc_usecase.dart';
 import 'package:frontend/features/kyc/domain/usecases/upload_kyc_document_usecase.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_cubit.dart';
+import 'package:frontend/features/vehicle/data/datasources/vehicle_remote_datasource.dart';
+import 'package:frontend/features/vehicle/data/repositories/vehicle_repository_impl.dart';
+import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
+import 'package:frontend/features/vehicle/domain/usecases/get_vehicle_detail_usecase.dart';
+import 'package:frontend/features/vehicle/domain/usecases/get_vehicles_usecase.dart';
+import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -87,5 +93,22 @@ Future<void> setupDependencies() async {
       upload: getIt(),
       submit: getIt(),
     ),
+  );
+
+  // --- Vehicle ---
+  getIt.registerLazySingleton<VehicleRemoteDataSource>(
+    () => VehicleRemoteDataSource(getIt()),
+  );
+  getIt.registerLazySingleton<VehicleRepository>(
+    () => VehicleRepositoryImpl(getIt()),
+  );
+  getIt.registerFactory<GetVehiclesUseCase>(
+    () => GetVehiclesUseCase(getIt()),
+  );
+  getIt.registerFactory<GetVehicleDetailUseCase>(
+    () => GetVehicleDetailUseCase(getIt()),
+  );
+  getIt.registerFactory<VehicleListCubit>(
+    () => VehicleListCubit(getIt()),
   );
 }
