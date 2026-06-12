@@ -6,6 +6,7 @@ import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/booking/domain/entities/booking.dart';
 import 'package:frontend/features/booking/presentation/cubit/my_trips_cubit.dart';
 import 'package:frontend/features/booking/presentation/cubit/my_trips_state.dart';
+import 'package:frontend/features/payment/presentation/screens/payment_screen.dart';
 
 String _formatPrice(double value) {
   final whole = value.round().toString();
@@ -135,6 +136,19 @@ class _TripCard extends StatelessWidget {
     }
   }
 
+  Future<void> _pay(BuildContext context) async {
+    final cubit = context.read<MyTripsCubit>();
+    final paid = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => PaymentScreen(
+          bookingId: booking.id,
+          amount: booking.totalPrice,
+        ),
+      ),
+    );
+    if (paid == true) await cubit.load();
+  }
+
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(booking.status);
@@ -228,6 +242,30 @@ class _TripCard extends StatelessWidget {
               ),
             ],
           ),
+          if (booking.status == BookingStatus.pendingPayment) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: cancelling ? null : () => _pay(context),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.lock_rounded,
+                    size: 18, color: Colors.white),
+                label: const Text(
+                  'Thanh toán',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
           if (booking.status.isCancellable) ...[
             const SizedBox(height: 12),
             SizedBox(

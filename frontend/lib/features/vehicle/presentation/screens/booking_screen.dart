@@ -6,6 +6,7 @@ import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/booking/domain/repositories/booking_repository.dart';
 import 'package:frontend/features/booking/presentation/cubit/create_booking_cubit.dart';
 import 'package:frontend/features/booking/presentation/cubit/create_booking_state.dart';
+import 'package:frontend/features/payment/presentation/screens/payment_screen.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 
 String _formatPrice(double value) {
@@ -96,14 +97,16 @@ class _BookingViewState extends State<_BookingView> {
 
   void _onStateChange(BuildContext context, CreateBookingState state) {
     if (state is CreateBookingSuccess) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('Đặt xe thành công — đơn đang chờ thanh toán'),
+      // Đơn vừa tạo ở PENDING_PAYMENT → sang luôn màn thanh toán, thay thế màn
+      // đặt xe để nút back không quay lại form.
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<bool>(
+          builder: (_) => PaymentScreen(
+            bookingId: state.booking.id,
+            amount: state.booking.totalPrice,
           ),
-        );
-      Navigator.of(context).pop(state.booking);
+        ),
+      );
     } else if (state is CreateBookingFailure) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()

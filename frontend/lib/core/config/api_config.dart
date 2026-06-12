@@ -48,3 +48,13 @@ class BookingEndpoints {
   static String detail(String id) => '/bookings/$id';
   static String cancel(String id) => '/bookings/$id/cancel';
 }
+
+class PaymentEndpoints {
+  PaymentEndpoints._();
+
+  // POST tạo phiên thanh toán.
+  static const String list = '/payments';
+
+  static String detail(String id) => '/payments/$id';
+  static String confirm(String id) => '/payments/$id/confirm';
+}

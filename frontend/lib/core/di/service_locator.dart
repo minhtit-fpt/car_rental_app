@@ -32,6 +32,12 @@ import 'package:frontend/features/booking/domain/usecases/create_booking_usecase
 import 'package:frontend/features/booking/domain/usecases/get_my_bookings_usecase.dart';
 import 'package:frontend/features/booking/presentation/cubit/create_booking_cubit.dart';
 import 'package:frontend/features/booking/presentation/cubit/my_trips_cubit.dart';
+import 'package:frontend/features/payment/data/datasources/payment_remote_datasource.dart';
+import 'package:frontend/features/payment/data/repositories/payment_repository_impl.dart';
+import 'package:frontend/features/payment/domain/repositories/payment_repository.dart';
+import 'package:frontend/features/payment/domain/usecases/confirm_payment_usecase.dart';
+import 'package:frontend/features/payment/domain/usecases/create_payment_usecase.dart';
+import 'package:frontend/features/payment/presentation/cubit/payment_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -141,5 +147,22 @@ Future<void> setupDependencies() async {
   );
   getIt.registerFactory<MyTripsCubit>(
     () => MyTripsCubit(getMyBookings: getIt(), cancelBooking: getIt()),
+  );
+
+  // --- Payment ---
+  getIt.registerLazySingleton<PaymentRemoteDataSource>(
+    () => PaymentRemoteDataSource(getIt()),
+  );
+  getIt.registerLazySingleton<PaymentRepository>(
+    () => PaymentRepositoryImpl(getIt()),
+  );
+  getIt.registerFactory<CreatePaymentUseCase>(
+    () => CreatePaymentUseCase(getIt()),
+  );
+  getIt.registerFactory<ConfirmPaymentUseCase>(
+    () => ConfirmPaymentUseCase(getIt()),
+  );
+  getIt.registerFactory<PaymentCubit>(
+    () => PaymentCubit(createPayment: getIt(), confirmPayment: getIt()),
   );
 }
