@@ -34,6 +34,13 @@ const CANCELLABLE: BookingStatus[] = [
   BookingStatus.CONFIRMED,
 ];
 
+// EXCLUDE constraint chống đặt trùng giờ ném lỗi Postgres 23P01 khi chuyển sang
+// CONFIRMED. Nhận diện để map sang 409 thay vì 500.
+function isOverlapViolation(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("23P01") || message.includes("booking_no_overlap");
+}
+
 function toPublicBooking(b: Booking): PublicBooking {
   return {
     id: b.id,
@@ -121,6 +128,56 @@ export const bookingService = {
 
   async getById(renterId: string, id: string): Promise<PublicBooking> {
     return toPublicBooking(await loadOwned(id, renterId));
+  },
+
+  // Gọi bởi payment.service sau khi thanh toán thành công. Chuyển
+  // PENDING_PAYMENT → CONFIRMED; idempotent nếu đã CONFIRMED. Ownership đã được
+  // payment.service kiểm tra trước đó.
+  async confirmAfterPayment(bookingId: string): Promise<PublicBooking> {
+    const booking = await bookingRepository.findById(bookingId);
+    if (!booking) {
+      throw new AppError(404, "BOOKING_NOT_FOUND", "Không tìm thấy đơn đặt");
+    }
+    if (booking.status === BookingStatus.CONFIRMED) {
+      return toPublicBooking(booking);
+    }
+    if (booking.status !== BookingStatus.PENDING_PAYMENT) {
+      throw new AppError(
+        409,
+        "BOOKING_NOT_CONFIRMABLE",
+        "Đơn không ở trạng thái chờ thanh toán",
+      );
+    }
+    // Pre-check tầng ứng dụng; EXCLUDE constraint là chốt cứng cuối cùng.
+    if (
+      await bookingRepository.hasActiveOverlap(
+        booking.vehicleId,
+        booking.startTime,
+        booking.endTime,
+      )
+    ) {
+      throw new AppError(
+        409,
+        "BOOKING_CONFLICT",
+        "Xe đã có người đặt trong khoảng thời gian này",
+      );
+    }
+    try {
+      const updated = await bookingRepository.updateStatus(
+        bookingId,
+        BookingStatus.CONFIRMED,
+      );
+      return toPublicBooking(updated);
+    } catch (error) {
+      if (isOverlapViolation(error)) {
+        throw new AppError(
+          409,
+          "BOOKING_CONFLICT",
+          "Xe đã có người đặt trong khoảng thời gian này",
+        );
+      }
+      throw error;
+    }
   },
 
   async cancel(renterId: string, id: string): Promise<PublicBooking> {
