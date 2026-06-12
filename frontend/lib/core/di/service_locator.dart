@@ -24,6 +24,14 @@ import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository
 import 'package:frontend/features/vehicle/domain/usecases/get_vehicle_detail_usecase.dart';
 import 'package:frontend/features/vehicle/domain/usecases/get_vehicles_usecase.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
+import 'package:frontend/features/booking/data/datasources/booking_remote_datasource.dart';
+import 'package:frontend/features/booking/data/repositories/booking_repository_impl.dart';
+import 'package:frontend/features/booking/domain/repositories/booking_repository.dart';
+import 'package:frontend/features/booking/domain/usecases/cancel_booking_usecase.dart';
+import 'package:frontend/features/booking/domain/usecases/create_booking_usecase.dart';
+import 'package:frontend/features/booking/domain/usecases/get_my_bookings_usecase.dart';
+import 'package:frontend/features/booking/presentation/cubit/create_booking_cubit.dart';
+import 'package:frontend/features/booking/presentation/cubit/my_trips_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -110,5 +118,28 @@ Future<void> setupDependencies() async {
   );
   getIt.registerFactory<VehicleListCubit>(
     () => VehicleListCubit(getIt()),
+  );
+
+  // --- Booking ---
+  getIt.registerLazySingleton<BookingRemoteDataSource>(
+    () => BookingRemoteDataSource(getIt()),
+  );
+  getIt.registerLazySingleton<BookingRepository>(
+    () => BookingRepositoryImpl(getIt()),
+  );
+  getIt.registerFactory<CreateBookingUseCase>(
+    () => CreateBookingUseCase(getIt()),
+  );
+  getIt.registerFactory<GetMyBookingsUseCase>(
+    () => GetMyBookingsUseCase(getIt()),
+  );
+  getIt.registerFactory<CancelBookingUseCase>(
+    () => CancelBookingUseCase(getIt()),
+  );
+  getIt.registerFactory<CreateBookingCubit>(
+    () => CreateBookingCubit(getIt()),
+  );
+  getIt.registerFactory<MyTripsCubit>(
+    () => MyTripsCubit(getMyBookings: getIt(), cancelBooking: getIt()),
   );
 }

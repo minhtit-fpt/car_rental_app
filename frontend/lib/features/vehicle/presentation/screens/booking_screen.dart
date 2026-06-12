@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/booking/domain/repositories/booking_repository.dart';
+import 'package:frontend/features/booking/presentation/cubit/create_booking_cubit.dart';
+import 'package:frontend/features/booking/presentation/cubit/create_booking_state.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 
 String _formatPrice(double value) {
@@ -13,20 +18,35 @@ String _formatPrice(double value) {
   return buffer.toString();
 }
 
-/// Màn đặt xe (MVP) — chọn thời gian + số giờ, tính tổng theo giá/giờ.
-/// Tạo booking thật + thanh toán sẽ nối ở Phase 3/4.
-class BookingScreen extends StatefulWidget {
+/// Màn đặt xe (MVP) — chọn thời gian + số giờ, gọi API tạo đơn.
+/// Thanh toán sẽ nối ở Phase 4; đơn tạo ra ở trạng thái PENDING_PAYMENT.
+class BookingScreen extends StatelessWidget {
   const BookingScreen({super.key, required this.vehicle});
 
   final Vehicle vehicle;
 
   @override
-  State<BookingScreen> createState() => _BookingScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider<CreateBookingCubit>(
+      create: (_) => getIt<CreateBookingCubit>(),
+      child: _BookingView(vehicle: vehicle),
+    );
+  }
 }
 
-class _BookingScreenState extends State<BookingScreen> {
+class _BookingView extends StatefulWidget {
+  const _BookingView({required this.vehicle});
+
+  final Vehicle vehicle;
+
+  @override
+  State<_BookingView> createState() => _BookingViewState();
+}
+
+class _BookingViewState extends State<_BookingView> {
   DateTime? _start;
   int _hours = 4;
+  bool _delivery = false;
 
   double get _total => widget.vehicle.pricePerHour * _hours;
 
@@ -62,14 +82,33 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   void _confirm() {
-    // Phase 3 sẽ gọi API tạo booking; tạm thời báo cho người dùng.
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('Đặt xe sẽ khả dụng khi hoàn tất thanh toán (Phase 4)'),
-        ),
-      );
+    final start = _start;
+    if (start == null) return;
+    context.read<CreateBookingCubit>().submit(
+          CreateBookingParams(
+            vehicleId: widget.vehicle.id,
+            startTime: start,
+            endTime: start.add(Duration(hours: _hours)),
+            deliveryRequested: _delivery,
+          ),
+        );
+  }
+
+  void _onStateChange(BuildContext context, CreateBookingState state) {
+    if (state is CreateBookingSuccess) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Đặt xe thành công — đơn đang chờ thanh toán'),
+          ),
+        );
+      Navigator.of(context).pop(state.booking);
+    } else if (state is CreateBookingFailure) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(state.message)));
+    }
   }
 
   @override
@@ -98,173 +137,218 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
           ),
         ),
-        body: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _Card(
-              child: Row(
-                children: [
-                  Text(v.type.emoji, style: const TextStyle(fontSize: 36)),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        body: BlocListener<CreateBookingCubit, CreateBookingState>(
+          listener: _onStateChange,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _Card(
+                child: Row(
+                  children: [
+                    Text(v.type.emoji, style: const TextStyle(fontSize: 36)),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            v.title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.darkText,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${_formatPrice(v.pricePerHour)}đ/giờ',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.secondaryText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              _Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Thời gian nhận xe',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.darkText,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    InkWell(
+                      onTap: _pickStart,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.calendar_today_rounded,
+                                size: 18, color: AppColors.primary),
+                            const SizedBox(width: 10),
+                            Text(
+                              startLabel,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: _start == null
+                                    ? AppColors.mutedText
+                                    : AppColors.darkText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          v.title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
+                        const Text(
+                          'Số giờ thuê',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
                             color: AppColors.darkText,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${_formatPrice(v.pricePerHour)}đ/giờ',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.secondaryText,
-                          ),
+                        Row(
+                          children: [
+                            _StepButton(
+                              icon: Icons.remove,
+                              onTap: _hours > 1
+                                  ? () => setState(() => _hours--)
+                                  : null,
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                '$_hours',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.darkText,
+                                ),
+                              ),
+                            ),
+                            _StepButton(
+                              icon: Icons.add,
+                              onTap: _hours < 720
+                                  ? () => setState(() => _hours++)
+                                  : null,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            _Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Thời gian nhận xe',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.darkText,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  InkWell(
-                    onTap: _pickStart,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.calendar_today_rounded,
-                              size: 18, color: AppColors.primary),
-                          const SizedBox(width: 10),
-                          Text(
-                            startLabel,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: _start == null
-                                  ? AppColors.mutedText
-                                  : AppColors.darkText,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              if (v.deliveryAvailable) ...[
+                const SizedBox(height: 16),
+                _Card(
+                  child: Row(
                     children: [
-                      const Text(
-                        'Số giờ thuê',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.darkText,
+                      const Icon(Icons.local_shipping_outlined,
+                          size: 20, color: AppColors.primary),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Giao xe tận nơi',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.darkText,
+                          ),
                         ),
                       ),
-                      Row(
-                        children: [
-                          _StepButton(
-                            icon: Icons.remove,
-                            onTap: _hours > 1
-                                ? () => setState(() => _hours--)
-                                : null,
-                          ),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              '$_hours',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.darkText,
-                              ),
-                            ),
-                          ),
-                          _StepButton(
-                            icon: Icons.add,
-                            onTap: _hours < 720
-                                ? () => setState(() => _hours++)
-                                : null,
-                          ),
-                        ],
+                      Switch(
+                        value: _delivery,
+                        activeThumbColor: AppColors.primary,
+                        onChanged: (v) => setState(() => _delivery = v),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _Card(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Tổng cộng',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.darkText,
+                ),
+              ],
+              const SizedBox(height: 16),
+              _Card(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Tổng cộng',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.darkText,
+                      ),
                     ),
-                  ),
-                  Text(
-                    '${_formatPrice(_total)}đ',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                    Text(
+                      '${_formatPrice(_total)}đ',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         bottomNavigationBar: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: FilledButton(
-              onPressed: _start == null ? null : _confirm,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                minimumSize: const Size.fromHeight(54),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'Xác nhận đặt xe',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+            child: BlocBuilder<CreateBookingCubit, CreateBookingState>(
+              builder: (context, state) {
+                final submitting = state is CreateBookingSubmitting;
+                final enabled = _start != null && !submitting;
+                return FilledButton(
+                  onPressed: enabled ? _confirm : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    minimumSize: const Size.fromHeight(54),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: submitting
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Xác nhận đặt xe',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                );
+              },
             ),
           ),
         ),

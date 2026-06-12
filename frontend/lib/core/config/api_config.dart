@@ -38,3 +38,13 @@ class VehicleEndpoints {
 
   static String detail(String id) => '/vehicles/$id';
 }
+
+class BookingEndpoints {
+  BookingEndpoints._();
+
+  // POST tạo đơn + GET danh sách đơn của tôi dùng chung path này.
+  static const String list = '/bookings';
+
+  static String detail(String id) => '/bookings/$id';
+  static String cancel(String id) => '/bookings/$id/cancel';
+}
