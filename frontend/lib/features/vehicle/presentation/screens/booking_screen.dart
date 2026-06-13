@@ -112,6 +112,7 @@ class _BookingScreenState extends State<BookingScreen> {
       ),
     );
     if (picked != null) {
+      if (!mounted) return;
       final formatted = picked.format(context);
       setState(() {
         if (isPickup) {

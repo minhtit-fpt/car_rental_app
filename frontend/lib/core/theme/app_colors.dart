@@ -87,6 +87,13 @@ class AppColors {
     colors: [Color(0x1414336B), Color(0x0A14336B)],
   );
 
+  // Celebration / success dialogs (e.g. booking confirmed)
+  static const LinearGradient promoGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [accent, orangeDark],
+  );
+
   // ── Admin dark theme ─────────────────────────────────────────────
   // Deep-navy dark surface system used exclusively on admin screens.
   static const Color adminBg = Color(0xFF0A1628); // page background
