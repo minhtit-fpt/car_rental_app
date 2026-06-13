@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:frontend/features/auth/presentation/cubit/auth_state.dart';
+import 'package:frontend/shared/widgets/primary_button.dart';
+import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
+import 'package:frontend/shared/widgets/section_header.dart';
 
-/// Chỉnh sửa hồ sơ (Phase 5). MVP cho sửa email; phone là định danh đăng nhập.
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -14,150 +14,137 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  late final TextEditingController _emailController;
-  bool _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final state = context.read<AuthCubit>().state;
-    final email = state is AuthAuthenticated ? state.user.email : null;
-    _emailController = TextEditingController(text: email ?? '');
-  }
+  final _nameController =
+      TextEditingController(text: 'Nguyễn Văn An');
+  final _emailController =
+      TextEditingController(text: 'an.nguyen@email.com');
+  final _phoneController =
+      TextEditingController(text: '0912 345 678');
+  final _bioController = TextEditingController(
+      text: 'Tài xế kinh nghiệm 5 năm. Thích du lịch khám phá.');
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
+    _bioController.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
-    setState(() => _saving = true);
-    final raw = _emailController.text.trim();
-    final error = await context.read<AuthCubit>().updateEmail(
-          raw.isEmpty ? null : raw,
-        );
-    if (!mounted) return;
-    setState(() => _saving = false);
-    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
-    if (error == null) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Đã cập nhật hồ sơ')),
-      );
-      Navigator.of(context).pop();
-    } else {
-      messenger.showSnackBar(SnackBar(content: Text(error)));
-    }
+    setState(() => _isSubmitting = true);
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (mounted) context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AuthCubit>().state;
-    final phone = state is AuthAuthenticated ? state.user.phone : '';
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(
-          backgroundColor: const Color(0xFF003380),
-          systemOverlayStyle: SystemUiOverlayStyle.light,
-          iconTheme: const IconThemeData(color: Colors.white),
-          title: const Text(
-            'Chỉnh sửa hồ sơ',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+        body: CustomScrollView(
+          slivers: [
+            const RvSliverAppBar(
+              title: 'Chỉnh sửa hồ sơ',
+              subtitle: 'Cập nhật thông tin cá nhân',
+              role: RvRole.neutral,
             ),
-          ),
-        ),
-        body: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _FieldCard(
-              label: 'Số điện thoại',
-              hint: 'Số điện thoại là định danh đăng nhập, không thể đổi.',
-              child: Text(
-                phone,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: AppColors.mutedText,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            _FieldCard(
-              label: 'Email',
-              child: TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  hintText: 'you@example.com',
-                  filled: true,
-                  fillColor: AppColors.background,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    _AvatarSection(),
+                    const SizedBox(height: 20),
+                    _PersonalInfoCard(
+                      nameController: _nameController,
+                      emailController: _emailController,
+                      phoneController: _phoneController,
+                    ),
+                    const SizedBox(height: 16),
+                    _BioCard(controller: _bioController),
+                    const SizedBox(height: 20),
+                    PrimaryButton(
+                      label: 'Lưu thay đổi',
+                      onPressed: _isSubmitting ? null : _save,
+                      isLoading: _isSubmitting,
+                      icon: Icons.save_outlined,
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
             ),
           ],
-        ),
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: FilledButton(
-              onPressed: _saving ? null : _save,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                minimumSize: const Size.fromHeight(54),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: _saving
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.4,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      'Lưu thay đổi',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-            ),
-          ),
         ),
       ),
     );
   }
 }
 
-class _FieldCard extends StatelessWidget {
-  const _FieldCard({required this.label, required this.child, this.hint});
+class _AvatarSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Stack(
+        children: [
+          Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              gradient: AppColors.heroGradient,
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: Text('👤', style: TextStyle(fontSize: 44)),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: () {},
+              child: Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Icon(
+                  Icons.camera_alt_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-  final String label;
-  final Widget child;
-  final String? hint;
+class _PersonalInfoCard extends StatelessWidget {
+  const _PersonalInfoCard({
+    required this.nameController,
+    required this.emailController,
+    required this.phoneController,
+  });
+
+  final TextEditingController nameController;
+  final TextEditingController emailController;
+  final TextEditingController phoneController;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
@@ -173,23 +160,155 @@ class _FieldCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.darkText,
-            ),
+          const SectionHeader(title: 'Thông tin cá nhân'),
+          const SizedBox(height: 14),
+          _ProfileField(
+            label: 'Họ và tên',
+            icon: Icons.person_outline_rounded,
+            controller: nameController,
           ),
-          const SizedBox(height: 10),
-          child,
-          if (hint != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              hint!,
-              style: const TextStyle(fontSize: 12, color: AppColors.mutedText),
+          const SizedBox(height: 12),
+          _ProfileField(
+            label: 'Email',
+            icon: Icons.email_outlined,
+            controller: emailController,
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 12),
+          _ProfileField(
+            label: 'Số điện thoại',
+            icon: Icons.phone_outlined,
+            controller: phoneController,
+            keyboardType: TextInputType.phone,
+            readOnly: true,
+            helperText: 'Không thể thay đổi số điện thoại',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileField extends StatelessWidget {
+  const _ProfileField({
+    required this.label,
+    required this.icon,
+    required this.controller,
+    this.keyboardType,
+    this.readOnly = false,
+    this.helperText,
+  });
+
+  final String label;
+  final IconData icon;
+  final TextEditingController controller;
+  final TextInputType? keyboardType;
+  final bool readOnly;
+  final String? helperText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.secondaryText,
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          readOnly: readOnly,
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, size: 18, color: AppColors.primary),
+            filled: true,
+            fillColor:
+                readOnly ? AppColors.border.withAlpha(40) : AppColors.background,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
-          ],
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            isDense: true,
+            helperText: helperText,
+            helperStyle: const TextStyle(
+                fontSize: 11, color: AppColors.mutedText),
+          ),
+          style: TextStyle(
+            fontSize: 13,
+            color: readOnly ? AppColors.mutedText : AppColors.darkText,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BioCard extends StatelessWidget {
+  const _BioCard({required this.controller});
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.cardShadowColor,
+            blurRadius: 12,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(title: 'Giới thiệu bản thân'),
+          const SizedBox(height: 12),
+          TextField(
+            controller: controller,
+            maxLines: 3,
+            maxLength: 200,
+            decoration: InputDecoration(
+              hintText: 'Chia sẻ một chút về bản thân...',
+              hintStyle: const TextStyle(
+                  fontSize: 13, color: AppColors.mutedText),
+              filled: true,
+              fillColor: AppColors.background,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.primary),
+              ),
+              contentPadding: const EdgeInsets.all(12),
+            ),
+            style: const TextStyle(fontSize: 13, color: AppColors.darkText),
+          ),
         ],
       ),
     );

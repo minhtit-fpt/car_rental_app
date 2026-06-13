@@ -1,46 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/core/di/service_locator.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/features/payment/presentation/cubit/payment_cubit.dart';
-import 'package:frontend/features/payment/presentation/cubit/payment_state.dart';
+import 'package:frontend/shared/widgets/primary_button.dart';
+import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
-String _formatPrice(double value) {
-  final whole = value.round().toString();
-  final buffer = StringBuffer();
-  for (var i = 0; i < whole.length; i++) {
-    if (i > 0 && (whole.length - i) % 3 == 0) buffer.write('.');
-    buffer.write(whole[i]);
-  }
-  return buffer.toString();
-}
+enum _PayMethod { vnpay, momo, zalopay, card }
 
-/// Màn thanh toán (Phase 4, VNPay mock-first). Tạo phiên rồi mô phỏng callback
-/// cổng. Khi thành công, đơn chuyển sang CONFIRMED ở backend.
-class PaymentScreen extends StatelessWidget {
-  const PaymentScreen({
-    super.key,
-    required this.bookingId,
-    required this.amount,
-  });
+class PaymentScreen extends StatefulWidget {
+  const PaymentScreen({super.key, required this.amount});
 
-  final String bookingId;
   final double amount;
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider<PaymentCubit>(
-      create: (_) => getIt<PaymentCubit>()..start(bookingId),
-      child: _PaymentView(amount: amount),
-    );
-  }
+  State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
-class _PaymentView extends StatelessWidget {
-  const _PaymentView({required this.amount});
+class _PaymentScreenState extends State<PaymentScreen> {
+  _PayMethod _selected = _PayMethod.vnpay;
+  bool _isProcessing = false;
 
-  final double amount;
+  Future<void> _pay() async {
+    setState(() => _isProcessing = true);
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (mounted) {
+      context.pushReplacement(
+        '/payment/result',
+        extra: {'success': true, 'amount': widget.amount},
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,284 +37,221 @@ class _PaymentView extends StatelessWidget {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(
-          backgroundColor: const Color(0xFF003380),
-          systemOverlayStyle: SystemUiOverlayStyle.light,
-          iconTheme: const IconThemeData(color: Colors.white),
-          title: const Text(
-            'Thanh toán',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+        body: CustomScrollView(
+          slivers: [
+            const RvSliverAppBar(
+              title: 'Thanh toán',
+              subtitle: 'Chọn phương thức thanh toán',
+              role: RvRole.renter,
             ),
-          ),
-        ),
-        body: BlocBuilder<PaymentCubit, PaymentFlowState>(
-          builder: (context, state) {
-            return switch (state) {
-              PaymentCreating() =>
-                const Center(child: CircularProgressIndicator()),
-              PaymentReady(:final confirming) => _ReadyView(
-                  amount: amount,
-                  confirming: confirming,
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    _AmountCard(amount: widget.amount),
+                    const SizedBox(height: 20),
+                    _MethodSelector(
+                      selected: _selected,
+                      onChanged: (m) => setState(() => _selected = m),
+                    ),
+                    const SizedBox(height: 20),
+                    _SecurityBadge(),
+                    const SizedBox(height: 20),
+                    PrimaryButton(
+                      label: 'Thanh toán ${widget.amount.toInt()}K VNĐ',
+                      onPressed: _isProcessing ? null : _pay,
+                      isLoading: _isProcessing,
+                      icon: Icons.lock_outline_rounded,
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
-              PaymentPaid() => const _PaidView(),
-              PaymentFlowFailure(:final message, :final session) => _FailureView(
-                  message: message,
-                  canRetry: session != null,
-                ),
-            };
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _ReadyView extends StatelessWidget {
-  const _ReadyView({required this.amount, required this.confirming});
-
+class _AmountCard extends StatelessWidget {
+  const _AmountCard({required this.amount});
   final double amount;
-  final bool confirming;
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<PaymentCubit>();
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: AppColors.heroGradient,
-            borderRadius: BorderRadius.circular(20),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: AppColors.heroGradient,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Số tiền thanh toán',
+            style: TextStyle(fontSize: 13, color: Colors.white70),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'VNPay (Sandbox)',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                '${_formatPrice(amount)}đ',
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Số tiền cần thanh toán',
-                style: TextStyle(fontSize: 13, color: Colors.white70),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.info_outline_rounded,
-                  size: 18, color: AppColors.mutedText),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Môi trường thử nghiệm — nhấn nút bên dưới để mô phỏng '
-                  'kết quả thanh toán từ cổng.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.secondaryText,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        FilledButton.icon(
-          onPressed: confirming ? null : () => cubit.confirm(success: true),
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            minimumSize: const Size.fromHeight(54),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          icon: confirming
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.4,
-                    color: Colors.white,
-                  ),
-                )
-              : const Icon(Icons.lock_rounded, color: Colors.white, size: 20),
-          label: Text(
-            confirming ? 'Đang xử lý...' : 'Thanh toán ngay',
+          const SizedBox(height: 8),
+          Text(
+            '${amount.toInt()}K VNĐ',
             style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        TextButton(
-          onPressed: confirming ? null : () => cubit.confirm(success: false),
-          child: const Text(
-            'Mô phỏng thanh toán thất bại',
-            style: TextStyle(fontSize: 13, color: AppColors.mutedText),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(25),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Text(
+              '🔒  Thanh toán bảo mật SSL',
+              style: TextStyle(fontSize: 12, color: Colors.white),
+            ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MethodSelector extends StatelessWidget {
+  const _MethodSelector({
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final _PayMethod selected;
+  final ValueChanged<_PayMethod> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    const methods = [
+      (method: _PayMethod.vnpay, emoji: '🏦', name: 'VNPay', desc: 'Ví VNPay & ATM nội địa'),
+      (method: _PayMethod.momo, emoji: '🟣', name: 'MoMo', desc: 'Ví điện tử MoMo'),
+      (method: _PayMethod.zalopay, emoji: '🔵', name: 'ZaloPay', desc: 'Ví điện tử ZaloPay'),
+      (method: _PayMethod.card, emoji: '💳', name: 'Thẻ quốc tế', desc: 'Visa / Mastercard'),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.cardShadowColor,
+            blurRadius: 12,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Phương thức thanh toán',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkText,
+            ),
+          ),
+          const SizedBox(height: 14),
+          ...methods.map((m) {
+            final isSelected = selected == m.method;
+            return GestureDetector(
+              onTap: () => onChanged(m.method),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary.withAlpha(13)
+                      : AppColors.background,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.primary
+                        : AppColors.border,
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Text(m.emoji, style: const TextStyle(fontSize: 24)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            m.name,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.darkText,
+                            ),
+                          ),
+                          Text(
+                            m.desc,
+                            style: const TextStyle(
+                                fontSize: 12, color: AppColors.mutedText),
+                          ),
+                        ],
+                      ),
+                    ),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.border,
+                          width: isSelected ? 6 : 2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _SecurityBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.verified_user_outlined,
+            size: 14, color: AppColors.mutedText),
+        const SizedBox(width: 6),
+        const Text(
+          'Giao dịch được mã hóa 256-bit SSL',
+          style: TextStyle(fontSize: 12, color: AppColors.mutedText),
         ),
       ],
-    );
-  }
-}
-
-class _PaidView extends StatelessWidget {
-  const _PaidView();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.teal.withAlpha(26),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_circle_rounded,
-                size: 48,
-                color: AppColors.teal,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Thanh toán thành công',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkText,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Đơn của bạn đã được xác nhận.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.secondaryText,
-              ),
-            ),
-            const SizedBox(height: 28),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                minimumSize: const Size(220, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'Xong',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FailureView extends StatelessWidget {
-  const _FailureView({required this.message, required this.canRetry});
-
-  final String message;
-  final bool canRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<PaymentCubit>();
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 56, color: AppColors.orange),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.secondaryText,
-              ),
-            ),
-            const SizedBox(height: 24),
-            if (canRetry)
-              FilledButton(
-                onPressed: cubit.reset,
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  minimumSize: const Size(220, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Thử lại',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              )
-            else
-              OutlinedButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(220, 50),
-                  side: const BorderSide(color: AppColors.border),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('Quay lại'),
-              ),
-          ],
-        ),
-      ),
     );
   }
 }

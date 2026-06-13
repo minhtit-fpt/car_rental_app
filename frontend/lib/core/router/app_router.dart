@@ -1,81 +1,34 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:frontend/app/app_shell.dart';
-import 'package:frontend/app/splash_screen.dart';
-import 'package:frontend/core/router/go_router_refresh_stream.dart';
-import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:frontend/features/auth/presentation/cubit/auth_state.dart';
-import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
-import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
-import 'package:frontend/features/booking/presentation/screens/my_trips_screen.dart';
-import 'package:frontend/features/kyc/presentation/screens/kyc_screen.dart';
-import 'package:frontend/features/profile/presentation/screens/edit_profile_screen.dart';
-import 'package:frontend/features/review/presentation/screens/user_reviews_screen.dart';
+import 'package:frontend/core/router/auth_routes.dart';
+import 'package:frontend/core/router/booking_routes.dart';
+import 'package:frontend/core/router/kyc_routes.dart';
+import 'package:frontend/core/router/payment_routes.dart';
+import 'package:frontend/core/router/admin_routes.dart';
+import 'package:frontend/core/router/owner_routes.dart';
+import 'package:frontend/core/router/profile_routes.dart';
+import 'package:frontend/core/router/social_routes.dart';
+import 'package:frontend/core/router/vehicle_routes.dart';
+import 'package:frontend/core/shell/app_shell.dart';
 
-GoRouter createRouter(AuthCubit authCubit) {
-  return GoRouter(
-    initialLocation: '/splash',
-    refreshListenable: GoRouterRefreshStream(authCubit.stream),
-    redirect: (context, state) {
-      final authState = authCubit.state;
-      final location = state.matchedLocation;
-      final atSplash = location == '/splash';
-      final atAuth = location == '/login' || location == '/register';
-
-      // Chưa bootstrap xong → giữ ở splash.
-      if (authState is AuthInitial) {
-        return atSplash ? null : '/splash';
-      }
-
-      final isAuthenticated = authState is AuthAuthenticated;
-      if (!isAuthenticated) {
-        return atAuth ? null : '/login';
-      }
-
-      // Đã đăng nhập mà còn ở splash/auth → vào app.
-      if (atSplash || atAuth) return '/';
-      return null;
-    },
-    routes: [
-      GoRoute(
-        path: '/splash',
-        builder: (context, state) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: '/register',
-        builder: (context, state) => const RegisterScreen(),
-      ),
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const AppShell(),
-      ),
-      GoRoute(
-        path: '/kyc',
-        builder: (context, state) => const KycScreen(),
-      ),
-      GoRoute(
-        path: '/my-trips',
-        builder: (context, state) => const MyTripsScreen(),
-      ),
-      GoRoute(
-        path: '/profile/edit',
-        builder: (context, state) => const EditProfileScreen(),
-      ),
-      GoRoute(
-        path: '/my-reviews',
-        builder: (context, state) {
-          final authState = authCubit.state;
-          final userId =
-              authState is AuthAuthenticated ? authState.user.id : '';
-          return UserReviewsScreen(
-            userId: userId,
-            title: 'Đánh giá của tôi',
-          );
-        },
-      ),
-    ],
-  );
-}
+final appRouter = GoRouter(
+  initialLocation: '/login',
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const AppShell(),
+    ),
+    ...authRoutes,
+    ...kycRoutes,
+    ...vehicleRoutes,
+    ...bookingRoutes,
+    ...paymentRoutes,
+    ...socialRoutes,
+    ...ownerRoutes,
+    ...profileRoutes,
+    ...adminRoutes,
+  ],
+  errorBuilder: (context, state) => Scaffold(
+    body: Center(child: Text('Page not found: ${state.uri}')),
+  ),
+);
