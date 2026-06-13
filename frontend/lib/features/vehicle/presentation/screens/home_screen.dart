@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
+import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_state.dart';
 import 'package:frontend/features/vehicle/presentation/screens/car_detail_screen.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
 
@@ -586,29 +589,69 @@ class _FeaturedCarsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 300,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              clipBehavior: Clip.none,
-              itemCount: kMockVehicles.length > 4 ? 4 : kMockVehicles.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 14),
-              itemBuilder: (context, index) {
-                final vehicle = kMockVehicles[index];
-                return CarCard(
-                  vehicle: vehicle,
-                  width: 220,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CarDetailScreen(vehicle: vehicle),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
+          const _FeaturedList(),
         ],
+      ),
+    );
+  }
+}
+
+class _FeaturedList extends StatelessWidget {
+  const _FeaturedList();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<VehicleListCubit>(
+      create: (_) => getIt<VehicleListCubit>()..load(),
+      child: BlocBuilder<VehicleListCubit, VehicleListState>(
+        builder: (context, state) {
+          return switch (state) {
+            VehicleListLoading() => const SizedBox(
+                height: 300,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            VehicleListError(:final message) => SizedBox(
+                height: 120,
+                child: Center(
+                  child: Text(
+                    message,
+                    style: const TextStyle(color: AppColors.secondaryText),
+                  ),
+                ),
+              ),
+            VehicleListLoaded(:final items) when items.isEmpty => const SizedBox(
+                height: 120,
+                child: Center(
+                  child: Text(
+                    'Chưa có xe nào',
+                    style: TextStyle(color: AppColors.secondaryText),
+                  ),
+                ),
+              ),
+            VehicleListLoaded(:final items) => SizedBox(
+                height: 300,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  clipBehavior: Clip.none,
+                  itemCount: items.length > 4 ? 4 : items.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 14),
+                  itemBuilder: (context, index) {
+                    final vehicle = items[index];
+                    return CarCard(
+                      vehicle: vehicle,
+                      width: 220,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CarDetailScreen(vehicle: vehicle),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          };
+        },
       ),
     );
   }

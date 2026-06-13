@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_state.dart';
@@ -163,6 +164,34 @@ class _ProfileTab extends StatelessWidget {
                       ],
                     ),
                   ),
+                const SizedBox(height: 16),
+                _MenuTile(
+                  icon: Icons.luggage_outlined,
+                  title: 'Chuyến của tôi',
+                  subtitle: 'Lịch sử & đơn đặt xe',
+                  onTap: () => context.push('/my-trips'),
+                ),
+                const SizedBox(height: 12),
+                _MenuTile(
+                  icon: Icons.star_outline_rounded,
+                  title: 'Đánh giá của tôi',
+                  subtitle: 'Nhận xét bạn đã nhận',
+                  onTap: () => context.push('/my-reviews'),
+                ),
+                const SizedBox(height: 12),
+                _MenuTile(
+                  icon: Icons.edit_outlined,
+                  title: 'Chỉnh sửa hồ sơ',
+                  subtitle: 'Cập nhật email',
+                  onTap: () => context.push('/profile/edit'),
+                ),
+                const SizedBox(height: 12),
+                _MenuTile(
+                  icon: Icons.verified_user_outlined,
+                  title: 'Xác minh danh tính',
+                  subtitle: 'KYC — cần thiết để đặt xe',
+                  onTap: () => context.push('/kyc'),
+                ),
                 const SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: () => context.read<AuthCubit>().logout(),
@@ -186,6 +215,62 @@ class _ProfileTab extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _MenuTile extends StatelessWidget {
+  const _MenuTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withAlpha(26),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: AppColors.primary),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.darkText,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.mutedText,
+          ),
+        ),
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          color: AppColors.mutedText,
+        ),
       ),
     );
   }

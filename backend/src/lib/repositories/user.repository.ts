@@ -19,4 +19,11 @@ export const userRepository = {
   updateKycStatus(id: string, kycStatus: KycStatus): Promise<User> {
     return prisma.user.update({ where: { id }, data: { kycStatus } });
   },
+
+  updateProfile(
+    id: string,
+    data: Pick<Prisma.UserUpdateInput, "email">,
+  ): Promise<User> {
+    return prisma.user.update({ where: { id }, data });
+  },
 };
