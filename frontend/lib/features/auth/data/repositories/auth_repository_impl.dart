@@ -40,6 +40,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthUser> getCurrentUser() => _remote.getCurrentUser();
 
   @override
+  Future<AuthUser> updateProfile({String? email}) =>
+      _remote.updateProfile(email: email);
+
+  @override
   Future<void> logout() async {
     final refreshToken = await _storage.readRefreshToken();
     try {

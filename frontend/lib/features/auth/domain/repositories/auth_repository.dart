@@ -15,5 +15,7 @@ abstract interface class AuthRepository {
 
   Future<AuthUser> getCurrentUser();
 
+  Future<AuthUser> updateProfile({String? email});
+
   Future<void> logout();
 }

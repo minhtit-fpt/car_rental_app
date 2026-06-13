@@ -7,6 +7,7 @@ import 'package:frontend/features/booking/domain/entities/booking.dart';
 import 'package:frontend/features/booking/presentation/cubit/my_trips_cubit.dart';
 import 'package:frontend/features/booking/presentation/cubit/my_trips_state.dart';
 import 'package:frontend/features/payment/presentation/screens/payment_screen.dart';
+import 'package:frontend/features/review/presentation/screens/create_review_screen.dart';
 
 String _formatPrice(double value) {
   final whole = value.round().toString();
@@ -149,6 +150,20 @@ class _TripCard extends StatelessWidget {
     if (paid == true) await cubit.load();
   }
 
+  Future<void> _review(BuildContext context) async {
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => CreateReviewScreen(bookingId: booking.id),
+      ),
+    );
+  }
+
+  // Có thể đánh giá khi đơn đã xác nhận trở đi (khớp REVIEWABLE backend).
+  bool get _canReview =>
+      booking.status == BookingStatus.confirmed ||
+      booking.status == BookingStatus.inProgress ||
+      booking.status == BookingStatus.completed;
+
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(booking.status);
@@ -260,6 +275,30 @@ class _TripCard extends StatelessWidget {
                   'Thanh toán',
                   style: TextStyle(
                     color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          if (_canReview) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _review(context),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primary),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.star_outline_rounded,
+                    size: 18, color: AppColors.primary),
+                label: const Text(
+                  'Đánh giá',
+                  style: TextStyle(
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

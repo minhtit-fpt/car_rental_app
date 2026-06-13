@@ -10,6 +10,7 @@ import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.
 import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/register_usecase.dart';
+import 'package:frontend/features/auth/domain/usecases/update_profile_usecase.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/kyc/data/datasources/kyc_remote_datasource.dart';
 import 'package:frontend/features/kyc/data/repositories/kyc_repository_impl.dart';
@@ -38,6 +39,13 @@ import 'package:frontend/features/payment/domain/repositories/payment_repository
 import 'package:frontend/features/payment/domain/usecases/confirm_payment_usecase.dart';
 import 'package:frontend/features/payment/domain/usecases/create_payment_usecase.dart';
 import 'package:frontend/features/payment/presentation/cubit/payment_cubit.dart';
+import 'package:frontend/features/review/data/datasources/review_remote_datasource.dart';
+import 'package:frontend/features/review/data/repositories/review_repository_impl.dart';
+import 'package:frontend/features/review/domain/repositories/review_repository.dart';
+import 'package:frontend/features/review/domain/usecases/create_review_usecase.dart';
+import 'package:frontend/features/review/domain/usecases/get_user_reviews_usecase.dart';
+import 'package:frontend/features/review/presentation/cubit/create_review_cubit.dart';
+import 'package:frontend/features/review/presentation/cubit/user_reviews_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -75,6 +83,9 @@ Future<void> setupDependencies() async {
   getIt.registerFactory<GetCurrentUserUseCase>(
     () => GetCurrentUserUseCase(getIt()),
   );
+  getIt.registerFactory<UpdateProfileUseCase>(
+    () => UpdateProfileUseCase(getIt()),
+  );
 
   // --- Global session cubit ---
   getIt.registerLazySingleton<AuthCubit>(
@@ -83,6 +94,7 @@ Future<void> setupDependencies() async {
       register: getIt(),
       logout: getIt(),
       getCurrentUser: getIt(),
+      updateProfile: getIt(),
       storage: getIt(),
     ),
   );
@@ -164,5 +176,25 @@ Future<void> setupDependencies() async {
   );
   getIt.registerFactory<PaymentCubit>(
     () => PaymentCubit(createPayment: getIt(), confirmPayment: getIt()),
+  );
+
+  // --- Review ---
+  getIt.registerLazySingleton<ReviewRemoteDataSource>(
+    () => ReviewRemoteDataSource(getIt()),
+  );
+  getIt.registerLazySingleton<ReviewRepository>(
+    () => ReviewRepositoryImpl(getIt()),
+  );
+  getIt.registerFactory<CreateReviewUseCase>(
+    () => CreateReviewUseCase(getIt()),
+  );
+  getIt.registerFactory<GetUserReviewsUseCase>(
+    () => GetUserReviewsUseCase(getIt()),
+  );
+  getIt.registerFactory<CreateReviewCubit>(
+    () => CreateReviewCubit(getIt()),
+  );
+  getIt.registerFactory<UserReviewsCubit>(
+    () => UserReviewsCubit(getIt()),
   );
 }

@@ -5,6 +5,7 @@ import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.
 import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/register_usecase.dart';
+import 'package:frontend/features/auth/domain/usecases/update_profile_usecase.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
@@ -13,11 +14,13 @@ class AuthCubit extends Cubit<AuthState> {
     required RegisterUseCase register,
     required LogoutUseCase logout,
     required GetCurrentUserUseCase getCurrentUser,
+    required UpdateProfileUseCase updateProfile,
     required SecureTokenStorage storage,
   })  : _login = login,
         _register = register,
         _logout = logout,
         _getCurrentUser = getCurrentUser,
+        _updateProfile = updateProfile,
         _storage = storage,
         super(const AuthInitial());
 
@@ -25,6 +28,7 @@ class AuthCubit extends Cubit<AuthState> {
   final RegisterUseCase _register;
   final LogoutUseCase _logout;
   final GetCurrentUserUseCase _getCurrentUser;
+  final UpdateProfileUseCase _updateProfile;
   final SecureTokenStorage _storage;
 
   /// Khôi phục phiên lúc khởi động: có token → gọi /me xác thực.
@@ -69,6 +73,19 @@ class AuthCubit extends Cubit<AuthState> {
       emit(AuthAuthenticated(session.user));
     } on AuthException catch (e) {
       emit(AuthUnauthenticated(message: e.message));
+    }
+  }
+
+  /// Cập nhật hồ sơ (MVP: email). Trả về thông báo lỗi, hoặc null nếu thành công.
+  Future<String?> updateEmail(String? email) async {
+    final current = state;
+    if (current is! AuthAuthenticated) return null;
+    try {
+      final updated = await _updateProfile(email: email);
+      emit(AuthAuthenticated(updated));
+      return null;
+    } on AuthException catch (e) {
+      return e.message;
     }
   }
 

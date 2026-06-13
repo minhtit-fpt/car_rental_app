@@ -48,6 +48,18 @@ class AuthRemoteDataSource {
     }
   }
 
+  Future<AuthUser> updateProfile({String? email}) async {
+    try {
+      final res = await _dio.patch<dynamic>(
+        UserEndpoints.me,
+        data: {'email': email},
+      );
+      return authUserFromJson(_data(res) as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
   Future<void> logout(String refreshToken) async {
     try {
       await _dio.post<dynamic>(

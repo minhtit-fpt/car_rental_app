@@ -173,6 +173,20 @@ class _ProfileTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 _MenuTile(
+                  icon: Icons.star_outline_rounded,
+                  title: 'Đánh giá của tôi',
+                  subtitle: 'Nhận xét bạn đã nhận',
+                  onTap: () => context.push('/my-reviews'),
+                ),
+                const SizedBox(height: 12),
+                _MenuTile(
+                  icon: Icons.edit_outlined,
+                  title: 'Chỉnh sửa hồ sơ',
+                  subtitle: 'Cập nhật email',
+                  onTap: () => context.push('/profile/edit'),
+                ),
+                const SizedBox(height: 12),
+                _MenuTile(
                   icon: Icons.verified_user_outlined,
                   title: 'Xác minh danh tính',
                   subtitle: 'KYC — cần thiết để đặt xe',

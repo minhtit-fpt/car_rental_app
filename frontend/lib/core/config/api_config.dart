@@ -22,6 +22,22 @@ class AuthEndpoints {
   static const String me = '/auth/me';
 }
 
+class UserEndpoints {
+  UserEndpoints._();
+
+  // PATCH hồ sơ của chính mình.
+  static const String me = '/users/me';
+
+  // Danh sách đánh giá nhận được của một user.
+  static String reviews(String id) => '/users/$id/reviews';
+}
+
+class ReviewEndpoints {
+  ReviewEndpoints._();
+
+  static const String create = '/reviews';
+}
+
 class KycEndpoints {
   KycEndpoints._();
 

@@ -10,6 +10,7 @@ import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.
 import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/register_usecase.dart';
+import 'package:frontend/features/auth/domain/usecases/update_profile_usecase.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_state.dart';
 
@@ -22,6 +23,9 @@ class MockLogoutUseCase extends Mock implements LogoutUseCase {}
 class MockGetCurrentUserUseCase extends Mock
     implements GetCurrentUserUseCase {}
 
+class MockUpdateProfileUseCase extends Mock
+    implements UpdateProfileUseCase {}
+
 class MockSecureTokenStorage extends Mock implements SecureTokenStorage {}
 
 void main() {
@@ -29,6 +33,7 @@ void main() {
   late MockRegisterUseCase register;
   late MockLogoutUseCase logout;
   late MockGetCurrentUserUseCase getCurrentUser;
+  late MockUpdateProfileUseCase updateProfile;
   late MockSecureTokenStorage storage;
 
   const user = AuthUser(
@@ -47,6 +52,7 @@ void main() {
     register = MockRegisterUseCase();
     logout = MockLogoutUseCase();
     getCurrentUser = MockGetCurrentUserUseCase();
+    updateProfile = MockUpdateProfileUseCase();
     storage = MockSecureTokenStorage();
   });
 
@@ -55,6 +61,7 @@ void main() {
         register: register,
         logout: logout,
         getCurrentUser: getCurrentUser,
+        updateProfile: updateProfile,
         storage: storage,
       );
 
@@ -147,6 +154,39 @@ void main() {
         isA<AuthUnauthenticated>()
             .having((s) => s.message, 'message', isNotNull),
       ],
+    );
+  });
+
+  group('updateEmail', () {
+    const updated = AuthUser(
+      id: 'user-1',
+      phone: '+84901234567',
+      email: 'new@example.com',
+      roles: ['RENTER'],
+      kycStatus: 'UNVERIFIED',
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'emits Authenticated with the updated user on success',
+      setUp: () => when(() => updateProfile(email: 'new@example.com'))
+          .thenAnswer((_) async => updated),
+      seed: () => const AuthAuthenticated(user),
+      build: build,
+      act: (cubit) => cubit.updateEmail('new@example.com'),
+      expect: () => const [AuthAuthenticated(updated)],
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'does not change state and returns the message on failure',
+      setUp: () => when(() => updateProfile(email: any(named: 'email')))
+          .thenThrow(const AuthException('Email đã dùng')),
+      seed: () => const AuthAuthenticated(user),
+      build: build,
+      act: (cubit) async {
+        final error = await cubit.updateEmail('taken@example.com');
+        expect(error, 'Email đã dùng');
+      },
+      expect: () => const <AuthState>[],
     );
   });
 }

@@ -8,6 +8,8 @@ import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
 import 'package:frontend/features/booking/presentation/screens/my_trips_screen.dart';
 import 'package:frontend/features/kyc/presentation/screens/kyc_screen.dart';
+import 'package:frontend/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:frontend/features/review/presentation/screens/user_reviews_screen.dart';
 
 GoRouter createRouter(AuthCubit authCubit) {
   return GoRouter(
@@ -57,6 +59,22 @@ GoRouter createRouter(AuthCubit authCubit) {
       GoRoute(
         path: '/my-trips',
         builder: (context, state) => const MyTripsScreen(),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/my-reviews',
+        builder: (context, state) {
+          final authState = authCubit.state;
+          final userId =
+              authState is AuthAuthenticated ? authState.user.id : '';
+          return UserReviewsScreen(
+            userId: userId,
+            title: 'Đánh giá của tôi',
+          );
+        },
       ),
     ],
   );
