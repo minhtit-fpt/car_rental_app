@@ -6,55 +6,59 @@ import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 
-class LoginScreen extends StatelessWidget {
+/// Đăng nhập bằng SĐT + mật khẩu (khớp backend `/api/auth/login`).
+/// [AuthCubit] được cung cấp ở gốc app nên màn này chỉ đọc, không tự tạo.
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => AuthCubit(),
-      child: const _LoginView(),
-    );
-  }
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginView extends StatefulWidget {
-  const _LoginView();
-
-  @override
-  State<_LoginView> createState() => _LoginViewState();
-}
-
-class _LoginViewState extends State<_LoginView> {
+class _LoginScreenState extends State<LoginScreen> {
   final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
     _phoneController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    context.read<AuthCubit>().sendOtp(_phoneController.text.trim());
+    FocusScope.of(context).unfocus();
+    context.read<AuthCubit>().login(
+          phone: _phoneController.text.trim(),
+          password: _passwordController.text,
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, AuthState>(
+      listenWhen: (prev, curr) => prev.status != curr.status,
       listener: (context, state) {
-        if (state is AuthOtpSent) {
-          context.push('/otp', extra: state.phone);
+        if (state.status == AuthStatus.authenticated) {
+          context.go('/');
         }
-        if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: AppColors.danger),
-          );
+        if (state.status == AuthStatus.unauthenticated &&
+            state.errorMessage != null) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage!),
+                backgroundColor: AppColors.danger,
+              ),
+            );
         }
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
+        value: SystemUiOverlayStyle.dark,
         child: Scaffold(
           backgroundColor: AppColors.background,
           body: SafeArea(
@@ -78,7 +82,7 @@ class _LoginViewState extends State<_LoginView> {
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Nhập số điện thoại để nhận mã xác thực',
+                      'Nhập số điện thoại và mật khẩu để tiếp tục',
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.mutedText,
@@ -86,12 +90,21 @@ class _LoginViewState extends State<_LoginView> {
                     ),
                     const SizedBox(height: 36),
                     _PhoneField(controller: _phoneController),
+                    const SizedBox(height: 16),
+                    _PasswordField(
+                      controller: _passwordController,
+                      obscure: _obscurePassword,
+                      onToggle: () => setState(
+                        () => _obscurePassword = !_obscurePassword,
+                      ),
+                      onSubmitted: (_) => _submit(),
+                    ),
                     const SizedBox(height: 24),
                     BlocBuilder<AuthCubit, AuthState>(
                       builder: (context, state) => PrimaryButton(
-                        label: 'Gửi mã OTP',
+                        label: 'Đăng nhập',
                         onPressed: _submit,
-                        isLoading: state is AuthLoading,
+                        isLoading: state.isBusy,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -201,23 +214,10 @@ class _PhoneField extends StatelessWidget {
             ),
             filled: true,
             fillColor: AppColors.surface,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.danger),
-            ),
+            border: _border(AppColors.border),
+            enabledBorder: _border(AppColors.border),
+            focusedBorder: _border(AppColors.primary, width: 2),
+            errorBorder: _border(AppColors.danger),
           ),
           validator: (v) {
             if (v == null || v.isEmpty) return 'Vui lòng nhập số điện thoại';
@@ -229,3 +229,71 @@ class _PhoneField extends StatelessWidget {
     );
   }
 }
+
+class _PasswordField extends StatelessWidget {
+  const _PasswordField({
+    required this.controller,
+    required this.obscure,
+    required this.onToggle,
+    this.onSubmitted,
+  });
+
+  final TextEditingController controller;
+  final bool obscure;
+  final VoidCallback onToggle;
+  final ValueChanged<String>? onSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Mật khẩu',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.darkText,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          obscureText: obscure,
+          textInputAction: TextInputAction.done,
+          onFieldSubmitted: onSubmitted,
+          style: const TextStyle(fontSize: 15, color: AppColors.darkText),
+          decoration: InputDecoration(
+            hintText: '••••••••',
+            hintStyle: const TextStyle(color: AppColors.mutedText),
+            suffixIcon: IconButton(
+              onPressed: onToggle,
+              icon: Icon(
+                obscure
+                    ? Icons.visibility_off_rounded
+                    : Icons.visibility_rounded,
+                color: AppColors.mutedText,
+                size: 20,
+              ),
+            ),
+            filled: true,
+            fillColor: AppColors.surface,
+            border: _border(AppColors.border),
+            enabledBorder: _border(AppColors.border),
+            focusedBorder: _border(AppColors.primary, width: 2),
+            errorBorder: _border(AppColors.danger),
+          ),
+          validator: (v) {
+            if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu';
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+}
+
+OutlineInputBorder _border(Color color, {double width = 1}) => OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: color, width: width),
+    );

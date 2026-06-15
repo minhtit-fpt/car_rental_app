@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/screens/admin_dashboard_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/car_list_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/home_screen.dart';
@@ -105,6 +107,13 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
           'Tài khoản',
           style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.darkText),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Đăng xuất',
+            icon: const Icon(Icons.logout_rounded, color: AppColors.darkText),
+            onPressed: () => context.read<AuthCubit>().logout(),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
