@@ -54,7 +54,8 @@ class ApiClient {
   Future<dynamic> post(String path, {Object? data}) =>
       _send(() => _dio.post<dynamic>(path, data: data));
 
-  Future<dynamic> get(String path) => _send(() => _dio.get<dynamic>(path));
+  Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
+      _send(() => _dio.get<dynamic>(path, queryParameters: query));
 
   Future<dynamic> _send(Future<Response<dynamic>> Function() call) async {
     try {

@@ -57,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       listenWhen: (prev, curr) => prev.status != curr.status,
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated) {
-          context.go('/');
+          context.go((state.user?.isAdmin ?? false) ? '/admin' : '/');
         }
         if (state.status == AuthStatus.unauthenticated &&
             state.errorMessage != null) {

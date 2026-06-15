@@ -14,6 +14,11 @@ import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/register_usecase.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/features/admin/data/datasources/admin_remote_datasource.dart';
+import 'package:frontend/features/admin/data/repositories/admin_repository_impl.dart';
+import 'package:frontend/features/admin/domain/repositories/admin_repository.dart';
+import 'package:frontend/features/admin/domain/usecases/get_admin_stats_usecase.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
 
 /// Service locator toàn cục.
 final GetIt sl = GetIt.instance;
@@ -33,8 +38,10 @@ Future<void> setupStorage() async {
 /// Đăng ký network + auth (data → domain → presentation). Gọi sau [setupStorage].
 /// [AuthCubit] là singleton để router và các màn auth dùng chung 1 phiên.
 void setupAuth() {
+  sl.registerSingleton<ApiClient>(ApiClient(sl<SecureStorage>()));
+
   final repository = AuthRepositoryImpl(
-    AuthRemoteDataSource(ApiClient(sl<SecureStorage>())),
+    AuthRemoteDataSource(sl<ApiClient>()),
     sl<SecureStorage>(),
   );
 
@@ -47,5 +54,17 @@ void setupAuth() {
         logout: LogoutUseCase(sl<AuthRepository>()),
         getCurrentUser: GetCurrentUserUseCase(sl<AuthRepository>()),
       ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho admin. Gọi sau [setupAuth] (cần [ApiClient]).
+/// [AdminCubit] là factory — mỗi lần mở màn admin tạo mới + load lại số liệu.
+void setupAdmin() {
+  sl
+    ..registerSingleton<AdminRepository>(
+      AdminRepositoryImpl(AdminRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<AdminCubit>(
+      () => AdminCubit(getStats: GetAdminStatsUseCase(sl<AdminRepository>())),
     );
 }

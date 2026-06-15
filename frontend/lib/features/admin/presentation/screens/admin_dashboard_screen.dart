@@ -2,8 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
+import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 
 // ─────────────────────────────────────────────
 // Mock Data
@@ -209,6 +212,13 @@ class _AdminSliverAppBar extends StatelessWidget {
       expandedHeight: 140,
       backgroundColor: AppColors.adminSurface,
       systemOverlayStyle: SystemUiOverlayStyle.light,
+      actions: [
+        IconButton(
+          tooltip: 'Đăng xuất',
+          icon: const Icon(Icons.logout_rounded, color: AppColors.adminText),
+          onPressed: () => context.read<AuthCubit>().logout(),
+        ),
+      ],
       title: Row(
         children: [
           Container(
@@ -455,43 +465,104 @@ class _DashboardTab extends StatelessWidget {
 class _AdminStatsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.7,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: const [
-        _AdminStatCard(
-          value: '2,847',
-          label: 'Tổng người dùng',
-          icon: '👥',
-          trend: '+12%',
-          color: AppColors.adminBlue,
-        ),
-        _AdminStatCard(
-          value: '184',
-          label: 'Booking đang hoạt động',
-          icon: '📋',
-          trend: '+8%',
-          color: AppColors.adminTeal,
-        ),
-        _AdminStatCard(
-          value: '23',
-          label: 'KYC chờ duyệt',
-          icon: '🔍',
-          trend: '-2',
-          color: AppColors.warning,
-        ),
-        _AdminStatCard(
-          value: '485M',
-          label: 'Doanh thu tháng (VNĐ)',
-          icon: '💰',
-          trend: '+15%',
-          color: AppColors.success,
-        ),
-      ],
+    return BlocBuilder<AdminCubit, AdminStatsState>(
+      builder: (context, state) {
+        if (state is AdminStatsError) {
+          return _AdminStatsError(
+            message: state.message,
+            onRetry: () => context.read<AdminCubit>().loadStats(),
+          );
+        }
+        final stats = state is AdminStatsLoaded ? state.stats : null;
+
+        String count(int? v) => v == null ? '—' : _formatCount(v);
+        String money(double? v) => v == null ? '—' : _formatRevenue(v);
+
+        return GridView.count(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.7,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            _AdminStatCard(
+              value: count(stats?.totalUsers),
+              label: 'Tổng người dùng',
+              icon: '👥',
+              color: AppColors.adminBlue,
+            ),
+            _AdminStatCard(
+              value: count(stats?.activeBookings),
+              label: 'Booking đang hoạt động',
+              icon: '📋',
+              color: AppColors.adminTeal,
+            ),
+            _AdminStatCard(
+              value: count(stats?.pendingKyc),
+              label: 'KYC chờ duyệt',
+              icon: '🔍',
+              color: AppColors.warning,
+            ),
+            _AdminStatCard(
+              value: money(stats?.monthlyRevenue),
+              label: 'Doanh thu tháng (VNĐ)',
+              icon: '💰',
+              color: AppColors.success,
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Định dạng số nguyên với dấu phân cách hàng nghìn (vd 2847 → "2,847").
+String _formatCount(int value) {
+  return value.toString().replaceAllMapped(
+        RegExp(r'(\d)(?=(\d{3})+$)'),
+        (m) => '${m[1]},',
+      );
+}
+
+/// Doanh thu → dạng gọn theo triệu/tỷ VNĐ (vd 485000000 → "485M").
+String _formatRevenue(double value) {
+  if (value >= 1e9) return '${(value / 1e9).toStringAsFixed(1)}B';
+  if (value >= 1e6) return '${(value / 1e6).toStringAsFixed(0)}M';
+  if (value >= 1e3) return '${(value / 1e3).toStringAsFixed(0)}K';
+  return value.toStringAsFixed(0);
+}
+
+class _AdminStatsError extends StatelessWidget {
+  const _AdminStatsError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.adminCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.adminBorder),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.cloud_off_rounded,
+              color: AppColors.adminMuted, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, color: AppColors.adminMuted),
+          ),
+          const SizedBox(height: 12),
+          TextButton(onPressed: onRetry, child: const Text('Thử lại')),
+        ],
+      ),
     );
   }
 }
@@ -501,14 +572,12 @@ class _AdminStatCard extends StatelessWidget {
     required this.value,
     required this.label,
     required this.icon,
-    required this.trend,
     required this.color,
   });
 
   final String value;
   final String label;
   final String icon;
-  final String trend;
   final Color color;
 
   @override
@@ -527,22 +596,6 @@ class _AdminStatCard extends StatelessWidget {
             children: [
               Text(icon, style: const TextStyle(fontSize: 18)),
               const Spacer(),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: color.withAlpha(38),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  trend,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
             ],
           ),
           const Spacer(),

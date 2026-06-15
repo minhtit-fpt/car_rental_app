@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:frontend/features/vehicle/presentation/screens/admin_dashboard_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/car_list_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/home_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/owner_dashboard_screen.dart';
@@ -95,7 +94,7 @@ class _DashboardSelectorScreen extends StatefulWidget {
 }
 
 class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
-  int _role = 0; // 0=Renter, 1=Owner, 2=Admin
+  int _role = 0; // 0=Renter, 1=Owner (admin có khu vực riêng ở /admin)
 
   @override
   Widget build(BuildContext context) {
@@ -132,12 +131,6 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
                   isActive: _role == 1,
                   onTap: () => setState(() => _role = 1),
                 ),
-                const SizedBox(width: 8),
-                _RoleChip(
-                  label: '🛡️ Admin',
-                  isActive: _role == 2,
-                  onTap: () => setState(() => _role = 2),
-                ),
               ],
             ),
           ),
@@ -148,7 +141,6 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
         children: const [
           RenterDashboardScreen(),
           OwnerDashboardScreen(),
-          AdminDashboardScreen(),
         ],
       ),
     );

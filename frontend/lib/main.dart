@@ -14,6 +14,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await setupStorage(); // Drift + SecureStorage + KvStorage (GetIt)
   setupAuth(); // ApiClient + auth repository/usecases + AuthCubit
+  setupAdmin(); // admin repository + AdminCubit factory
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );

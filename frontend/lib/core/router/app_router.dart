@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/router/auth_routes.dart';
 import 'package:frontend/core/router/booking_routes.dart';
 import 'package:frontend/core/router/kyc_routes.dart';
@@ -12,6 +14,9 @@ import 'package:frontend/core/router/profile_routes.dart';
 import 'package:frontend/core/router/social_routes.dart';
 import 'package:frontend/core/router/vehicle_routes.dart';
 import 'package:frontend/core/shell/app_shell.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
+import 'package:frontend/features/admin/presentation/screens/admin_dashboard_screen.dart';
+import 'package:frontend/features/auth/domain/entities/user_role.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/auth/presentation/screens/splash_screen.dart';
 
@@ -35,10 +40,13 @@ GoRouter createAppRouter(AuthCubit authCubit) {
       }
 
       final loggedIn = status == AuthStatus.authenticated;
+      final isAdmin =
+          authCubit.state.user?.roles.contains(UserRole.admin) ?? false;
+      final home = isAdmin ? '/admin' : '/';
 
-      // Biết kết quả rồi mà còn ở splash → điều hướng đúng đích.
+      // Biết kết quả rồi mà còn ở splash → điều hướng đúng đích theo role.
       if (location == _splash) {
-        return loggedIn ? '/' : '/login';
+        return loggedIn ? home : '/login';
       }
 
       // Chưa đăng nhập mà vào route bảo vệ → ép về login.
@@ -46,10 +54,19 @@ GoRouter createAppRouter(AuthCubit authCubit) {
         return '/login';
       }
 
-      // Đã đăng nhập mà còn ở màn login/register → về trang chủ.
-      if (loggedIn &&
-          (location == '/login' || location == '/register')) {
+      // Đã đăng nhập mà còn ở màn login/register → về trang chủ theo role.
+      if (loggedIn && (location == '/login' || location == '/register')) {
+        return home;
+      }
+
+      // Không phải admin thì không được vào khu vực admin.
+      if (loggedIn && !isAdmin && location == '/admin') {
         return '/';
+      }
+
+      // Admin không nằm ở shell người thuê — luôn đưa về khu vực admin.
+      if (loggedIn && isAdmin && location == '/') {
+        return '/admin';
       }
 
       return null;
@@ -62,6 +79,13 @@ GoRouter createAppRouter(AuthCubit authCubit) {
       GoRoute(
         path: '/',
         builder: (context, state) => const AppShell(),
+      ),
+      GoRoute(
+        path: '/admin',
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<AdminCubit>()..loadStats(),
+          child: const AdminDashboardScreen(),
+        ),
       ),
       ...authRoutes,
       ...kycRoutes,
