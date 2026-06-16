@@ -4,10 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/features/auth/presentation/cubit/otp_cubit.dart';
 import 'package:frontend/shared/widgets/otp_input_field.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 
+/// Màn OTP — hiện chạy mock ([OtpCubit]) vì backend OTP chưa có.
+/// Để dành cho giai đoạn "OTP sau" (vd xác thực SĐT / quên mật khẩu).
 class OtpVerificationScreen extends StatelessWidget {
   const OtpVerificationScreen({super.key, required this.phone});
 
@@ -16,7 +18,7 @@ class OtpVerificationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => AuthCubit(),
+      create: (_) => OtpCubit(),
       child: _OtpView(phone: phone),
     );
   }
@@ -63,23 +65,23 @@ class _OtpViewState extends State<_OtpView> {
   }
 
   void _resend() {
-    context.read<AuthCubit>().sendOtp(widget.phone);
+    context.read<OtpCubit>().sendOtp(widget.phone);
     _startCountdown();
   }
 
   void _verify() {
     if (_otp.length != 6) return;
-    context.read<AuthCubit>().verifyOtp(_otp);
+    context.read<OtpCubit>().verifyOtp(_otp);
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
+    return BlocListener<OtpCubit, OtpState>(
       listener: (context, state) {
-        if (state is AuthSuccess) {
+        if (state is OtpVerified) {
           context.go('/');
         }
-        if (state is AuthError) {
+        if (state is OtpFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -142,11 +144,11 @@ class _OtpViewState extends State<_OtpView> {
                     onChanged: (otp) => setState(() => _otp = otp),
                   ),
                   const SizedBox(height: 32),
-                  BlocBuilder<AuthCubit, AuthState>(
+                  BlocBuilder<OtpCubit, OtpState>(
                     builder: (context, state) => PrimaryButton(
                       label: 'Xác nhận',
                       onPressed: _otp.length == 6 ? _verify : null,
-                      isLoading: state is AuthLoading,
+                      isLoading: state is OtpVerifying,
                     ),
                   ),
                   const SizedBox(height: 24),
