@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
 
 enum _QuickFilter { all, instant, auto, electric, five, seven }
@@ -27,135 +29,151 @@ class _CarListScreenState extends State<CarListScreen> {
   bool _showMap = false;
   String _sortBy = 'Phổ biến nhất';
 
-  List<Vehicle> get _filteredVehicles {
-    switch (_activeFilter) {
-      case _QuickFilter.electric:
-        return kMockVehicles.where((v) => v.isElectric).toList();
-      case _QuickFilter.five:
-        return kMockVehicles.where((v) => v.type == 'Sedan').toList();
-      case _QuickFilter.seven:
-        return kMockVehicles.where((v) => v.type == 'SUV').toList();
-      case _QuickFilter.auto:
-        return kMockVehicles.where((v) => v.type != 'Pickup').toList();
-      case _QuickFilter.instant:
-      case _QuickFilter.all:
-        return kMockVehicles;
-    }
+  /// Lọc trên danh sách đã tải từ backend. Chỉ "Xe điện" có dữ liệu thật để
+  /// lọc (isElectric); các chip còn lại chưa ánh xạ được sang trường backend
+  /// nên tạm hiển thị tất cả.
+  List<Vehicle> _applyFilter(List<Vehicle> all) {
+    return switch (_activeFilter) {
+      _QuickFilter.electric => all.where((v) => v.isElectric).toList(),
+      _ => all,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    final vehicles = _filteredVehicles;
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          // App bar
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: AppColors.surface,
-            foregroundColor: AppColors.darkText,
-            elevation: 0,
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            title: Row(
-              children: [
-                Container(
-                  width: 26,
-                  height: 26,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.logoGradient,
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Tìm xe',
-                  style: TextStyle(
-                    color: AppColors.darkText,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(
-                  Icons.tune_rounded,
-                  color: AppColors.primary,
-                ),
-                onPressed: () => _showFilterSheet(context),
-              ),
-            ],
-          ),
-          // Map strip + search overlay
-          SliverToBoxAdapter(
-            child: _MapStrip(
-              showMap: _showMap,
-              onToggleMap: () => setState(() => _showMap = !_showMap),
-              vehicles: vehicles,
-            ),
-          ),
-          // Search bar (frosted overlay style)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: _FrostedSearchCard(),
-            ),
-          ),
-          // Filter chips
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
-              child: _FilterChips(
-                active: _activeFilter,
-                onSelected: (f) => setState(() => _activeFilter = f),
-              ),
-            ),
-          ),
-          // Result count + sort
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${vehicles.length} xe phù hợp',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.darkText,
+      body: BlocBuilder<VehicleListCubit, VehicleListState>(
+        builder: (context, state) {
+          final all = switch (state) {
+            VehicleListLoaded(:final vehicles) => vehicles,
+            _ => const <Vehicle>[],
+          };
+          final vehicles = _applyFilter(all);
+          return CustomScrollView(
+            slivers: [
+              // App bar
+              SliverAppBar(
+                pinned: true,
+                backgroundColor: AppColors.surface,
+                foregroundColor: AppColors.darkText,
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                title: Row(
+                  children: [
+                    Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.logoGradient,
+                        borderRadius: BorderRadius.circular(7),
+                      ),
                     ),
-                  ),
-                  _SortDropdown(
-                    value: _sortBy,
-                    onChanged: (v) => setState(() => _sortBy = v ?? _sortBy),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Tìm xe',
+                      style: TextStyle(
+                        color: AppColors.darkText,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.tune_rounded,
+                      color: AppColors.primary,
+                    ),
+                    onPressed: () => _showFilterSheet(context),
                   ),
                 ],
               ),
-            ),
-          ),
-          // Vehicle list or empty
-          if (vehicles.isEmpty)
-            const SliverFillRemaining(child: _EmptyState())
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              sliver: SliverList.separated(
-                itemCount: vehicles.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final v = vehicles[index];
-                  return CarListTile(
-                    vehicle: v,
-                    onTap: () => context.push('/vehicles/${v.id}', extra: v),
-                  );
-                },
+              // Map strip + search overlay
+              SliverToBoxAdapter(
+                child: _MapStrip(
+                  showMap: _showMap,
+                  onToggleMap: () => setState(() => _showMap = !_showMap),
+                  vehicles: vehicles,
+                ),
               ),
-            ),
-        ],
+              // Search bar (frosted overlay style)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: _FrostedSearchCard(),
+                ),
+              ),
+              // Filter chips
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
+                  child: _FilterChips(
+                    active: _activeFilter,
+                    onSelected: (f) => setState(() => _activeFilter = f),
+                  ),
+                ),
+              ),
+              // Result count + sort
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${vehicles.length} xe phù hợp',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.darkText,
+                        ),
+                      ),
+                      _SortDropdown(
+                        value: _sortBy,
+                        onChanged: (v) =>
+                            setState(() => _sortBy = v ?? _sortBy),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Danh sách xe — phụ thuộc trạng thái tải từ backend.
+              switch (state) {
+                VehicleListLoading() => const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                VehicleListError(:final message) => SliverFillRemaining(
+                  child: _ErrorState(
+                    message: message,
+                    onRetry: () => context.read<VehicleListCubit>().load(),
+                  ),
+                ),
+                VehicleListLoaded() =>
+                  vehicles.isEmpty
+                      ? const SliverFillRemaining(child: _EmptyState())
+                      : SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                          sliver: SliverList.separated(
+                            itemCount: vehicles.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final v = vehicles[index];
+                              return CarListTile(
+                                vehicle: v,
+                                onTap: () =>
+                                    context.push('/vehicles/${v.id}', extra: v),
+                              );
+                            },
+                          ),
+                        ),
+              },
+            ],
+          );
+        },
       ),
     );
   }
@@ -209,7 +227,9 @@ class _MapStrip extends StatelessWidget {
                   bottom: 12,
                   left: 0,
                   right: 0,
-                  child: Center(child: _MapTogglePill(onTap: onToggleMap, showMap: showMap)),
+                  child: Center(
+                    child: _MapTogglePill(onTap: onToggleMap, showMap: showMap),
+                  ),
                 ),
               ],
             )
@@ -272,16 +292,8 @@ class _MapRoadsPainter extends CustomPainter {
     }
 
     // Roads
-    canvas.drawLine(
-      const Offset(0, 60),
-      Offset(size.width, 60),
-      roadPaint,
-    );
-    canvas.drawLine(
-      const Offset(0, 130),
-      Offset(size.width, 130),
-      roadPaint,
-    );
+    canvas.drawLine(const Offset(0, 60), Offset(size.width, 60), roadPaint);
+    canvas.drawLine(const Offset(0, 130), Offset(size.width, 130), roadPaint);
     canvas.drawLine(
       Offset(size.width * 0.3, 0),
       Offset(size.width * 0.3, size.height),
@@ -525,8 +537,14 @@ class _SortDropdown extends StatelessWidget {
           color: AppColors.secondaryText,
         ),
         items: const [
-          DropdownMenuItem(value: 'Phổ biến nhất', child: Text('Phổ biến nhất')),
-          DropdownMenuItem(value: 'Giá thấp nhất', child: Text('Giá thấp nhất')),
+          DropdownMenuItem(
+            value: 'Phổ biến nhất',
+            child: Text('Phổ biến nhất'),
+          ),
+          DropdownMenuItem(
+            value: 'Giá thấp nhất',
+            child: Text('Giá thấp nhất'),
+          ),
           DropdownMenuItem(value: 'Đánh giá cao', child: Text('Đánh giá cao')),
           DropdownMenuItem(value: 'Gần nhất', child: Text('Gần nhất')),
         ],
@@ -561,12 +579,65 @@ class _EmptyState extends StatelessWidget {
           SizedBox(height: 6),
           Text(
             'Thử thay đổi bộ lọc hoặc tìm kiếm khác',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.secondaryText,
-            ),
+            style: TextStyle(fontSize: 13, color: AppColors.secondaryText),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Error state with retry
+// ─────────────────────────────────────────────
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('⚠️', style: TextStyle(fontSize: 48)),
+            const SizedBox(height: 16),
+            const Text(
+              'Không tải được danh sách xe',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.darkText,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.secondaryText,
+              ),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: onRetry,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -721,10 +792,7 @@ class _FilterSheetState extends State<_FilterSheet> {
               ),
               child: const Text(
                 'Áp dụng',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
               ),
             ),
           ),

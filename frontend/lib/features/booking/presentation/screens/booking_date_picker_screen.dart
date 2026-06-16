@@ -10,8 +10,18 @@ import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
 String _fmtDate(DateTime d) {
   const months = [
-    'Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6',
-    'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12',
+    'Th1',
+    'Th2',
+    'Th3',
+    'Th4',
+    'Th5',
+    'Th6',
+    'Th7',
+    'Th8',
+    'Th9',
+    'Th10',
+    'Th11',
+    'Th12',
   ];
   return '${d.day} ${months[d.month - 1]} ${d.year}';
 }
@@ -66,9 +76,12 @@ class _BookingDatePickerView extends StatelessWidget {
                         label: 'Tiếp tục',
                         onPressed: state.datesSelected
                             ? () => context.push(
-                                  '/booking/confirm',
-                                  extra: {'vehicle': vehicle, 'cubit': context.read<BookingCubit>()},
-                                )
+                                '/booking/confirm',
+                                extra: {
+                                  'vehicle': vehicle,
+                                  'cubit': context.read<BookingCubit>(),
+                                },
+                              )
                             : null,
                         icon: Icons.arrow_forward_rounded,
                       ),
@@ -133,7 +146,9 @@ class _VehicleSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
+                  vehicle.isElectric
+                      ? 'Điện · ${vehicle.typeLabel}'
+                      : vehicle.typeLabel,
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.mutedText,
@@ -245,8 +260,11 @@ class _DateRangePickerState extends State<_DateRangePicker> {
                 ),
               ),
               const SizedBox(width: 10),
-              const Icon(Icons.arrow_forward_rounded,
-                  size: 16, color: AppColors.mutedText),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                size: 16,
+                color: AppColors.mutedText,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: _DateBox(
@@ -262,12 +280,17 @@ class _DateRangePickerState extends State<_DateRangePicker> {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: _pickDates,
-              icon: const Icon(Icons.date_range_rounded,
-                  size: 16, color: AppColors.primary),
+              icon: const Icon(
+                Icons.date_range_rounded,
+                size: 16,
+                color: AppColors.primary,
+              ),
               label: Text(
                 _start == null ? 'Chọn ngày' : 'Thay đổi ngày',
                 style: const TextStyle(
-                    color: AppColors.primary, fontWeight: FontWeight.w600),
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primary),
@@ -298,11 +321,7 @@ class _DateRangePickerState extends State<_DateRangePicker> {
 }
 
 class _DateBox extends StatelessWidget {
-  const _DateBox({
-    required this.label,
-    required this.date,
-    required this.icon,
-  });
+  const _DateBox({required this.label, required this.date, required this.icon});
 
   final String label;
   final DateTime? date;
@@ -318,7 +337,9 @@ class _DateBox extends StatelessWidget {
             : AppColors.background,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: date != null ? AppColors.primary.withAlpha(80) : AppColors.border,
+          color: date != null
+              ? AppColors.primary.withAlpha(80)
+              : AppColors.border,
         ),
       ),
       child: Column(
@@ -331,9 +352,11 @@ class _DateBox extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(icon,
-                  size: 13,
-                  color: date != null ? AppColors.primary : AppColors.mutedText),
+              Icon(
+                icon,
+                size: 13,
+                color: date != null ? AppColors.primary : AppColors.mutedText,
+              ),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
@@ -341,7 +364,9 @@ class _DateBox extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: date != null ? AppColors.darkText : AppColors.mutedText,
+                    color: date != null
+                        ? AppColors.darkText
+                        : AppColors.mutedText,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -415,9 +440,8 @@ class _DeliveryToggle extends StatelessWidget {
                     value: state.withDelivery,
                     activeThumbColor: AppColors.teal,
                     activeTrackColor: AppColors.teal.withAlpha(80),
-                    onChanged: (v) => context
-                        .read<BookingCubit>()
-                        .toggleDelivery(value: v),
+                    onChanged: (v) =>
+                        context.read<BookingCubit>().toggleDelivery(value: v),
                   ),
                 ],
               ),
@@ -429,9 +453,14 @@ class _DeliveryToggle extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'Nhập địa chỉ nhận xe...',
                     hintStyle: const TextStyle(
-                        fontSize: 13, color: AppColors.mutedText),
-                    prefixIcon: const Icon(Icons.location_on_outlined,
-                        size: 18, color: AppColors.mutedText),
+                      fontSize: 13,
+                      color: AppColors.mutedText,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.location_on_outlined,
+                      size: 18,
+                      color: AppColors.mutedText,
+                    ),
                     filled: true,
                     fillColor: AppColors.background,
                     border: OutlineInputBorder(
@@ -447,11 +476,15 @@ class _DeliveryToggle extends StatelessWidget {
                       borderSide: const BorderSide(color: AppColors.primary),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     isDense: true,
                   ),
                   style: const TextStyle(
-                      fontSize: 13, color: AppColors.darkText),
+                    fontSize: 13,
+                    color: AppColors.darkText,
+                  ),
                 ),
               ],
             ],
@@ -509,10 +542,7 @@ class _PriceSummary extends StatelessWidget {
               ),
               if (state.withDelivery)
                 const _PriceLine(label: 'Phí giao xe', amount: 50),
-              _PriceLine(
-                label: 'Bảo hiểm (5%)',
-                amount: insurance,
-              ),
+              _PriceLine(label: 'Bảo hiểm (5%)', amount: insurance),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 10),
                 child: Divider(color: AppColors.border, height: 1),
@@ -558,15 +588,20 @@ class _PriceLine extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 13, color: AppColors.secondaryText)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.secondaryText,
+            ),
+          ),
           Text(
             '${amount.toInt()}K VNĐ',
             style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.darkText,
-                fontWeight: FontWeight.w500),
+              fontSize: 13,
+              color: AppColors.darkText,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

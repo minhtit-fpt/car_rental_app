@@ -13,12 +13,7 @@ String _fmtVnd(double kAmount) {
 }
 
 class CarCard extends StatelessWidget {
-  const CarCard({
-    super.key,
-    required this.vehicle,
-    this.onTap,
-    this.width,
-  });
+  const CarCard({super.key, required this.vehicle, this.onTap, this.width});
 
   final Vehicle vehicle;
   final VoidCallback? onTap;
@@ -65,16 +60,11 @@ class _CardImageArea extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 150,
-      decoration: const BoxDecoration(
-        gradient: AppColors.cardImageGradient,
-      ),
+      decoration: const BoxDecoration(gradient: AppColors.cardImageGradient),
       child: Stack(
         children: [
           Center(
-            child: Text(
-              vehicle.emoji,
-              style: const TextStyle(fontSize: 62),
-            ),
+            child: Text(vehicle.emoji, style: const TextStyle(fontSize: 62)),
           ),
           if (vehicle.isElectric)
             Positioned(
@@ -127,11 +117,10 @@ class _CardDetails extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.mutedText,
-            ),
+            vehicle.isElectric
+                ? 'Điện · ${vehicle.typeLabel}'
+                : vehicle.typeLabel,
+            style: const TextStyle(fontSize: 12, color: AppColors.mutedText),
           ),
           const SizedBox(height: 8),
           Row(
@@ -151,61 +140,108 @@ class _CardDetails extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 1),
                 child: Text(
                   '/ngày',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.mutedText,
-                  ),
+                  style: TextStyle(fontSize: 11, color: AppColors.mutedText),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          Row(
-            children: [
-              const Text(
-                '★',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.starYellow,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(width: 3),
-              Text(
-                vehicle.rating.toStringAsFixed(1),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.starYellow,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  '· ${vehicle.ownerName}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.secondaryText,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
+          _VehicleMetaRow(vehicle: vehicle),
         ],
       ),
     );
   }
 }
 
+/// Dòng thông tin phụ dưới giá: hiện đánh giá thật nếu có, nếu chưa thì hiện
+/// trạng thái còn trống + nhãn giao xe (đều là dữ liệu thật từ backend).
+class _VehicleMetaRow extends StatelessWidget {
+  const _VehicleMetaRow({required this.vehicle});
+
+  final Vehicle vehicle;
+
+  @override
+  Widget build(BuildContext context) {
+    if (vehicle.hasRating) {
+      return Row(
+        children: [
+          const Text(
+            '★',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.starYellow,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            vehicle.rating!.toStringAsFixed(1),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.starYellow,
+            ),
+          ),
+          if (vehicle.ownerName != null) ...[
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                '· ${vehicle.ownerName}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.secondaryText,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+    return Row(
+      children: [
+        Icon(
+          vehicle.isAvailable
+              ? Icons.check_circle_rounded
+              : Icons.cancel_rounded,
+          size: 13,
+          color: vehicle.isAvailable ? AppColors.teal : AppColors.mutedText,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          vehicle.isAvailable ? 'Còn trống' : 'Đã thuê',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: vehicle.isAvailable ? AppColors.teal : AppColors.mutedText,
+          ),
+        ),
+        if (vehicle.deliveryAvailable) ...[
+          const SizedBox(width: 8),
+          const Icon(
+            Icons.local_shipping_outlined,
+            size: 13,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: 3),
+          const Text(
+            'Giao tận nơi',
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.primary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 /// Full-width horizontal card variant for the list screen
 class CarListTile extends StatelessWidget {
-  const CarListTile({
-    super.key,
-    required this.vehicle,
-    this.onTap,
-  });
+  const CarListTile({super.key, required this.vehicle, this.onTap});
 
   final Vehicle vehicle;
   final VoidCallback? onTap;
@@ -270,7 +306,10 @@ class CarListTile extends StatelessWidget {
             // Details
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -292,7 +331,9 @@ class CarListTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
+                      vehicle.isElectric
+                          ? 'Điện · ${vehicle.typeLabel}'
+                          : vehicle.typeLabel,
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.mutedText,
@@ -337,26 +378,46 @@ class CarListTile extends StatelessWidget {
                             ),
                           ],
                         ),
-                        Row(
-                          children: [
-                            const Text(
-                              '★',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.starYellow,
-                                fontWeight: FontWeight.w600,
+                        if (vehicle.hasRating)
+                          Row(
+                            children: [
+                              const Text(
+                                '★',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.starYellow,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 3),
-                            Text(
-                              '${vehicle.rating.toStringAsFixed(1)} (${vehicle.reviewCount})',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.secondaryText,
+                              const SizedBox(width: 3),
+                              Text(
+                                '${vehicle.rating!.toStringAsFixed(1)} (${vehicle.reviewCount})',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.secondaryText,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          )
+                        else if (vehicle.deliveryAvailable)
+                          Row(
+                            children: const [
+                              Icon(
+                                Icons.local_shipping_outlined,
+                                size: 13,
+                                color: AppColors.primary,
+                              ),
+                              SizedBox(width: 3),
+                              Text(
+                                'Giao tận nơi',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
                   ],

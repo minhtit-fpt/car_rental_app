@@ -1,38 +1,22 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/admin/domain/entities/admin_kyc_item.dart';
+import 'package:frontend/features/admin/domain/entities/admin_user_item.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_users_cubit.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 
 // ─────────────────────────────────────────────
 // Mock Data
 // ─────────────────────────────────────────────
 
-enum _KycType { cccd, cccdBike }
-
-enum _KycStatus { pending, reviewing }
-
 enum _DisputePriority { high, medium, low }
-
-class _KycItem {
-  const _KycItem({
-    required this.name,
-    required this.type,
-    required this.timeAgo,
-    required this.status,
-    required this.emoji,
-  });
-
-  final String name;
-  final _KycType type;
-  final String timeAgo;
-  final _KycStatus status;
-  final String emoji;
-}
 
 class _Dispute {
   const _Dispute({
@@ -47,58 +31,6 @@ class _Dispute {
   final String timeAgo;
   final _DisputePriority priority;
 }
-
-class _RecentUser {
-  const _RecentUser({
-    required this.name,
-    required this.location,
-    required this.role,
-    required this.emoji,
-  });
-
-  final String name;
-  final String location;
-  final String role;
-  final String emoji;
-}
-
-const _kKycItems = [
-  _KycItem(
-    name: 'Nguyen Van An',
-    type: _KycType.cccdBike,
-    timeAgo: '2 giờ trước',
-    status: _KycStatus.pending,
-    emoji: '👨',
-  ),
-  _KycItem(
-    name: 'Tran Thi Binh',
-    type: _KycType.cccd,
-    timeAgo: '4 giờ trước',
-    status: _KycStatus.pending,
-    emoji: '👩',
-  ),
-  _KycItem(
-    name: 'Nguyen Minh Cuong',
-    type: _KycType.cccdBike,
-    timeAgo: '6 giờ trước',
-    status: _KycStatus.reviewing,
-    emoji: '👨',
-  ),
-  _KycItem(
-    name: 'Pham Thu Dung',
-    type: _KycType.cccd,
-    timeAgo: '8 giờ trước',
-    status: _KycStatus.pending,
-    emoji: '👩',
-  ),
-  _KycItem(
-    name: 'Hoang Manh Em',
-    type: _KycType.cccdBike,
-    timeAgo: '1 ngày trước',
-    status: _KycStatus.pending,
-    emoji: '👨',
-  ),
-];
 
 const _kDisputes = [
   _Dispute(
@@ -133,27 +65,6 @@ const _kDisputes = [
   ),
 ];
 
-const _kRecentUsers = [
-  _RecentUser(
-    name: 'Minh Hoang',
-    location: 'Hà Nội',
-    role: 'Renter',
-    emoji: '👨',
-  ),
-  _RecentUser(
-    name: 'Linh Phuong',
-    location: 'Đà Nẵng',
-    role: 'Owner',
-    emoji: '👩',
-  ),
-  _RecentUser(
-    name: 'Duc Anh',
-    location: 'HCM',
-    role: 'Renter',
-    emoji: '👨',
-  ),
-];
-
 // Revenue data: Th.11 → Th.4 (6 months)
 const _kRevenueLabels = ['Th.11', 'Th.12', 'Th.1', 'Th.2', 'Th.3', 'Th.4'];
 const _kRevenueValues = [320.0, 350.0, 290.0, 380.0, 440.0, 485.0];
@@ -185,7 +96,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               onTabChanged: (i) => setState(() => _tabIndex = i),
             ),
           ],
-          body: _AdminBody(tabIndex: _tabIndex),
+          body: _AdminBody(
+            tabIndex: _tabIndex,
+            onTabChanged: (i) => setState(() => _tabIndex = i),
+          ),
         ),
       ),
     );
@@ -242,8 +156,7 @@ class _AdminSliverAppBar extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: AppColors.danger.withAlpha(51),
               borderRadius: BorderRadius.circular(8),
@@ -286,10 +199,7 @@ class _AdminSliverAppBar extends StatelessWidget {
                   const SizedBox(height: 2),
                   const Text(
                     '14/04/2026 · 09:30',
-                    style: TextStyle(
-                      color: AppColors.adminMuted,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: AppColors.adminMuted, fontSize: 12),
                   ),
                 ],
               ),
@@ -375,9 +285,10 @@ class _AdminTab extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight:
-                        isActive ? FontWeight.w600 : FontWeight.normal,
-                    color: isActive ? AppColors.adminBlue : AppColors.adminMuted,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                    color: isActive
+                        ? AppColors.adminBlue
+                        : AppColors.adminMuted,
                   ),
                 ),
                 if (badge != null) ...[
@@ -415,9 +326,10 @@ class _AdminTab extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _AdminBody extends StatelessWidget {
-  const _AdminBody({required this.tabIndex});
+  const _AdminBody({required this.tabIndex, required this.onTabChanged});
 
   final int tabIndex;
+  final ValueChanged<int> onTabChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -427,7 +339,7 @@ class _AdminBody extends StatelessWidget {
         1 => _KycTab(),
         2 => _UsersTab(),
         3 => _RevenueTab(),
-        _ => _DashboardTab(),
+        _ => _DashboardTab(onTabChanged: onTabChanged),
       },
     );
   }
@@ -438,6 +350,10 @@ class _AdminBody extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _DashboardTab extends StatelessWidget {
+  const _DashboardTab({required this.onTabChanged});
+
+  final ValueChanged<int> onTabChanged;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -445,11 +361,11 @@ class _DashboardTab extends StatelessWidget {
       children: [
         _AdminStatsGrid(),
         const SizedBox(height: 16),
-        _KycQueueCard(),
+        _KycQueueCard(onSeeAll: () => onTabChanged(1)),
         const SizedBox(height: 16),
         _DisputesCard(),
         const SizedBox(height: 16),
-        _RecentUsersCard(),
+        _RecentUsersCard(onSeeAll: () => onTabChanged(2)),
         const SizedBox(height: 16),
         _RevenueChartCard(),
         const SizedBox(height: 24),
@@ -520,9 +436,9 @@ class _AdminStatsGrid extends StatelessWidget {
 /// Định dạng số nguyên với dấu phân cách hàng nghìn (vd 2847 → "2,847").
 String _formatCount(int value) {
   return value.toString().replaceAllMapped(
-        RegExp(r'(\d)(?=(\d{3})+$)'),
-        (m) => '${m[1]},',
-      );
+    RegExp(r'(\d)(?=(\d{3})+$)'),
+    (m) => '${m[1]},',
+  );
 }
 
 /// Doanh thu → dạng gọn theo triệu/tỷ VNĐ (vd 485000000 → "485M").
@@ -551,8 +467,11 @@ class _AdminStatsError extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(Icons.cloud_off_rounded,
-              color: AppColors.adminMuted, size: 28),
+          const Icon(
+            Icons.cloud_off_rounded,
+            color: AppColors.adminMuted,
+            size: 28,
+          ),
           const SizedBox(height: 8),
           Text(
             message,
@@ -610,10 +529,7 @@ class _AdminStatCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: AppColors.adminMuted,
-            ),
+            style: const TextStyle(fontSize: 10, color: AppColors.adminMuted),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -627,286 +543,113 @@ class _AdminStatCard extends StatelessWidget {
 // KYC Queue Card
 // ─────────────────────────────────────────────
 
-class _KycQueueCard extends StatefulWidget {
-  @override
-  State<_KycQueueCard> createState() => _KycQueueCardState();
-}
+class _KycQueueCard extends StatelessWidget {
+  const _KycQueueCard({required this.onSeeAll});
 
-class _KycQueueCardState extends State<_KycQueueCard> {
-  final _approved = <int>{};
-  final _rejected = <int>{};
+  final VoidCallback onSeeAll;
+
+  static const int _previewLimit = 4;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.adminCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.adminBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Text(
-                      'Hàng chờ KYC',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.adminText,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.danger.withAlpha(51),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        '23',
-                        style: TextStyle(
-                          color: AppColors.danger,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'Xem tất cả →',
-                    style: TextStyle(
-                      color: AppColors.adminBlue,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    return BlocBuilder<AdminKycCubit, AdminKycState>(
+      builder: (context, state) {
+        final count = state is AdminKycLoaded ? state.items.length : null;
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.adminCard,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.adminBorder),
           ),
-          const Divider(height: 1, color: AppColors.adminBorder),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _kKycItems.length,
-            separatorBuilder: (_, _) =>
-                const Divider(height: 1, color: AppColors.adminBorder),
-            itemBuilder: (_, i) {
-              final item = _kKycItems[i];
-              final isApproved = _approved.contains(i);
-              final isRejected = _rejected.contains(i);
-
-              return GestureDetector(
-                onTap: () => context.push('/admin/kyc/$i'),
-                child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Avatar
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColors.adminBorder,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          item.emoji,
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    // Info
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.name,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.adminText,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.adminBorder,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  item.type == _KycType.cccdBike
-                                      ? 'CCCD + BX'
-                                      : 'CCCD',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.adminMuted,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                item.timeAgo,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.adminMuted,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Status + actions
-                    if (isApproved)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.success.withAlpha(51),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          '✓ Đã duyệt',
+                    Row(
+                      children: [
+                        const Text(
+                          'Hàng chờ KYC',
                           style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.success,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.adminText,
                           ),
                         ),
-                      )
-                    else if (isRejected)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.danger.withAlpha(51),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          '✗ Từ chối',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.danger,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      )
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Status badge
+                        if (count != null) ...[
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
+                              horizontal: 8,
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: item.status == _KycStatus.pending
-                                  ? AppColors.warning.withAlpha(38)
-                                  : AppColors.adminBlue.withAlpha(38),
-                              borderRadius: BorderRadius.circular(6),
+                              color: AppColors.danger.withAlpha(51),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
-                              item.status == _KycStatus.pending
-                                  ? 'Chờ duyệt'
-                                  : 'Đang xem xét',
-                              style: TextStyle(
-                                fontSize: 9,
-                                color: item.status == _KycStatus.pending
-                                    ? AppColors.warning
-                                    : AppColors.adminBlue,
+                              '$count',
+                              style: const TextStyle(
+                                color: AppColors.danger,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              GestureDetector(
-                                onTap: () => setState(() => _approved.add(i)),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.success.withAlpha(38),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    'Duyệt',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.success,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              GestureDetector(
-                                onTap: () => setState(() => _rejected.add(i)),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.danger.withAlpha(38),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    'Từ chối',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.danger,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
                         ],
+                      ],
+                    ),
+                    TextButton(
+                      onPressed: onSeeAll,
+                      child: const Text(
+                        'Xem tất cả →',
+                        style: TextStyle(
+                          color: AppColors.adminBlue,
+                          fontSize: 12,
+                        ),
                       ),
+                    ),
                   ],
                 ),
-              ));
-            },
+              ),
+              const Divider(height: 1, color: AppColors.adminBorder),
+              switch (state) {
+                AdminKycLoading() => const _AdminLoading(),
+                AdminKycError(:final message) => Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: _AdminStatsError(
+                    message: message,
+                    onRetry: () => context.read<AdminKycCubit>().load(),
+                  ),
+                ),
+                AdminKycLoaded(:final items) => _buildPreview(items),
+              },
+            ],
           ),
-        ],
-      ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPreview(List<AdminKycItem> items) {
+    if (items.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(
+          child: Text(
+            'Không có hồ sơ KYC chờ duyệt',
+            style: TextStyle(color: AppColors.adminMuted, fontSize: 13),
+          ),
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (final item in items.take(_previewLimit)) _KycListItem(item: item),
+      ],
     );
   }
 }
@@ -1055,18 +798,9 @@ class _DisputeRow extends StatelessWidget {
 
   ({String label, Color color}) _priorityInfo(_DisputePriority priority) {
     return switch (priority) {
-      _DisputePriority.high => (
-          label: 'Cao',
-          color: AppColors.danger,
-        ),
-      _DisputePriority.medium => (
-          label: 'TB',
-          color: AppColors.warning,
-        ),
-      _DisputePriority.low => (
-          label: 'Thấp',
-          color: AppColors.adminMuted,
-        ),
+      _DisputePriority.high => (label: 'Cao', color: AppColors.danger),
+      _DisputePriority.medium => (label: 'TB', color: AppColors.warning),
+      _DisputePriority.low => (label: 'Thấp', color: AppColors.adminMuted),
     };
   }
 }
@@ -1076,6 +810,12 @@ class _DisputeRow extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _RecentUsersCard extends StatelessWidget {
+  const _RecentUsersCard({required this.onSeeAll});
+
+  final VoidCallback onSeeAll;
+
+  static const int _previewLimit = 3;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1099,19 +839,24 @@ class _RecentUsersCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 1, color: AppColors.adminBorder),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _kRecentUsers.length,
-            separatorBuilder: (_, _) =>
-                const Divider(height: 1, color: AppColors.adminBorder),
-            itemBuilder: (_, i) => _RecentUserRow(user: _kRecentUsers[i]),
+          BlocBuilder<AdminUsersCubit, AdminUsersState>(
+            builder: (context, state) => switch (state) {
+              AdminUsersLoading() => const _AdminLoading(),
+              AdminUsersError(:final message) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: _AdminStatsError(
+                  message: message,
+                  onRetry: () => context.read<AdminUsersCubit>().load(),
+                ),
+              ),
+              AdminUsersLoaded(:final items) => _buildPreview(items),
+            },
           ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Center(
               child: TextButton(
-                onPressed: () {},
+                onPressed: onSeeAll,
                 child: const Text(
                   'Xem tất cả người dùng →',
                   style: TextStyle(color: AppColors.adminBlue, fontSize: 12),
@@ -1123,93 +868,24 @@ class _RecentUsersCard extends StatelessWidget {
       ),
     );
   }
-}
 
-class _RecentUserRow extends StatelessWidget {
-  const _RecentUserRow({required this.user});
-
-  final _RecentUser user;
-
-  @override
-  Widget build(BuildContext context) {
-    final isOwner = user.role == 'Owner';
-
-    return GestureDetector(
-      onTap: () => context.push('/admin/user/1'),
-      child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.adminBorder,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(user.emoji, style: const TextStyle(fontSize: 18)),
-            ),
+  Widget _buildPreview(List<AdminUserItem> items) {
+    if (items.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(
+          child: Text(
+            'Chưa có người dùng',
+            style: TextStyle(color: AppColors.adminMuted, fontSize: 13),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.name,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.adminText,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  user.location,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.adminMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: isOwner
-                  ? AppColors.warning.withAlpha(38)
-                  : AppColors.adminBlue.withAlpha(38),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              user.role,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: isOwner ? AppColors.warning : AppColors.adminBlue,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: AppColors.success.withAlpha(38),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Text(
-              'Hoạt động',
-              style: TextStyle(
-                fontSize: 11,
-                color: AppColors.success,
-              ),
-            ),
-          ),
-        ],
-      ),
-    ));
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (final user in items.take(_previewLimit)) _UserListItem(user: user),
+      ],
+    );
   }
 }
 
@@ -1244,10 +920,7 @@ class _RevenueChartCard extends StatelessWidget {
             style: TextStyle(fontSize: 11, color: AppColors.adminMuted),
           ),
           const SizedBox(height: 20),
-          SizedBox(
-            height: 160,
-            child: _RevenueBarChart(),
-          ),
+          SizedBox(height: 160, child: _RevenueBarChart()),
         ],
       ),
     );
@@ -1276,10 +949,10 @@ class _RevenueBarChart extends StatelessWidget {
                   '${value.toInt()}M',
                   style: TextStyle(
                     fontSize: 9,
-                    color: isHighest ? AppColors.adminBlue : AppColors.adminMuted,
-                    fontWeight: isHighest
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                    color: isHighest
+                        ? AppColors.adminBlue
+                        : AppColors.adminMuted,
+                    fontWeight: isHighest ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1327,67 +1000,43 @@ class _RevenueBarChart extends StatelessWidget {
 // Phase 4 — Mock Data
 // ─────────────────────────────────────────────
 
-class _KycRequest {
-  final String name;
-  final String email;
-  final String submittedAt;
-  final String status;
-  final String avatar;
-  final String docType;
-  const _KycRequest({
-    required this.name,
-    required this.email,
-    required this.submittedAt,
-    required this.status,
-    required this.avatar,
-    required this.docType,
-  });
-}
-
-const _kKycMockData = <_KycRequest>[
-  _KycRequest(name: 'Nguyễn Văn An', email: 'an.nv@gmail.com', submittedAt: '5 phút trước', status: 'pending', avatar: 'NA', docType: 'CCCD + GPLX'),
-  _KycRequest(name: 'Trần Thị Bình', email: 'binh.tt@gmail.com', submittedAt: '12 phút trước', status: 'pending', avatar: 'TB', docType: 'CCCD + GPLX'),
-  _KycRequest(name: 'Lê Hoàng Cường', email: 'cuong.lh@gmail.com', submittedAt: '1 giờ trước', status: 'reviewing', avatar: 'LC', docType: 'CCCD'),
-  _KycRequest(name: 'Phạm Minh Đức', email: 'duc.pm@gmail.com', submittedAt: '2 giờ trước', status: 'pending', avatar: 'PD', docType: 'CCCD + GPLX'),
-  _KycRequest(name: 'Hoàng Thị Em', email: 'em.ht@gmail.com', submittedAt: '3 giờ trước', status: 'reviewing', avatar: 'HE', docType: 'GPLX'),
-  _KycRequest(name: 'Vũ Quang Huy', email: 'huy.vq@gmail.com', submittedAt: '5 giờ trước', status: 'pending', avatar: 'VH', docType: 'CCCD + GPLX'),
-];
-
-class _AdminUser {
-  final String name;
-  final String email;
-  final String city;
-  final String role;
-  final String joinedAt;
-  final String avatar;
-  final bool verified;
-  final int trips;
-  const _AdminUser({
-    required this.name,
-    required this.email,
-    required this.city,
-    required this.role,
-    required this.joinedAt,
-    required this.avatar,
-    required this.verified,
-    required this.trips,
-  });
-}
-
-const _kUsersMockData = <_AdminUser>[
-  _AdminUser(name: 'Nguyễn Văn An', email: 'an.nv@gmail.com', city: 'Hà Nội', role: 'RENTER', joinedAt: '2 ngày trước', avatar: 'NA', verified: true, trips: 12),
-  _AdminUser(name: 'Trần Thị Bình', email: 'binh.tt@gmail.com', city: 'TP.HCM', role: 'OWNER', joinedAt: '5 ngày trước', avatar: 'TB', verified: true, trips: 45),
-  _AdminUser(name: 'Lê Hoàng Cường', email: 'cuong.lh@gmail.com', city: 'Đà Nẵng', role: 'BOTH', joinedAt: '1 tuần trước', avatar: 'LC', verified: true, trips: 28),
-  _AdminUser(name: 'Phạm Minh Đức', email: 'duc.pm@gmail.com', city: 'Hà Nội', role: 'RENTER', joinedAt: '1 tuần trước', avatar: 'PD', verified: false, trips: 3),
-  _AdminUser(name: 'Hoàng Thị Em', email: 'em.ht@gmail.com', city: 'Hải Phòng', role: 'OWNER', joinedAt: '2 tuần trước', avatar: 'HE', verified: true, trips: 67),
-  _AdminUser(name: 'Vũ Quang Huy', email: 'huy.vq@gmail.com', city: 'TP.HCM', role: 'RENTER', joinedAt: '2 tuần trước', avatar: 'VH', verified: true, trips: 8),
-  _AdminUser(name: 'Đỗ Thanh Lan', email: 'lan.dt@gmail.com', city: 'Cần Thơ', role: 'OWNER', joinedAt: '3 tuần trước', avatar: 'DL', verified: true, trips: 34),
-  _AdminUser(name: 'Bùi Văn Minh', email: 'minh.bv@gmail.com', city: 'Nha Trang', role: 'RENTER', joinedAt: '1 tháng trước', avatar: 'BM', verified: true, trips: 15),
-  _AdminUser(name: 'Ngô Thị Ngọc', email: 'ngoc.nt@gmail.com', city: 'Hà Nội', role: 'OWNER', joinedAt: '1 tháng trước', avatar: 'NN', verified: true, trips: 89),
-  _AdminUser(name: 'Trịnh Quốc Phong', email: 'phong.tq@gmail.com', city: 'Đà Nẵng', role: 'BOTH', joinedAt: '2 tháng trước', avatar: 'TP', verified: true, trips: 52),
-];
-
 enum _UserFilter { all, renter, owner }
+
+// ─────────────────────────────────────────────
+// Helpers (data thật từ /api/admin/*)
+// ─────────────────────────────────────────────
+
+/// Hai ký tự viết tắt cho avatar — ưu tiên email, fallback số điện thoại.
+String _initials(String? email, String phone) {
+  final source = (email != null && email.isNotEmpty) ? email : phone;
+  final cleaned = source.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
+  if (cleaned.isEmpty) return '?';
+  return cleaned.substring(0, math.min(2, cleaned.length)).toUpperCase();
+}
+
+/// Khoảng thời gian tương đối tiếng Việt (vd "3 giờ trước").
+String _timeAgo(DateTime time) {
+  final diff = DateTime.now().difference(time);
+  if (diff.inMinutes < 1) return 'Vừa xong';
+  if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
+  if (diff.inHours < 24) return '${diff.inHours} giờ trước';
+  if (diff.inDays < 30) return '${diff.inDays} ngày trước';
+  return '${(diff.inDays / 30).floor()} tháng trước';
+}
+
+class _AdminLoading extends StatelessWidget {
+  const _AdminLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.all(48),
+      child: Center(
+        child: CircularProgressIndicator(color: AppColors.adminBlue),
+      ),
+    );
+  }
+}
 
 // ─────────────────────────────────────────────
 // Shared Admin Tab Widgets
@@ -1397,7 +1046,11 @@ class _SummaryItem {
   final String label;
   final String value;
   final Color color;
-  const _SummaryItem({required this.label, required this.value, required this.color});
+  const _SummaryItem({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 }
 
 class _AdminSummaryRow extends StatelessWidget {
@@ -1424,19 +1077,29 @@ class _AdminSummaryRow extends StatelessWidget {
                 Container(
                   width: 6,
                   height: 6,
-                  decoration: BoxDecoration(color: it.color, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: it.color,
+                    shape: BoxShape.circle,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                Text(it.value,
-                    style: const TextStyle(
-                      color: AppColors.adminText,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    )),
+                Text(
+                  it.value,
+                  style: const TextStyle(
+                    color: AppColors.adminText,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(it.label,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppColors.adminMuted, fontSize: 11)),
+                Text(
+                  it.label,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.adminMuted,
+                    fontSize: 11,
+                  ),
+                ),
               ],
             ),
           ),
@@ -1472,7 +1135,11 @@ class _AdminSearchBar extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: const TextStyle(color: AppColors.adminMuted, fontSize: 14),
-          prefixIcon: const Icon(Icons.search, color: AppColors.adminMuted, size: 20),
+          prefixIcon: const Icon(
+            Icons.search,
+            color: AppColors.adminMuted,
+            size: 20,
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
@@ -1500,11 +1167,15 @@ class _AdminFilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
           gradient: selected
-              ? const LinearGradient(colors: [AppColors.adminBlue, AppColors.adminTeal])
+              ? const LinearGradient(
+                  colors: [AppColors.adminBlue, AppColors.adminTeal],
+                )
               : null,
           color: selected ? null : AppColors.adminSurface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? Colors.transparent : AppColors.adminBorder),
+          border: Border.all(
+            color: selected ? Colors.transparent : AppColors.adminBorder,
+          ),
         ),
         child: Text(
           label,
@@ -1540,25 +1211,51 @@ class _KycTabState extends State<_KycTab> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _kKycMockData.where((k) =>
-        k.name.toLowerCase().contains(_query.toLowerCase()) ||
-        k.email.toLowerCase().contains(_query.toLowerCase())).toList();
+    return BlocBuilder<AdminKycCubit, AdminKycState>(
+      builder: (context, state) {
+        return switch (state) {
+          AdminKycLoading() => const _AdminLoading(),
+          AdminKycError(:final message) => _AdminStatsError(
+            message: message,
+            onRetry: () => context.read<AdminKycCubit>().load(),
+          ),
+          AdminKycLoaded(:final items) => _buildList(context, items),
+        };
+      },
+    );
+  }
 
-    final pending = _kKycMockData.where((k) => k.status == 'pending').length;
-    final reviewing = _kKycMockData.where((k) => k.status == 'reviewing').length;
+  Widget _buildList(BuildContext context, List<AdminKycItem> items) {
+    final q = _query.toLowerCase();
+    final filtered = items
+        .where(
+          (k) =>
+              k.phone.toLowerCase().contains(q) ||
+              (k.email ?? '').toLowerCase().contains(q),
+        )
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _AdminSummaryRow(items: [
-          _SummaryItem(label: 'Chờ duyệt', value: '$pending', color: AppColors.warning),
-          _SummaryItem(label: 'Đang xem xét', value: '$reviewing', color: AppColors.adminTeal),
-          _SummaryItem(label: 'Duyệt hôm nay', value: '142', color: AppColors.success),
-        ]),
+        _AdminSummaryRow(
+          items: [
+            _SummaryItem(
+              label: 'Chờ duyệt',
+              value: '${items.length}',
+              color: AppColors.warning,
+            ),
+            _SummaryItem(
+              label: 'Hiển thị',
+              value: '${filtered.length}',
+              color: AppColors.adminTeal,
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
         _AdminSearchBar(
           controller: _searchCtrl,
-          hint: 'Tìm theo tên hoặc email...',
+          hint: 'Tìm theo SĐT hoặc email...',
           onChanged: (v) => setState(() => _query = v),
         ),
         const SizedBox(height: 16),
@@ -1583,18 +1280,25 @@ class _KycTabState extends State<_KycTab> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const Text('Mới nhất',
-                        style: TextStyle(color: AppColors.adminMuted, fontSize: 12)),
+                    const Text(
+                      'Cũ nhất trước',
+                      style: TextStyle(
+                        color: AppColors.adminMuted,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
               const Divider(color: AppColors.adminBorder, height: 1),
-              ...filtered.map((k) => _KycListItem(req: k)),
+              ...filtered.map((k) => _KycListItem(item: k)),
               if (filtered.isEmpty)
                 const Padding(
                   padding: EdgeInsets.all(32),
-                  child: Text('Không tìm thấy yêu cầu KYC',
-                      style: TextStyle(color: AppColors.adminMuted)),
+                  child: Text(
+                    'Không có hồ sơ KYC chờ duyệt',
+                    style: TextStyle(color: AppColors.adminMuted),
+                  ),
                 ),
             ],
           ),
@@ -1605,26 +1309,35 @@ class _KycTabState extends State<_KycTab> {
   }
 }
 
+Color _kycStatusColor(String status) => switch (status) {
+  'PENDING' => AppColors.warning,
+  'VERIFIED' => AppColors.success,
+  'REJECTED' => AppColors.danger,
+  _ => AppColors.adminMuted,
+};
+
+String _kycStatusLabel(String status) => switch (status) {
+  'PENDING' => 'Chờ duyệt',
+  'VERIFIED' => 'Đã duyệt',
+  'REJECTED' => 'Từ chối',
+  _ => 'Chưa nộp',
+};
+
 class _KycListItem extends StatelessWidget {
-  const _KycListItem({required this.req});
-  final _KycRequest req;
+  const _KycListItem({required this.item});
+  final AdminKycItem item;
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = req.status == 'pending'
-        ? AppColors.warning
-        : req.status == 'reviewing'
-            ? AppColors.adminTeal
-            : AppColors.success;
-    final statusLabel = req.status == 'pending'
-        ? 'Chờ duyệt'
-        : req.status == 'reviewing'
-            ? 'Đang xem xét'
-            : 'Đã duyệt';
+    final statusColor = _kycStatusColor(item.status);
+    final statusLabel = _kycStatusLabel(item.status);
+    final title = item.email ?? item.phone;
 
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.adminBorder, width: 0.5)),
+        border: Border(
+          bottom: BorderSide(color: AppColors.adminBorder, width: 0.5),
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -1640,7 +1353,7 @@ class _KycListItem extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: Text(
-              req.avatar,
+              _initials(item.email, item.phone),
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
@@ -1653,16 +1366,22 @@ class _KycListItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(req.name,
-                    style: const TextStyle(
-                      color: AppColors.adminText,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    )),
+                Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.adminText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
-                  '${req.docType} · ${req.submittedAt}',
-                  style: const TextStyle(color: AppColors.adminMuted, fontSize: 12),
+                  'CCCD + GPLX · ${_timeAgo(item.submittedAt)}',
+                  style: const TextStyle(
+                    color: AppColors.adminMuted,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -1683,8 +1402,12 @@ class _KycListItem extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right, color: AppColors.adminMuted, size: 20),
-            onPressed: () {},
+            icon: const Icon(
+              Icons.chevron_right,
+              color: AppColors.adminMuted,
+              size: 20,
+            ),
+            onPressed: () => context.push('/admin/kyc/${item.id}'),
           ),
         ],
       ),
@@ -1714,30 +1437,64 @@ class _UsersTabState extends State<_UsersTab> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _kUsersMockData.where((u) {
-      final matchQuery = _query.isEmpty ||
-          u.name.toLowerCase().contains(_query.toLowerCase()) ||
-          u.city.toLowerCase().contains(_query.toLowerCase());
-      final matchFilter = _filter == _UserFilter.all ||
-          (_filter == _UserFilter.renter &&
-              (u.role == 'RENTER' || u.role == 'BOTH')) ||
-          (_filter == _UserFilter.owner &&
-              (u.role == 'OWNER' || u.role == 'BOTH'));
+    return BlocBuilder<AdminUsersCubit, AdminUsersState>(
+      builder: (context, state) {
+        return switch (state) {
+          AdminUsersLoading() => const _AdminLoading(),
+          AdminUsersError(:final message) => _AdminStatsError(
+            message: message,
+            onRetry: () => context.read<AdminUsersCubit>().load(),
+          ),
+          AdminUsersLoaded(:final items) => _buildList(context, items),
+        };
+      },
+    );
+  }
+
+  Widget _buildList(BuildContext context, List<AdminUserItem> items) {
+    final q = _query.toLowerCase();
+    final filtered = items.where((u) {
+      final matchQuery =
+          q.isEmpty ||
+          u.phone.toLowerCase().contains(q) ||
+          (u.email ?? '').toLowerCase().contains(q);
+      final matchFilter = switch (_filter) {
+        _UserFilter.all => true,
+        _UserFilter.renter => u.hasRenter,
+        _UserFilter.owner => u.hasOwner,
+      };
       return matchQuery && matchFilter;
     }).toList();
+
+    final renters = items.where((u) => u.hasRenter).length;
+    final owners = items.where((u) => u.hasOwner).length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _AdminSummaryRow(items: [
-          _SummaryItem(label: 'Tổng người dùng', value: '2,847', color: AppColors.adminBlue),
-          _SummaryItem(label: 'Người thuê', value: '1,203', color: AppColors.adminTeal),
-          _SummaryItem(label: 'Chủ xe', value: '1,644', color: AppColors.success),
-        ]),
+        _AdminSummaryRow(
+          items: [
+            _SummaryItem(
+              label: 'Tổng',
+              value: '${items.length}',
+              color: AppColors.adminBlue,
+            ),
+            _SummaryItem(
+              label: 'Người thuê',
+              value: '$renters',
+              color: AppColors.adminTeal,
+            ),
+            _SummaryItem(
+              label: 'Chủ xe',
+              value: '$owners',
+              color: AppColors.success,
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
         _AdminSearchBar(
           controller: _searchCtrl,
-          hint: 'Tìm theo tên hoặc thành phố...',
+          hint: 'Tìm theo SĐT hoặc email...',
           onChanged: (v) => setState(() => _query = v),
         ),
         const SizedBox(height: 12),
@@ -1787,8 +1544,13 @@ class _UsersTabState extends State<_UsersTab> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const Text('Mới nhất',
-                        style: TextStyle(color: AppColors.adminMuted, fontSize: 12)),
+                    const Text(
+                      'Mới nhất',
+                      style: TextStyle(
+                        color: AppColors.adminMuted,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1797,8 +1559,10 @@ class _UsersTabState extends State<_UsersTab> {
               if (filtered.isEmpty)
                 const Padding(
                   padding: EdgeInsets.all(32),
-                  child: Text('Không tìm thấy người dùng',
-                      style: TextStyle(color: AppColors.adminMuted)),
+                  child: Text(
+                    'Không tìm thấy người dùng',
+                    style: TextStyle(color: AppColors.adminMuted),
+                  ),
                 ),
             ],
           ),
@@ -1811,24 +1575,28 @@ class _UsersTabState extends State<_UsersTab> {
 
 class _UserListItem extends StatelessWidget {
   const _UserListItem({required this.user});
-  final _AdminUser user;
+  final AdminUserItem user;
 
   @override
   Widget build(BuildContext context) {
-    final roleColor = user.role == 'OWNER'
+    final bothRoles = user.hasOwner && user.hasRenter;
+    final roleColor = bothRoles
+        ? const Color(0xFFA855F7)
+        : user.hasOwner
         ? AppColors.success
-        : user.role == 'BOTH'
-            ? const Color(0xFFA855F7)
-            : AppColors.adminTeal;
-    final roleLabel = user.role == 'OWNER'
+        : AppColors.adminTeal;
+    final roleLabel = bothRoles
+        ? 'Cả hai'
+        : user.hasOwner
         ? 'Chủ xe'
-        : user.role == 'BOTH'
-            ? 'Cả hai'
-            : 'Người thuê';
+        : 'Người thuê';
+    final title = user.email ?? user.phone;
 
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.adminBorder, width: 0.5)),
+        border: Border(
+          bottom: BorderSide(color: AppColors.adminBorder, width: 0.5),
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -1846,7 +1614,7 @@ class _UserListItem extends StatelessWidget {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  user.avatar,
+                  _initials(user.email, user.phone),
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -1854,7 +1622,7 @@ class _UserListItem extends StatelessWidget {
                   ),
                 ),
               ),
-              if (user.verified)
+              if (user.isVerified)
                 Positioned(
                   right: 0,
                   bottom: 0,
@@ -1866,7 +1634,11 @@ class _UserListItem extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.adminCard, width: 2),
                     ),
-                    child: const Icon(Icons.check, size: 8, color: Colors.white),
+                    child: const Icon(
+                      Icons.check,
+                      size: 8,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
             ],
@@ -1877,7 +1649,7 @@ class _UserListItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user.name,
+                  title,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: AppColors.adminText,
@@ -1888,14 +1660,20 @@ class _UserListItem extends StatelessWidget {
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined,
-                        size: 12, color: AppColors.adminMuted),
+                    const Icon(
+                      Icons.phone_outlined,
+                      size: 12,
+                      color: AppColors.adminMuted,
+                    ),
                     const SizedBox(width: 2),
                     Expanded(
                       child: Text(
-                        '${user.city} · ${user.trips} chuyến · ${user.joinedAt}',
+                        '${user.phone} · ${_timeAgo(user.createdAt)}',
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: AppColors.adminMuted, fontSize: 12),
+                        style: const TextStyle(
+                          color: AppColors.adminMuted,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -1933,11 +1711,7 @@ class _RevenueTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _RevenueChartCard(),
-        const SizedBox(height: 24),
-      ],
+      children: [_RevenueChartCard(), const SizedBox(height: 24)],
     );
   }
 }
-

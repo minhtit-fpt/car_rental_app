@@ -34,14 +34,13 @@ class BookingFormState {
     bool? isSubmitting,
     bool? contractSigned,
     bool? submitted,
-  }) =>
-      BookingFormState(
-        startDate: startDate ?? this.startDate,
-        endDate: endDate ?? this.endDate,
-        withDelivery: withDelivery ?? this.withDelivery,
-        deliveryAddress: deliveryAddress ?? this.deliveryAddress,
-        isSubmitting: isSubmitting ?? this.isSubmitting,
-        contractSigned: contractSigned ?? this.contractSigned,
-        submitted: submitted ?? this.submitted,
-      );
+  }) => BookingFormState(
+    startDate: startDate ?? this.startDate,
+    endDate: endDate ?? this.endDate,
+    withDelivery: withDelivery ?? this.withDelivery,
+    deliveryAddress: deliveryAddress ?? this.deliveryAddress,
+    isSubmitting: isSubmitting ?? this.isSubmitting,
+    contractSigned: contractSigned ?? this.contractSigned,
+    submitted: submitted ?? this.submitted,
+  );
 }

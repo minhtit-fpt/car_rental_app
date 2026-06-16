@@ -337,10 +337,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: AppColors.mutedText,
-            ),
+            style: const TextStyle(fontSize: 10, color: AppColors.mutedText),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -431,12 +428,18 @@ class _ProfileCard extends StatelessWidget {
           const SizedBox(height: 6),
           const InfoRow(icon: Icons.phone_outlined, text: '+84 912 345 678'),
           const SizedBox(height: 6),
-          const InfoRow(icon: Icons.location_on_outlined, text: 'Hà Nội, Việt Nam'),
+          const InfoRow(
+            icon: Icons.location_on_outlined,
+            text: 'Hà Nội, Việt Nam',
+          ),
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.credit_card_outlined,
-                  size: 16, color: AppColors.mutedText),
+              const Icon(
+                Icons.credit_card_outlined,
+                size: 16,
+                color: AppColors.mutedText,
+              ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -483,16 +486,12 @@ class _ProfileCard extends StatelessWidget {
   }
 }
 
-
 // ─────────────────────────────────────────────
 // Bookings Card
 // ─────────────────────────────────────────────
 
 class _BookingsCard extends StatelessWidget {
-  const _BookingsCard({
-    required this.tabController,
-    required this.bookings,
-  });
+  const _BookingsCard({required this.tabController, required this.bookings});
 
   final TabController tabController;
   final List<_Booking> bookings;
@@ -693,8 +692,7 @@ class _BookingRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: statusInfo.bgColor,
                   borderRadius: BorderRadius.circular(8),
@@ -730,20 +728,20 @@ class _BookingRow extends StatelessWidget {
   ) {
     return switch (status) {
       _BookingStatus.active => (
-          label: 'Đang thuê',
-          bgColor: AppColors.primary.withAlpha(26),
-          textColor: AppColors.primary,
-        ),
+        label: 'Đang thuê',
+        bgColor: AppColors.primary.withAlpha(26),
+        textColor: AppColors.primary,
+      ),
       _BookingStatus.completed => (
-          label: 'Hoàn thành',
-          bgColor: AppColors.successSoft,
-          textColor: AppColors.success,
-        ),
+        label: 'Hoàn thành',
+        bgColor: AppColors.successSoft,
+        textColor: AppColors.success,
+      ),
       _BookingStatus.cancelled => (
-          label: 'Đã hủy',
-          bgColor: AppColors.dangerSoft,
-          textColor: AppColors.danger,
-        ),
+        label: 'Đã hủy',
+        bgColor: AppColors.dangerSoft,
+        textColor: AppColors.danger,
+      ),
     };
   }
 }

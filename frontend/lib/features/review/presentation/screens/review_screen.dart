@@ -24,8 +24,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
   bool _isSubmitting = false;
 
   static const _positiveTags = [
-    'Xe sạch', 'Đúng giờ', 'Chủ xe thân thiện',
-    'Xe đúng mô tả', 'Giao xe tận nơi', 'Giá hợp lý',
+    'Xe sạch',
+    'Đúng giờ',
+    'Chủ xe thân thiện',
+    'Xe đúng mô tả',
+    'Giao xe tận nơi',
+    'Giá hợp lý',
   ];
 
   @override
@@ -74,10 +78,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     _RatingCard(
                       title: 'Chủ xe',
                       emoji: '👤',
-                      subtitle: widget.vehicle.ownerName,
+                      subtitle: widget.vehicle.ownerName ?? 'Chủ xe',
                       rating: _ownerRating,
-                      onRatingChanged: (r) =>
-                          setState(() => _ownerRating = r),
+                      onRatingChanged: (r) => setState(() => _ownerRating = r),
                     ),
 
                     const SizedBox(height: 16),
@@ -145,8 +148,7 @@ class _VehicleCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child:
-                  Text(vehicle.emoji, style: const TextStyle(fontSize: 26)),
+              child: Text(vehicle.emoji, style: const TextStyle(fontSize: 26)),
             ),
           ),
           const SizedBox(width: 12),
@@ -154,16 +156,22 @@ class _VehicleCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(vehicle.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.darkText,
-                    )),
                 Text(
-                  '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
+                  vehicle.name,
                   style: const TextStyle(
-                      fontSize: 12, color: AppColors.mutedText),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.darkText,
+                  ),
+                ),
+                Text(
+                  vehicle.isElectric
+                      ? 'Điện · ${vehicle.typeLabel}'
+                      : vehicle.typeLabel,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.mutedText,
+                  ),
                 ),
               ],
             ),
@@ -173,8 +181,7 @@ class _VehicleCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.successSoft,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: AppColors.success.withAlpha(80)),
+              border: Border.all(color: AppColors.success.withAlpha(80)),
             ),
             child: const Text(
               '✅ Đã hoàn thành',
@@ -233,16 +240,22 @@ class _RatingCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.darkText,
-                      )),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkText,
+                    ),
+                  ),
                   if (subtitle != null)
-                    Text(subtitle!,
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.mutedText)),
+                    Text(
+                      subtitle!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.mutedText,
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -320,16 +333,16 @@ class _TagsCard extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 7),
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppColors.primary.withAlpha(26)
                         : AppColors.background,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.border,
+                      color: isSelected ? AppColors.primary : AppColors.border,
                       width: isSelected ? 1.5 : 1,
                     ),
                   ),
@@ -393,8 +406,10 @@ class _CommentCard extends StatelessWidget {
             maxLength: 500,
             decoration: InputDecoration(
               hintText: 'Chia sẻ trải nghiệm của bạn...',
-              hintStyle:
-                  const TextStyle(fontSize: 13, color: AppColors.mutedText),
+              hintStyle: const TextStyle(
+                fontSize: 13,
+                color: AppColors.mutedText,
+              ),
               filled: true,
               fillColor: AppColors.background,
               border: OutlineInputBorder(
@@ -411,8 +426,7 @@ class _CommentCard extends StatelessWidget {
               ),
               contentPadding: const EdgeInsets.all(12),
             ),
-            style:
-                const TextStyle(fontSize: 13, color: AppColors.darkText),
+            style: const TextStyle(fontSize: 13, color: AppColors.darkText),
           ),
         ],
       ),

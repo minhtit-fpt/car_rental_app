@@ -10,8 +10,18 @@ import 'package:frontend/shared/widgets/secondary_button.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
 
 const _months = [
-  'Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6',
-  'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12',
+  'Th1',
+  'Th2',
+  'Th3',
+  'Th4',
+  'Th5',
+  'Th6',
+  'Th7',
+  'Th8',
+  'Th9',
+  'Th10',
+  'Th11',
+  'Th12',
 ];
 
 String _fmtDate(DateTime d) => '${d.day} ${_months[d.month - 1]} ${d.year}';
@@ -80,9 +90,7 @@ class ActiveTripScreen extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Xác nhận trả xe?',
           style: TextStyle(
@@ -186,15 +194,19 @@ class _ActiveStatusCard extends StatelessWidget {
                       : '—',
                 ),
                 Container(
-                    width: 1, height: 32, color: Colors.white.withAlpha(50)),
+                  width: 1,
+                  height: 32,
+                  color: Colors.white.withAlpha(50),
+                ),
                 _StatItem(
                   label: 'Trả xe',
-                  value: state.endDate != null
-                      ? _fmtDate(state.endDate!)
-                      : '—',
+                  value: state.endDate != null ? _fmtDate(state.endDate!) : '—',
                 ),
                 Container(
-                    width: 1, height: 32, color: Colors.white.withAlpha(50)),
+                  width: 1,
+                  height: 32,
+                  color: Colors.white.withAlpha(50),
+                ),
                 _StatItem(
                   label: 'Còn lại',
                   value: state.endDate != null
@@ -294,8 +306,9 @@ class _TripProgressCard extends StatelessWidget {
               value: progress,
               minHeight: 8,
               backgroundColor: AppColors.border,
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.primary,
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -305,12 +318,16 @@ class _TripProgressCard extends StatelessWidget {
               Text(
                 state.startDate != null ? _fmtDate(state.startDate!) : '—',
                 style: const TextStyle(
-                    fontSize: 11, color: AppColors.mutedText),
+                  fontSize: 11,
+                  color: AppColors.mutedText,
+                ),
               ),
               Text(
                 state.endDate != null ? _fmtDate(state.endDate!) : '—',
                 style: const TextStyle(
-                    fontSize: 11, color: AppColors.mutedText),
+                  fontSize: 11,
+                  color: AppColors.mutedText,
+                ),
               ),
             ],
           ),
@@ -357,8 +374,9 @@ class _VehicleInfoCard extends StatelessWidget {
               _InfoChip(icon: '🔑', label: 'Biển số: 30A-12345'),
               const SizedBox(width: 8),
               _InfoChip(
-                  icon: vehicle.isElectric ? '⚡' : '⛽',
-                  label: vehicle.isElectric ? 'Điện' : 'Xăng'),
+                icon: vehicle.isElectric ? '⚡' : '⛽',
+                label: vehicle.isElectric ? 'Điện' : 'Xăng',
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -372,7 +390,8 @@ class _VehicleInfoCard extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
-                    child: Text('👤', style: TextStyle(fontSize: 16))),
+                  child: Text('👤', style: TextStyle(fontSize: 16)),
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -380,7 +399,7 @@ class _VehicleInfoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      vehicle.ownerName,
+                      vehicle.ownerName ?? 'Chủ xe',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -390,28 +409,37 @@ class _VehicleInfoCard extends StatelessWidget {
                     const Text(
                       'Chủ xe',
                       style: TextStyle(
-                          fontSize: 11, color: AppColors.mutedText),
+                        fontSize: 11,
+                        color: AppColors.mutedText,
+                      ),
                     ),
                   ],
                 ),
               ),
               OutlinedButton.icon(
                 onPressed: () {},
-                icon: const Icon(Icons.phone_outlined,
-                    size: 14, color: AppColors.primary),
+                icon: const Icon(
+                  Icons.phone_outlined,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
                 label: const Text(
                   'Gọi',
                   style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600),
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.primary),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ],
@@ -444,9 +472,10 @@ class _InfoChip extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.secondaryText,
-                fontWeight: FontWeight.w500),
+              fontSize: 11,
+              color: AppColors.secondaryText,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

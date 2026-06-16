@@ -9,11 +9,7 @@ import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
 class ContractScreen extends StatelessWidget {
-  const ContractScreen({
-    super.key,
-    required this.vehicle,
-    required this.cubit,
-  });
+  const ContractScreen({super.key, required this.vehicle, required this.cubit});
 
   final Vehicle vehicle;
   final BookingCubit cubit;
@@ -90,10 +86,7 @@ class _ContractHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text(
-            '📋',
-            style: TextStyle(fontSize: 36),
-          ),
+          const Text('📋', style: TextStyle(fontSize: 36)),
           const SizedBox(height: 10),
           const Text(
             'Hợp đồng thuê xe',
@@ -106,10 +99,7 @@ class _ContractHeader extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             vehicle.name,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.white70,
-            ),
+            style: const TextStyle(fontSize: 14, color: Colors.white70),
           ),
           const SizedBox(height: 12),
           Container(
@@ -157,19 +147,22 @@ class _ContractBody extends StatelessWidget {
         children: [
           const _ContractSection(
             title: 'I. CÁC BÊN THAM GIA',
-            content: '• Bên A (Chủ xe): Được xác minh qua hệ thống KYC RideVN\n'
+            content:
+                '• Bên A (Chủ xe): Được xác minh qua hệ thống KYC RideVN\n'
                 '• Bên B (Người thuê): Đã hoàn tất xác minh danh tính',
           ),
           const Divider(color: AppColors.border, height: 24),
           const _ContractSection(
             title: 'II. THÔNG TIN XE',
-            content: 'Xe được giao đúng tình trạng đã mô tả. Người thuê có '
+            content:
+                'Xe được giao đúng tình trạng đã mô tả. Người thuê có '
                 'trách nhiệm kiểm tra xe trước khi nhận và xác nhận trong ứng dụng.',
           ),
           const Divider(color: AppColors.border, height: 24),
           const _ContractSection(
             title: 'III. ĐIỀU KHOẢN SỬ DỤNG',
-            content: '• Không sử dụng xe vào mục đích trái pháp luật\n'
+            content:
+                '• Không sử dụng xe vào mục đích trái pháp luật\n'
                 '• Không cho người khác lái xe khi chưa được chủ xe đồng ý\n'
                 '• Trả xe đúng thời hạn, đúng địa điểm thỏa thuận\n'
                 '• Bảo quản xe cẩn thận, không tự ý sửa chữa',
@@ -177,7 +170,8 @@ class _ContractBody extends StatelessWidget {
           const Divider(color: AppColors.border, height: 24),
           const _ContractSection(
             title: 'IV. BỒI THƯỜNG THIỆT HẠI',
-            content: 'Mọi thiệt hại nằm ngoài phạm vi bảo hiểm sẽ do Bên B '
+            content:
+                'Mọi thiệt hại nằm ngoài phạm vi bảo hiểm sẽ do Bên B '
                 'chịu trách nhiệm bồi thường theo định giá của bên thứ ba được chỉ định.',
           ),
         ],

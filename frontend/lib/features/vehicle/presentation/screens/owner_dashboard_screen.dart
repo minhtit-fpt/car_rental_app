@@ -314,10 +314,7 @@ class _OwnerStatCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 9,
-              color: AppColors.mutedText,
-            ),
+            style: const TextStyle(fontSize: 9, color: AppColors.mutedText),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -412,10 +409,7 @@ class _OwnerProfileCard extends StatelessWidget {
               ),
               const Text(
                 '★',
-                style: TextStyle(
-                  color: AppColors.starYellow,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: AppColors.starYellow, fontSize: 16),
               ),
               const SizedBox(width: 6),
               const Text(
@@ -433,16 +427,21 @@ class _OwnerProfileCard extends StatelessWidget {
           const SizedBox(height: 6),
           const InfoRow(icon: Icons.phone_outlined, text: '+84 912 345 678'),
           const SizedBox(height: 6),
-          const InfoRow(icon: Icons.location_on_outlined, text: 'Hà Nội, Việt Nam'),
+          const InfoRow(
+            icon: Icons.location_on_outlined,
+            text: 'Hà Nội, Việt Nam',
+          ),
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.credit_card_outlined,
-                  size: 16, color: AppColors.mutedText),
+              const Icon(
+                Icons.credit_card_outlined,
+                size: 16,
+                color: AppColors.mutedText,
+              ),
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.successSoft,
                   borderRadius: BorderRadius.circular(8),
@@ -485,7 +484,6 @@ class _OwnerProfileCard extends StatelessWidget {
     );
   }
 }
-
 
 // ─────────────────────────────────────────────
 // Active Rental Card (xe đang thuê từ người khác)
@@ -798,15 +796,11 @@ class _OwnedCarRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: statusInfo.bgColor,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: statusInfo.borderColor,
-                    width: 1,
-                  ),
+                  border: Border.all(color: statusInfo.borderColor, width: 1),
                 ),
                 child: Text(
                   statusInfo.label,
@@ -820,10 +814,7 @@ class _OwnedCarRow extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Text(
-                    '⚡',
-                    style: TextStyle(fontSize: 10),
-                  ),
+                  const Text('⚡', style: TextStyle(fontSize: 10)),
                   const SizedBox(width: 2),
                   Text(
                     '${car.monthlyRevenue}/tháng',
@@ -864,31 +855,27 @@ class _OwnedCarRow extends StatelessWidget {
     );
   }
 
-  ({
-    String label,
-    Color bgColor,
-    Color textColor,
-    Color borderColor,
-  }) _statusInfo(_CarStatus status) {
+  ({String label, Color bgColor, Color textColor, Color borderColor})
+  _statusInfo(_CarStatus status) {
     return switch (status) {
       _CarStatus.rented => (
-          label: 'Đang được thuê',
-          bgColor: AppColors.teal.withAlpha(26),
-          textColor: AppColors.teal,
-          borderColor: AppColors.teal.withAlpha(77),
-        ),
+        label: 'Đang được thuê',
+        bgColor: AppColors.teal.withAlpha(26),
+        textColor: AppColors.teal,
+        borderColor: AppColors.teal.withAlpha(77),
+      ),
       _CarStatus.available => (
-          label: 'Sẵn sàng',
-          bgColor: AppColors.successSoft,
-          textColor: AppColors.success,
-          borderColor: AppColors.success.withAlpha(77),
-        ),
+        label: 'Sẵn sàng',
+        bgColor: AppColors.successSoft,
+        textColor: AppColors.success,
+        borderColor: AppColors.success.withAlpha(77),
+      ),
       _CarStatus.maintenance => (
-          label: 'Bảo dưỡng',
-          bgColor: AppColors.orange.withAlpha(26),
-          textColor: AppColors.orange,
-          borderColor: AppColors.orange.withAlpha(77),
-        ),
+        label: 'Bảo dưỡng',
+        bgColor: AppColors.orange.withAlpha(26),
+        textColor: AppColors.orange,
+        borderColor: AppColors.orange.withAlpha(77),
+      ),
     };
   }
 }

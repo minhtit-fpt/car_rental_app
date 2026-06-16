@@ -18,7 +18,16 @@ import 'package:frontend/features/admin/data/datasources/admin_remote_datasource
 import 'package:frontend/features/admin/data/repositories/admin_repository_impl.dart';
 import 'package:frontend/features/admin/domain/repositories/admin_repository.dart';
 import 'package:frontend/features/admin/domain/usecases/get_admin_stats_usecase.dart';
+import 'package:frontend/features/admin/domain/usecases/list_admin_kyc_usecase.dart';
+import 'package:frontend/features/admin/domain/usecases/list_admin_users_usecase.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_users_cubit.dart';
+import 'package:frontend/features/vehicle/data/datasources/vehicle_remote_datasource.dart';
+import 'package:frontend/features/vehicle/data/repositories/vehicle_repository_impl.dart';
+import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
+import 'package:frontend/features/vehicle/domain/usecases/list_vehicles_usecase.dart';
+import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 
 /// Service locator toàn cục.
 final GetIt sl = GetIt.instance;
@@ -66,5 +75,27 @@ void setupAdmin() {
     )
     ..registerFactory<AdminCubit>(
       () => AdminCubit(getStats: GetAdminStatsUseCase(sl<AdminRepository>())),
+    )
+    ..registerFactory<AdminUsersCubit>(
+      () => AdminUsersCubit(
+        listUsers: ListAdminUsersUseCase(sl<AdminRepository>()),
+      ),
+    )
+    ..registerFactory<AdminKycCubit>(
+      () => AdminKycCubit(listKyc: ListAdminKycUseCase(sl<AdminRepository>())),
+    );
+}
+
+/// Đăng ký data layer + cubit cho xe. Gọi sau [setupAuth] (cần [ApiClient]).
+/// [VehicleListCubit] là factory — mỗi lần vào shell người thuê tạo mới + load.
+void setupVehicle() {
+  sl
+    ..registerSingleton<VehicleRepository>(
+      VehicleRepositoryImpl(VehicleRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<VehicleListCubit>(
+      () => VehicleListCubit(
+        listVehicles: ListVehiclesUseCase(sl<VehicleRepository>()),
+      ),
     );
 }
