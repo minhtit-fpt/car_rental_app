@@ -58,8 +58,11 @@ class _AdminAppBar extends StatelessWidget {
       pinned: true,
       backgroundColor: AppColors.adminBg,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_rounded,
-            color: AppColors.adminText, size: 20),
+        icon: const Icon(
+          Icons.arrow_back_ios_rounded,
+          color: AppColors.adminText,
+          size: 20,
+        ),
         onPressed: () => context.pop(),
       ),
       flexibleSpace: FlexibleSpaceBar(
@@ -68,14 +71,18 @@ class _AdminAppBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.adminText)),
-            Text(subtitle,
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.adminMuted)),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.adminText,
+              ),
+            ),
+            Text(
+              subtitle,
+              style: const TextStyle(fontSize: 11, color: AppColors.adminMuted),
+            ),
           ],
         ),
         background: Container(
@@ -134,17 +141,19 @@ class _UserProfileCard extends StatelessWidget {
                     const Text(
                       'lan.tran@email.com · 0912 xxx 678',
                       style: TextStyle(
-                          fontSize: 12, color: AppColors.adminMuted),
+                        fontSize: 12,
+                        color: AppColors.adminMuted,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
                         StatusChip(
-                            label: '✅ KYC Đã xác minh',
-                            color: AppColors.success),
+                          label: '✅ KYC Đã xác minh',
+                          color: AppColors.success,
+                        ),
                         const SizedBox(width: 6),
-                        StatusChip(
-                            label: 'Renter', color: AppColors.adminBlue),
+                        StatusChip(label: 'Renter', color: AppColors.adminBlue),
                       ],
                     ),
                   ],
@@ -158,10 +167,11 @@ class _UserProfileCard extends StatelessWidget {
           const _InfoRow(label: 'Ngày đăng ký', value: '12/01/2025'),
           const SizedBox(height: 8),
           const _InfoRow(
-              label: 'Lần đăng nhập cuối', value: '05/06/2025 09:14'),
+            label: 'Lần đăng nhập cuối',
+            value: '05/06/2025 09:14',
+          ),
           const SizedBox(height: 8),
-          const _InfoRow(
-              label: 'Địa chỉ IP', value: '118.70.xxx.xxx · TP.HCM'),
+          const _InfoRow(label: 'Địa chỉ IP', value: '118.70.xxx.xxx · TP.HCM'),
         ],
       ),
     );
@@ -178,14 +188,18 @@ class _InfoRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style:
-                const TextStyle(fontSize: 13, color: AppColors.adminMuted)),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.adminText)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: AppColors.adminMuted),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.adminText,
+          ),
+        ),
       ],
     );
   }
@@ -216,25 +230,29 @@ class _AccountStatsCard extends StatelessWidget {
           Row(
             children: [
               _StatTile(
-                  icon: Icons.directions_car_rounded,
-                  label: 'Chuyến',
-                  value: '14',
-                  color: AppColors.adminBlue),
+                icon: Icons.directions_car_rounded,
+                label: 'Chuyến',
+                value: '14',
+                color: AppColors.adminBlue,
+              ),
               _StatTile(
-                  icon: Icons.star_rounded,
-                  label: 'Đánh giá',
-                  value: '4.8',
-                  color: AppColors.warning),
+                icon: Icons.star_rounded,
+                label: 'Đánh giá',
+                value: '4.8',
+                color: AppColors.warning,
+              ),
               _StatTile(
-                  icon: Icons.payments_outlined,
-                  label: 'Chi tiêu',
-                  value: '12M',
-                  color: AppColors.success),
+                icon: Icons.payments_outlined,
+                label: 'Chi tiêu',
+                value: '12M',
+                color: AppColors.success,
+              ),
               _StatTile(
-                  icon: Icons.report_outlined,
-                  label: 'Tranh chấp',
-                  value: '0',
-                  color: AppColors.danger),
+                icon: Icons.report_outlined,
+                label: 'Tranh chấp',
+                value: '0',
+                color: AppColors.danger,
+              ),
             ],
           ),
         ],
@@ -270,14 +288,18 @@ class _StatTile extends StatelessWidget {
             child: Center(child: Icon(icon, size: 16, color: color)),
           ),
           const SizedBox(height: 6),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: color)),
-          Text(label,
-              style:
-                  const TextStyle(fontSize: 10, color: AppColors.adminMuted)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 10, color: AppColors.adminMuted),
+          ),
         ],
       ),
     );
@@ -307,22 +329,25 @@ class _ActivityCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _ActivityRow(
-              icon: Icons.directions_car_rounded,
-              text: 'Hoàn thành chuyến Tesla Model 3',
-              time: '05/06/2025',
-              color: AppColors.success),
+            icon: Icons.directions_car_rounded,
+            text: 'Hoàn thành chuyến Tesla Model 3',
+            time: '05/06/2025',
+            color: AppColors.success,
+          ),
           const Divider(color: AppColors.adminBorder, height: 16),
           _ActivityRow(
-              icon: Icons.payments_outlined,
-              text: 'Thanh toán 2,403K VNĐ qua MoMo',
-              time: '05/06/2025',
-              color: AppColors.adminBlue),
+            icon: Icons.payments_outlined,
+            text: 'Thanh toán 2,403K VNĐ qua MoMo',
+            time: '05/06/2025',
+            color: AppColors.adminBlue,
+          ),
           const Divider(color: AppColors.adminBorder, height: 16),
           _ActivityRow(
-              icon: Icons.star_rounded,
-              text: 'Đánh giá 5⭐ cho chủ xe',
-              time: '08/06/2025',
-              color: AppColors.warning),
+            icon: Icons.star_rounded,
+            text: 'Đánh giá 5⭐ cho chủ xe',
+            time: '08/06/2025',
+            color: AppColors.warning,
+          ),
         ],
       ),
     );
@@ -356,13 +381,15 @@ class _ActivityRow extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: Text(text,
-              style:
-                  const TextStyle(fontSize: 13, color: AppColors.adminText)),
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 13, color: AppColors.adminText),
+          ),
         ),
-        Text(time,
-            style:
-                const TextStyle(fontSize: 11, color: AppColors.adminMuted)),
+        Text(
+          time,
+          style: const TextStyle(fontSize: 11, color: AppColors.adminMuted),
+        ),
       ],
     );
   }

@@ -56,6 +56,7 @@ model User {
   conversations   ConversationParticipant[]
   messagesSent    ChatMessage[]
   auditLogs       AuditLog[]
+  disputes        Dispute[]
 
   @@index([phone])
   @@index([roles], type: Gin)
@@ -196,10 +197,42 @@ model Booking {
   reviews      Review[]
   tripStories  TripStory[]
   conversation ChatConversation?
+  disputes     Dispute[]
 
   @@index([vehicleId])
   @@index([renterId])
   @@index([status])
+}
+
+enum DisputePriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum DisputeStatus {
+  OPEN
+  RESOLVED
+  REJECTED
+}
+
+// Tranh chấp gắn với một booking, do RENTER/OWNER tạo, ADMIN xử lý.
+model Dispute {
+  id          String          @id @default(uuid()) @db.Uuid
+  bookingId   String          @db.Uuid
+  raisedById  String          @db.Uuid
+  title       String
+  description String?
+  priority    DisputePriority @default(MEDIUM)
+  status      DisputeStatus   @default(OPEN)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  raisedBy User    @relation(fields: [raisedById], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([bookingId])
 }
 
 model Payment {

@@ -5,18 +5,28 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/admin/domain/entities/admin_dispute_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_kyc_item.dart';
+import 'package:frontend/features/admin/domain/entities/admin_revenue_point.dart';
 import 'package:frontend/features/admin/domain/entities/admin_user_item.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_disputes_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_revenue_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_users_cubit.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 
 // ─────────────────────────────────────────────
-// Mock Data
+// View-model tranh chấp (dữ liệu thật từ /api/admin/disputes)
 // ─────────────────────────────────────────────
 
 enum _DisputePriority { high, medium, low }
+
+_DisputePriority _priorityFromString(String value) => switch (value) {
+  'HIGH' => _DisputePriority.high,
+  'LOW' => _DisputePriority.low,
+  _ => _DisputePriority.medium,
+};
 
 class _Dispute {
   const _Dispute({
@@ -31,43 +41,6 @@ class _Dispute {
   final String timeAgo;
   final _DisputePriority priority;
 }
-
-const _kDisputes = [
-  _Dispute(
-    ref: 'BK lỗi #001',
-    title: 'Trách nhiệm hư hỏng',
-    timeAgo: '4 giờ trước',
-    priority: _DisputePriority.high,
-  ),
-  _Dispute(
-    ref: 'BK lỗi #002',
-    title: 'Tính phí sai',
-    timeAgo: '9 giờ trước',
-    priority: _DisputePriority.medium,
-  ),
-  _Dispute(
-    ref: 'BK lỗi #003',
-    title: 'Trì hoãn bàn giao',
-    timeAgo: '1 ngày trước',
-    priority: _DisputePriority.low,
-  ),
-  _Dispute(
-    ref: 'BK lỗi #004',
-    title: 'Vấn đề bảo hiểm',
-    timeAgo: '1 ngày trước',
-    priority: _DisputePriority.medium,
-  ),
-  _Dispute(
-    ref: 'BK lỗi #005',
-    title: 'Hạn booking bất hợp',
-    timeAgo: '2 ngày trước',
-    priority: _DisputePriority.low,
-  ),
-];
-
-// Revenue data: Th.11 → Th.4 (6 months)
-const _kRevenueLabels = ['Th.11', 'Th.12', 'Th.1', 'Th.2', 'Th.3', 'Th.4'];
-const _kRevenueValues = [320.0, 350.0, 290.0, 380.0, 440.0, 485.0];
 
 // ─────────────────────────────────────────────
 // Screen
@@ -121,6 +94,17 @@ class _AdminSliverAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String two(int v) => v.toString().padLeft(2, '0');
+    final now = DateTime.now();
+    final headerDate =
+        '${two(now.day)}/${two(now.month)}/${now.year} · '
+        '${two(now.hour)}:${two(now.minute)}';
+    // Badge KYC = số hồ sơ chờ duyệt thật từ /api/admin/stats (ẩn khi 0).
+    final kycBadge = switch (context.watch<AdminCubit>().state) {
+      AdminStatsLoaded(:final stats) when stats.pendingKyc > 0 =>
+        '${stats.pendingKyc}',
+      _ => null,
+    };
     return SliverAppBar(
       pinned: true,
       expandedHeight: 140,
@@ -197,9 +181,12 @@ class _AdminSliverAppBar extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  const Text(
-                    '14/04/2026 · 09:30',
-                    style: TextStyle(color: AppColors.adminMuted, fontSize: 12),
+                  Text(
+                    headerDate,
+                    style: const TextStyle(
+                      color: AppColors.adminMuted,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -224,7 +211,7 @@ class _AdminSliverAppBar extends StatelessWidget {
                 index: 1,
                 current: tabIndex,
                 onTap: onTabChanged,
-                badge: '23',
+                badge: kycBadge,
               ),
               _AdminTab(
                 label: 'Người dùng',
@@ -661,62 +648,116 @@ class _KycQueueCard extends StatelessWidget {
 class _DisputesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.adminCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.adminBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Tranh chấp đang xử lý',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.adminText,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.adminBorder,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${_kDisputes.length}',
-                    style: const TextStyle(
-                      color: AppColors.adminMuted,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+    return BlocBuilder<AdminDisputesCubit, AdminDisputesState>(
+      builder: (context, state) {
+        final count = state is AdminDisputesLoaded ? state.items.length : null;
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.adminCard,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.adminBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Tranh chấp đang xử lý',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.adminText,
+                      ),
                     ),
-                  ),
+                    if (count != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.adminBorder,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(
+                            color: AppColors.adminMuted,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const Divider(height: 1, color: AppColors.adminBorder),
+              _body(context, state),
+            ],
           ),
-          const Divider(height: 1, color: AppColors.adminBorder),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _kDisputes.length,
-            separatorBuilder: (_, _) =>
-                const Divider(height: 1, color: AppColors.adminBorder),
-            itemBuilder: (_, i) => _DisputeRow(dispute: _kDisputes[i]),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
+
+  Widget _body(BuildContext context, AdminDisputesState state) {
+    return switch (state) {
+      AdminDisputesLoading() => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      AdminDisputesError(:final message) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.adminMuted,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => context.read<AdminDisputesCubit>().load(),
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      ),
+      AdminDisputesLoaded(:final items) =>
+        items.isEmpty
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: Text(
+                    'Không có tranh chấp nào',
+                    style: TextStyle(fontSize: 12, color: AppColors.adminMuted),
+                  ),
+                ),
+              )
+            : ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: items.length,
+                separatorBuilder: (_, _) =>
+                    const Divider(height: 1, color: AppColors.adminBorder),
+                itemBuilder: (_, i) => _DisputeRow(dispute: _toView(items[i])),
+              ),
+    };
+  }
+
+  _Dispute _toView(AdminDisputeItem item) => _Dispute(
+    ref: item.bookingRef,
+    title: item.title,
+    timeAgo: _timeAgo(item.createdAt),
+    priority: _priorityFromString(item.priority),
+  );
 }
 
 class _DisputeRow extends StatelessWidget {
@@ -896,48 +937,104 @@ class _RecentUsersCard extends StatelessWidget {
 class _RevenueChartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.adminCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.adminBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Doanh thu 6 tháng gần nhất',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: AppColors.adminText,
-            ),
+    return BlocBuilder<AdminRevenueCubit, AdminRevenueState>(
+      builder: (context, state) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.adminCard,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.adminBorder),
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'Th.11 2025 - Th.4 2026 · Tổng: 2.265M VNĐ',
-            style: TextStyle(fontSize: 11, color: AppColors.adminMuted),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Doanh thu 6 tháng gần nhất',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.adminText,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _subtitle(state),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.adminMuted,
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(height: 160, child: _body(context, state)),
+            ],
           ),
-          const SizedBox(height: 20),
-          SizedBox(height: 160, child: _RevenueBarChart()),
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  String _subtitle(AdminRevenueState state) {
+    if (state is AdminRevenueLoaded && state.points.isNotEmpty) {
+      final points = state.points;
+      final total = points.fold<double>(0, (sum, p) => sum + p.totalInMillions);
+      return '${points.first.label} → ${points.last.label} · '
+          'Tổng: ${total.toStringAsFixed(total >= 10 ? 0 : 1)}M VNĐ';
+    }
+    return 'Tổng hợp doanh thu theo tháng';
+  }
+
+  Widget _body(BuildContext context, AdminRevenueState state) {
+    return switch (state) {
+      AdminRevenueLoading() => const Center(child: CircularProgressIndicator()),
+      AdminRevenueError(:final message) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, color: AppColors.adminMuted),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => context.read<AdminRevenueCubit>().load(),
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      ),
+      AdminRevenueLoaded(:final points) =>
+        points.isEmpty
+            ? const Center(
+                child: Text(
+                  'Chưa có dữ liệu doanh thu',
+                  style: TextStyle(fontSize: 12, color: AppColors.adminMuted),
+                ),
+              )
+            : _RevenueBarChart(points: points),
+    };
   }
 }
 
 class _RevenueBarChart extends StatelessWidget {
+  const _RevenueBarChart({required this.points});
+
+  final List<AdminRevenuePoint> points;
+
   @override
   Widget build(BuildContext context) {
-    final maxValue = _kRevenueValues.reduce(math.max);
+    final maxValue = points
+        .map((p) => p.totalInMillions)
+        .fold<double>(0, math.max);
+    final safeMax = maxValue <= 0 ? 1.0 : maxValue;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
-      children: List.generate(_kRevenueValues.length, (i) {
-        final value = _kRevenueValues[i];
-        final ratio = value / maxValue;
-        final isHighest = value == maxValue;
+      children: List.generate(points.length, (i) {
+        final value = points[i].totalInMillions;
+        final ratio = value / safeMax;
+        final isHighest = maxValue > 0 && value == maxValue;
 
         return Expanded(
           child: Padding(
@@ -946,7 +1043,7 @@ class _RevenueBarChart extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
-                  '${value.toInt()}M',
+                  '${value.toStringAsFixed(value >= 10 ? 0 : 1)}M',
                   style: TextStyle(
                     fontSize: 9,
                     color: isHighest
@@ -981,7 +1078,7 @@ class _RevenueBarChart extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  _kRevenueLabels[i],
+                  points[i].label,
                   style: const TextStyle(
                     fontSize: 10,
                     color: AppColors.adminMuted,

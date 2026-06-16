@@ -8,8 +8,8 @@ export 'package:frontend/features/admin/presentation/cubit/admin_kyc_state.dart'
 
 class AdminKycCubit extends Cubit<AdminKycState> {
   AdminKycCubit({required ListAdminKycUseCase listKyc})
-      : _listKyc = listKyc,
-        super(const AdminKycLoading());
+    : _listKyc = listKyc,
+      super(const AdminKycLoading());
 
   final ListAdminKycUseCase _listKyc;
 

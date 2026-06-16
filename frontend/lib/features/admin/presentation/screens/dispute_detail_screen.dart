@@ -60,8 +60,11 @@ class _AdminAppBar extends StatelessWidget {
       pinned: true,
       backgroundColor: AppColors.adminBg,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_rounded,
-            color: AppColors.adminText, size: 20),
+        icon: const Icon(
+          Icons.arrow_back_ios_rounded,
+          color: AppColors.adminText,
+          size: 20,
+        ),
         onPressed: () => context.pop(),
       ),
       flexibleSpace: FlexibleSpaceBar(
@@ -70,14 +73,18 @@ class _AdminAppBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.adminText)),
-            Text(subtitle,
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.adminMuted)),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.adminText,
+              ),
+            ),
+            Text(
+              subtitle,
+              style: const TextStyle(fontSize: 11, color: AppColors.adminMuted),
+            ),
           ],
         ),
         background: Container(
@@ -109,8 +116,11 @@ class _DisputeHeaderCard extends StatelessWidget {
         children: [
           const Row(
             children: [
-              Icon(Icons.report_problem_rounded,
-                  color: AppColors.danger, size: 20),
+              Icon(
+                Icons.report_problem_rounded,
+                color: AppColors.danger,
+                size: 20,
+              ),
               SizedBox(width: 8),
               Text(
                 'Xe bị trầy xước sau khi thuê',
@@ -137,7 +147,10 @@ class _DisputeHeaderCard extends StatelessWidget {
           const Text(
             'Chủ xe báo cáo rằng xe bị trầy xước nghiêm trọng tại cửa sau bên trái sau khi khách thuê trả xe. Khách thuê phủ nhận trách nhiệm.',
             style: TextStyle(
-                fontSize: 13, color: AppColors.adminMuted, height: 1.5),
+              fontSize: 13,
+              color: AppColors.adminMuted,
+              height: 1.5,
+            ),
           ),
         ],
       ),
@@ -214,27 +227,38 @@ class _PartyRow extends StatelessWidget {
             color: roleColor.withAlpha(30),
             shape: BoxShape.circle,
           ),
-          child:
-              Center(child: Text(emoji, style: const TextStyle(fontSize: 18))),
+          child: Center(
+            child: Text(emoji, style: const TextStyle(fontSize: 18)),
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(role,
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: roleColor,
-                      fontWeight: FontWeight.w600)),
-              Text(name,
-                  style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.adminText)),
-              Text(phone,
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.adminMuted)),
+              Text(
+                role,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: roleColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.adminText,
+                ),
+              ),
+              Text(
+                phone,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.adminMuted,
+                ),
+              ),
             ],
           ),
         ),
@@ -379,11 +403,7 @@ class _TimelineItem extends StatelessWidget {
               ),
             ),
             if (!isLast)
-              Container(
-                width: 2,
-                height: 36,
-                color: AppColors.adminBorder,
-              ),
+              Container(width: 2, height: 36, color: AppColors.adminBorder),
           ],
         ),
         const SizedBox(width: 12),
@@ -393,13 +413,21 @@ class _TimelineItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(date,
-                    style: const TextStyle(
-                        fontSize: 11, color: AppColors.adminMuted)),
+                Text(
+                  date,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.adminMuted,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(text,
-                    style: const TextStyle(
-                        fontSize: 13, color: AppColors.adminText)),
+                Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.adminText,
+                  ),
+                ),
               ],
             ),
           ),

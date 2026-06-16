@@ -9,8 +9,8 @@ export 'package:frontend/features/admin/presentation/cubit/admin_state.dart';
 /// Quản lý số liệu tổng quan của màn admin.
 class AdminCubit extends Cubit<AdminStatsState> {
   AdminCubit({required GetAdminStatsUseCase getStats})
-      : _getStats = getStats,
-        super(const AdminStatsLoading());
+    : _getStats = getStats,
+      super(const AdminStatsLoading());
 
   final GetAdminStatsUseCase _getStats;
 

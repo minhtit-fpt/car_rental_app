@@ -8,8 +8,8 @@ export 'package:frontend/features/admin/presentation/cubit/admin_users_state.dar
 
 class AdminUsersCubit extends Cubit<AdminUsersState> {
   AdminUsersCubit({required ListAdminUsersUseCase listUsers})
-      : _listUsers = listUsers,
-        super(const AdminUsersLoading());
+    : _listUsers = listUsers,
+      super(const AdminUsersLoading());
 
   final ListAdminUsersUseCase _listUsers;
 

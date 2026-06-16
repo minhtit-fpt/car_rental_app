@@ -17,6 +17,8 @@ import 'package:frontend/core/shell/app_shell.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_users_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_revenue_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_disputes_cubit.dart';
 import 'package:frontend/features/admin/presentation/screens/admin_dashboard_screen.dart';
 import 'package:frontend/features/auth/domain/entities/user_role.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
@@ -90,6 +92,8 @@ GoRouter createAppRouter(AuthCubit authCubit) {
             BlocProvider(create: (_) => sl<AdminCubit>()..loadStats()),
             BlocProvider(create: (_) => sl<AdminUsersCubit>()..load()),
             BlocProvider(create: (_) => sl<AdminKycCubit>()..load()),
+            BlocProvider(create: (_) => sl<AdminRevenueCubit>()..load()),
+            BlocProvider(create: (_) => sl<AdminDisputesCubit>()..load()),
           ],
           child: const AdminDashboardScreen(),
         ),

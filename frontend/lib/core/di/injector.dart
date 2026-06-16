@@ -20,9 +20,13 @@ import 'package:frontend/features/admin/domain/repositories/admin_repository.dar
 import 'package:frontend/features/admin/domain/usecases/get_admin_stats_usecase.dart';
 import 'package:frontend/features/admin/domain/usecases/list_admin_kyc_usecase.dart';
 import 'package:frontend/features/admin/domain/usecases/list_admin_users_usecase.dart';
+import 'package:frontend/features/admin/domain/usecases/get_admin_revenue_usecase.dart';
+import 'package:frontend/features/admin/domain/usecases/list_admin_disputes_usecase.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_users_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_revenue_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_disputes_cubit.dart';
 import 'package:frontend/features/vehicle/data/datasources/vehicle_remote_datasource.dart';
 import 'package:frontend/features/vehicle/data/repositories/vehicle_repository_impl.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
@@ -83,6 +87,16 @@ void setupAdmin() {
     )
     ..registerFactory<AdminKycCubit>(
       () => AdminKycCubit(listKyc: ListAdminKycUseCase(sl<AdminRepository>())),
+    )
+    ..registerFactory<AdminRevenueCubit>(
+      () => AdminRevenueCubit(
+        getRevenue: GetAdminRevenueUseCase(sl<AdminRepository>()),
+      ),
+    )
+    ..registerFactory<AdminDisputesCubit>(
+      () => AdminDisputesCubit(
+        listDisputes: ListAdminDisputesUseCase(sl<AdminRepository>()),
+      ),
     );
 }
 
