@@ -51,12 +51,30 @@ class _BookingConfirmView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<BookingCubit, BookingFormState>(
-      listenWhen: (p, c) => c.submitted && !p.submitted,
-      listener: (context, _) => context.pushReplacement(
-        '/booking/contract',
-        extra: {'vehicle': vehicle, 'cubit': context.read<BookingCubit>()},
-      ),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<BookingCubit, BookingFormState>(
+          listenWhen: (p, c) => c.submitted && !p.submitted,
+          listener: (context, _) => context.pushReplacement(
+            '/booking/contract',
+            extra: {'vehicle': vehicle, 'cubit': context.read<BookingCubit>()},
+          ),
+        ),
+        BlocListener<BookingCubit, BookingFormState>(
+          listenWhen: (p, c) =>
+              c.errorMessage != null && c.errorMessage != p.errorMessage,
+          listener: (context, state) {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage ?? 'Đặt xe thất bại'),
+                  backgroundColor: AppColors.accent,
+                ),
+              );
+          },
+        ),
+      ],
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: Scaffold(
@@ -103,7 +121,7 @@ class _BookingConfirmView extends StatelessWidget {
                                   ? null
                                   : () => context
                                         .read<BookingCubit>()
-                                        .confirmBooking(),
+                                        .confirmBooking(vehicleId: vehicle.id),
                               isLoading: s.isSubmitting,
                               icon: Icons.lock_outline_rounded,
                             ),

@@ -8,8 +8,13 @@ final paymentRoutes = [
   GoRoute(
     path: '/payment',
     builder: (context, state) {
-      final amount = state.extra as double? ?? 0.0;
-      return PaymentScreen(amount: amount);
+      final args = state.extra as Map<String, dynamic>;
+      return PaymentScreen(
+        bookingId: args['bookingId'] as String,
+        amount: args['amount'] as double,
+        successLocation: args['successLocation'] as String?,
+        successExtra: args['successExtra'],
+      );
     },
   ),
   GoRoute(
@@ -25,8 +30,11 @@ final paymentRoutes = [
   GoRoute(
     path: '/review',
     builder: (context, state) {
-      final vehicle = state.extra as Vehicle;
-      return ReviewScreen(vehicle: vehicle);
+      final args = state.extra as Map<String, dynamic>;
+      return ReviewScreen(
+        bookingId: args['bookingId'] as String,
+        vehicle: args['vehicle'] as Vehicle,
+      );
     },
   ),
 ];

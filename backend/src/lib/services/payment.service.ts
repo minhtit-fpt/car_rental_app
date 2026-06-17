@@ -9,7 +9,7 @@ import { AppError } from "@/lib/errors/app-error";
 import { bookingRepository } from "@/lib/repositories/booking.repository";
 import { paymentRepository } from "@/lib/repositories/payment.repository";
 import { bookingService, type PublicBooking } from "@/lib/services/booking.service";
-import { paymentProvider } from "@/lib/payments";
+import { paymentProvider, paymentProviderName } from "@/lib/payments";
 import type {
   ConfirmPaymentInput,
   CreatePaymentInput,
@@ -29,6 +29,8 @@ export interface PublicPayment {
 export interface CreatePaymentResult {
   payment: PublicPayment;
   payUrl: string;
+  /** Cổng đang hoạt động — client mở WebView nếu "vnpay", tự xác nhận nếu "mock". */
+  provider: "vnpay" | "mock";
 }
 
 export interface ConfirmPaymentResult {
@@ -116,7 +118,11 @@ export const paymentService = {
           gatewayRef,
         });
 
-    return { payment: toPublicPayment(payment), payUrl };
+    return {
+      payment: toPublicPayment(payment),
+      payUrl,
+      provider: paymentProviderName,
+    };
   },
 
   async getById(renterId: string, paymentId: string): Promise<PublicPayment> {
@@ -141,6 +147,7 @@ export const paymentService = {
       reference: payment.id,
       gatewayRef: payment.gatewayRef ?? "",
       success: input.success,
+      params: input.params,
     });
 
     if (!verified) {

@@ -38,6 +38,9 @@ dependencies:
   # HTTP client — gọi backend Next.js (/api/auth/*)
   dio: ^5.7.0
 
+  # WebView nhúng — mở cổng VNPay & bắt URL return để xác nhận thanh toán
+  flutter_inappwebview: ^6.1.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

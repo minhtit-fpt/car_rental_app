@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
@@ -34,7 +35,7 @@ class BookingDatePickerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => BookingCubit(),
+      create: (_) => sl<BookingCubit>(),
       child: _BookingDatePickerView(vehicle: vehicle),
     );
   }

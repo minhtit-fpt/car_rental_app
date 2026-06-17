@@ -37,3 +37,4 @@ frontend/**/local.properties
 
 # === Claude Code ===
 .claude/
+backend/prisma/seed.ts

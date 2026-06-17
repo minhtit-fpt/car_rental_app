@@ -1,76 +1,155 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/payment/presentation/cubit/payment_cubit.dart';
+import 'package:frontend/features/payment/presentation/screens/vnpay_webview_screen.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
 enum _PayMethod { vnpay, momo, zalopay, card }
 
-class PaymentScreen extends StatefulWidget {
-  const PaymentScreen({super.key, required this.amount});
+class PaymentScreen extends StatelessWidget {
+  const PaymentScreen({
+    super.key,
+    required this.bookingId,
+    required this.amount,
+    this.successLocation,
+    this.successExtra,
+  });
 
+  /// Đơn (PENDING_PAYMENT) cần thanh toán.
+  final String bookingId;
   final double amount;
 
-  @override
-  State<PaymentScreen> createState() => _PaymentScreenState();
-}
-
-class _PaymentScreenState extends State<PaymentScreen> {
-  _PayMethod _selected = _PayMethod.vnpay;
-  bool _isProcessing = false;
-
-  Future<void> _pay() async {
-    setState(() => _isProcessing = true);
-    await Future.delayed(const Duration(milliseconds: 1500));
-    if (mounted) {
-      context.pushReplacement(
-        '/payment/result',
-        extra: {'success': true, 'amount': widget.amount},
-      );
-    }
-  }
+  /// Nơi điều hướng khi thanh toán thành công. Mặc định (null) → màn kết quả.
+  /// Giá trị truyền vào opaque để màn thanh toán không phụ thuộc feature khác.
+  final String? successLocation;
+  final Object? successExtra;
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: CustomScrollView(
-          slivers: [
-            const RvSliverAppBar(
-              title: 'Thanh toán',
-              subtitle: 'Chọn phương thức thanh toán',
-              role: RvRole.renter,
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 8),
-                    _AmountCard(amount: widget.amount),
-                    const SizedBox(height: 20),
-                    _MethodSelector(
-                      selected: _selected,
-                      onChanged: (m) => setState(() => _selected = m),
-                    ),
-                    const SizedBox(height: 20),
-                    _SecurityBadge(),
-                    const SizedBox(height: 20),
-                    PrimaryButton(
-                      label: 'Thanh toán ${widget.amount.toInt()}K VNĐ',
-                      onPressed: _isProcessing ? null : _pay,
-                      isLoading: _isProcessing,
-                      icon: Icons.lock_outline_rounded,
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+    return BlocProvider(
+      create: (_) => sl<PaymentCubit>(),
+      child: _PaymentView(
+        bookingId: bookingId,
+        amount: amount,
+        successLocation: successLocation,
+        successExtra: successExtra,
+      ),
+    );
+  }
+}
+
+class _PaymentView extends StatefulWidget {
+  const _PaymentView({
+    required this.bookingId,
+    required this.amount,
+    this.successLocation,
+    this.successExtra,
+  });
+
+  final String bookingId;
+  final double amount;
+  final String? successLocation;
+  final Object? successExtra;
+
+  @override
+  State<_PaymentView> createState() => _PaymentViewState();
+}
+
+class _PaymentViewState extends State<_PaymentView> {
+  _PayMethod _selected = _PayMethod.vnpay;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<PaymentCubit, PaymentState>(
+      listener: (context, state) async {
+        switch (state) {
+          case PaymentSuccess():
+            final next = widget.successLocation;
+            if (next != null) {
+              context.pushReplacement(next, extra: widget.successExtra);
+            } else {
+              context.pushReplacement(
+                '/payment/result',
+                extra: {'success': true, 'amount': widget.amount},
+              );
+            }
+          case PaymentFailure():
+            context.pushReplacement(
+              '/payment/result',
+              extra: {'success': false, 'amount': widget.amount},
+            );
+          case PaymentAwaitingGateway(:final paymentId, :final payUrl):
+            // Mở cổng VNPay thật; chờ WebView bắt URL return.
+            final params = await Navigator.of(context).push<Map<String, String>>(
+              MaterialPageRoute(
+                builder: (_) => VnpayWebViewScreen(payUrl: payUrl),
+              ),
+            );
+            if (!context.mounted) return;
+            final cubit = context.read<PaymentCubit>();
+            if (params != null) {
+              await cubit.confirmGateway(paymentId: paymentId, params: params);
+            } else {
+              cubit.cancelGateway();
+            }
+          case PaymentIdle():
+          case PaymentProcessing():
+            break;
+        }
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Scaffold(
+          backgroundColor: AppColors.background,
+          body: CustomScrollView(
+            slivers: [
+              const RvSliverAppBar(
+                title: 'Thanh toán',
+                subtitle: 'Chọn phương thức thanh toán',
+                role: RvRole.renter,
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 8),
+                      _AmountCard(amount: widget.amount),
+                      const SizedBox(height: 20),
+                      _MethodSelector(
+                        selected: _selected,
+                        onChanged: (m) => setState(() => _selected = m),
+                      ),
+                      const SizedBox(height: 20),
+                      _SecurityBadge(),
+                      const SizedBox(height: 20),
+                      BlocBuilder<PaymentCubit, PaymentState>(
+                        builder: (context, state) {
+                          final isProcessing = state is PaymentProcessing;
+                          return PrimaryButton(
+                            label: 'Thanh toán ${widget.amount.toInt()}K VNĐ',
+                            onPressed: isProcessing
+                                ? null
+                                : () => context
+                                      .read<PaymentCubit>()
+                                      .pay(bookingId: widget.bookingId),
+                            isLoading: isProcessing,
+                            icon: Icons.lock_outline_rounded,
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

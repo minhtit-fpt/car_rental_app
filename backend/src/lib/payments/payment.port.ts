@@ -24,6 +24,9 @@ export interface PaymentCallback {
   success: boolean;
   /** Chữ ký cổng gửi kèm; adapter thật xác thực, mock bỏ qua. */
   signature?: string;
+  /** Toàn bộ tham số `vnp_*` thô từ return/IPN của VNPay. Adapter thật dùng để
+   *  tính lại HMAC và đối chiếu `vnp_SecureHash`; mock bỏ qua. */
+  params?: Record<string, string>;
 }
 
 export interface PaymentProvider {

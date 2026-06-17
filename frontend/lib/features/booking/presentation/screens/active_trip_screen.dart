@@ -114,7 +114,16 @@ class ActiveTripScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              context.go('/');
+              // Trả xe xong → mời đánh giá chuyến (đơn đã CONFIRMED sau thanh toán).
+              final bookingId = cubit.state.booking?.id;
+              if (bookingId != null) {
+                context.push(
+                  '/review',
+                  extra: {'bookingId': bookingId, 'vehicle': vehicle},
+                );
+              } else {
+                context.go('/');
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,

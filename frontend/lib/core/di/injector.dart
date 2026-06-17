@@ -33,6 +33,22 @@ import 'package:frontend/features/vehicle/data/repositories/vehicle_repository_i
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
 import 'package:frontend/features/vehicle/domain/usecases/list_vehicles_usecase.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
+import 'package:frontend/features/booking/data/datasources/booking_remote_datasource.dart';
+import 'package:frontend/features/booking/data/repositories/booking_repository_impl.dart';
+import 'package:frontend/features/booking/domain/repositories/booking_repository.dart';
+import 'package:frontend/features/booking/domain/usecases/create_booking_usecase.dart';
+import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
+import 'package:frontend/features/payment/data/datasources/payment_remote_datasource.dart';
+import 'package:frontend/features/payment/data/repositories/payment_repository_impl.dart';
+import 'package:frontend/features/payment/domain/repositories/payment_repository.dart';
+import 'package:frontend/features/payment/domain/usecases/confirm_payment_usecase.dart';
+import 'package:frontend/features/payment/domain/usecases/create_payment_usecase.dart';
+import 'package:frontend/features/payment/presentation/cubit/payment_cubit.dart';
+import 'package:frontend/features/review/data/datasources/review_remote_datasource.dart';
+import 'package:frontend/features/review/data/repositories/review_repository_impl.dart';
+import 'package:frontend/features/review/domain/repositories/review_repository.dart';
+import 'package:frontend/features/review/domain/usecases/create_review_usecase.dart';
+import 'package:frontend/features/review/presentation/cubit/review_cubit.dart';
 import 'package:frontend/features/kyc/data/datasources/kyc_remote_datasource.dart';
 import 'package:frontend/features/kyc/data/repositories/kyc_repository_impl.dart';
 import 'package:frontend/features/kyc/domain/repositories/kyc_repository.dart';
@@ -117,6 +133,49 @@ void setupVehicle() {
     ..registerFactory<VehicleListCubit>(
       () => VehicleListCubit(
         listVehicles: ListVehiclesUseCase(sl<VehicleRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho đơn đặt. Gọi sau [setupAuth] (cần [ApiClient]).
+/// [BookingCubit] là factory — mỗi luồng đặt xe tạo mới + giữ form riêng.
+void setupBooking() {
+  sl
+    ..registerSingleton<BookingRepository>(
+      BookingRepositoryImpl(BookingRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<BookingCubit>(
+      () => BookingCubit(
+        createBooking: CreateBookingUseCase(sl<BookingRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho thanh toán. Gọi sau [setupAuth].
+/// [PaymentCubit] là factory — mỗi màn thanh toán một phiên riêng.
+void setupPayment() {
+  sl
+    ..registerSingleton<PaymentRepository>(
+      PaymentRepositoryImpl(PaymentRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<PaymentCubit>(
+      () => PaymentCubit(
+        createPayment: CreatePaymentUseCase(sl<PaymentRepository>()),
+        confirmPayment: ConfirmPaymentUseCase(sl<PaymentRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho đánh giá. Gọi sau [setupAuth].
+/// [ReviewCubit] là factory — mỗi màn đánh giá một phiên riêng.
+void setupReview() {
+  sl
+    ..registerSingleton<ReviewRepository>(
+      ReviewRepositoryImpl(ReviewRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<ReviewCubit>(
+      () => ReviewCubit(
+        createReview: CreateReviewUseCase(sl<ReviewRepository>()),
       ),
     );
 }

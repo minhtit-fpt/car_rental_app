@@ -21,6 +21,7 @@ vi.mock("@/lib/repositories/payment.repository", () => ({
 }));
 vi.mock("@/lib/payments", () => ({
   paymentProvider: { createPayment: vi.fn(), verifyCallback: vi.fn() },
+  paymentProviderName: "mock",
 }));
 vi.mock("@/lib/services/booking.service", () => ({
   bookingService: { confirmAfterPayment: vi.fn() },

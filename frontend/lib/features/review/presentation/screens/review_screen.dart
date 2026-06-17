@@ -1,27 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/review/presentation/cubit/review_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
-class ReviewScreen extends StatefulWidget {
-  const ReviewScreen({super.key, required this.vehicle});
+class ReviewScreen extends StatelessWidget {
+  const ReviewScreen({
+    super.key,
+    required this.bookingId,
+    required this.vehicle,
+  });
 
+  /// Đơn đã hoàn tất/đang diễn ra cần đánh giá.
+  final String bookingId;
   final Vehicle vehicle;
 
   @override
-  State<ReviewScreen> createState() => _ReviewScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<ReviewCubit>(),
+      child: _ReviewView(bookingId: bookingId, vehicle: vehicle),
+    );
+  }
 }
 
-class _ReviewScreenState extends State<ReviewScreen> {
+class _ReviewView extends StatefulWidget {
+  const _ReviewView({required this.bookingId, required this.vehicle});
+
+  final String bookingId;
+  final Vehicle vehicle;
+
+  @override
+  State<_ReviewView> createState() => _ReviewViewState();
+}
+
+class _ReviewViewState extends State<_ReviewView> {
   int _vehicleRating = 0;
   int _ownerRating = 0;
   final _commentController = TextEditingController();
   final List<String> _selectedTags = [];
-  bool _isSubmitting = false;
 
   static const _positiveTags = [
     'Xe sạch',
@@ -40,10 +63,18 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   bool get _canSubmit => _vehicleRating > 0 && _ownerRating > 0;
 
-  Future<void> _submit() async {
-    setState(() => _isSubmitting = true);
-    await Future.delayed(const Duration(milliseconds: 1000));
-    if (mounted) context.go('/');
+  void _submit(BuildContext context) {
+    final tagNote = _selectedTags.join(', ');
+    final text = _commentController.text.trim();
+    final comment = [tagNote, text].where((s) => s.isNotEmpty).join(' — ');
+    // Backend lưu 1 đánh giá/đơn (người thuê → chủ xe). Gộp 2 thang điểm thành
+    // điểm tổng để khớp model một-rating của backend.
+    final rating = ((_vehicleRating + _ownerRating) / 2).round().clamp(1, 5);
+    context.read<ReviewCubit>().submit(
+      bookingId: widget.bookingId,
+      rating: rating,
+      comment: comment.isEmpty ? null : comment,
+    );
   }
 
   @override
@@ -100,11 +131,36 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     const SizedBox(height: 16),
                     _CommentCard(controller: _commentController),
                     const SizedBox(height: 20),
-                    PrimaryButton(
-                      label: 'Gửi đánh giá',
-                      onPressed: _canSubmit && !_isSubmitting ? _submit : null,
-                      isLoading: _isSubmitting,
-                      icon: Icons.star_rounded,
+                    BlocConsumer<ReviewCubit, ReviewSubmitState>(
+                      listener: (context, state) {
+                        switch (state) {
+                          case ReviewSubmitted():
+                            context.go('/');
+                          case ReviewSubmitError(:final message):
+                            ScaffoldMessenger.of(context)
+                              ..hideCurrentSnackBar()
+                              ..showSnackBar(
+                                SnackBar(
+                                  content: Text(message),
+                                  backgroundColor: AppColors.accent,
+                                ),
+                              );
+                          case ReviewIdle():
+                          case ReviewSubmitting():
+                            break;
+                        }
+                      },
+                      builder: (context, state) {
+                        final isSubmitting = state is ReviewSubmitting;
+                        return PrimaryButton(
+                          label: 'Gửi đánh giá',
+                          onPressed: _canSubmit && !isSubmitting
+                              ? () => _submit(context)
+                              : null,
+                          isLoading: isSubmitting,
+                          icon: Icons.star_rounded,
+                        );
+                      },
                     ),
                     const SizedBox(height: 24),
                   ],

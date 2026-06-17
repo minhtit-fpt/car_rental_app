@@ -1,3 +1,5 @@
+import 'package:frontend/features/booking/domain/entities/booking.dart';
+
 enum BookingStep { dates, confirm, contract, active }
 
 class BookingFormState {
@@ -9,6 +11,8 @@ class BookingFormState {
     this.isSubmitting = false,
     this.contractSigned = false,
     this.submitted = false,
+    this.booking,
+    this.errorMessage,
   });
 
   final DateTime? startDate;
@@ -18,6 +22,12 @@ class BookingFormState {
   final bool isSubmitting;
   final bool contractSigned;
   final bool submitted;
+
+  /// Đơn đã tạo trên backend (có sau khi [submitted] = true).
+  final Booking? booking;
+
+  /// Thông báo lỗi gần nhất khi tạo đơn thất bại (null nếu không có lỗi).
+  final String? errorMessage;
 
   bool get datesSelected => startDate != null && endDate != null;
 
@@ -34,6 +44,8 @@ class BookingFormState {
     bool? isSubmitting,
     bool? contractSigned,
     bool? submitted,
+    Booking? booking,
+    String? errorMessage,
   }) => BookingFormState(
     startDate: startDate ?? this.startDate,
     endDate: endDate ?? this.endDate,
@@ -42,5 +54,7 @@ class BookingFormState {
     isSubmitting: isSubmitting ?? this.isSubmitting,
     contractSigned: contractSigned ?? this.contractSigned,
     submitted: submitted ?? this.submitted,
+    booking: booking ?? this.booking,
+    errorMessage: errorMessage,
   );
 }

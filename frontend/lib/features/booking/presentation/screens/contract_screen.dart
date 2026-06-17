@@ -31,10 +31,19 @@ class _ContractView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<BookingCubit, BookingFormState>(
       listenWhen: (p, c) => c.contractSigned && !p.contractSigned,
-      listener: (context, _) => context.pushReplacement(
-        '/booking/active',
-        extra: {'vehicle': vehicle, 'cubit': context.read<BookingCubit>()},
-      ),
+      listener: (context, state) {
+        final cubit = context.read<BookingCubit>();
+        // Đã ký hợp đồng → thanh toán thật; xong xuôi mới sang chuyến đi.
+        context.pushReplacement(
+          '/payment',
+          extra: {
+            'bookingId': state.booking?.id,
+            'amount': state.booking?.totalPrice ?? 0.0,
+            'successLocation': '/booking/active',
+            'successExtra': {'vehicle': vehicle, 'cubit': cubit},
+          },
+        );
+      },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: Scaffold(
