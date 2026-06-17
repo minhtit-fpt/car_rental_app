@@ -15,6 +15,11 @@ Future<void> main() async {
   await setupStorage(); // Drift + SecureStorage + KvStorage (GetIt)
   setupAuth(); // ApiClient + auth repository/usecases + AuthCubit
   setupAdmin(); // admin repository + AdminCubit factory
+  setupVehicle(); // vehicle repository + VehicleListCubit factory
+  setupBooking(); // booking repository + BookingCubit factory
+  setupPayment(); // payment repository + PaymentCubit factory
+  setupReview(); // review repository + ReviewCubit factory
+  setupKyc(); // kyc repository + KycStatusCubit factory
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
@@ -99,10 +104,7 @@ class _RideVNAppState extends State<RideVNApp> {
             borderRadius: BorderRadius.circular(12),
           ),
           minimumSize: const Size(0, 48),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
     );

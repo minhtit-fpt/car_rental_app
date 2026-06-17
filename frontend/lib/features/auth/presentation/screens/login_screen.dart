@@ -32,9 +32,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     FocusScope.of(context).unfocus();
     context.read<AuthCubit>().login(
-          phone: _phoneController.text.trim(),
-          password: _passwordController.text,
-        );
+      phone: _phoneController.text.trim(),
+      password: _passwordController.text,
+    );
   }
 
   @override
@@ -94,9 +94,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     _PasswordField(
                       controller: _passwordController,
                       obscure: _obscurePassword,
-                      onToggle: () => setState(
-                        () => _obscurePassword = !_obscurePassword,
-                      ),
+                      onToggle: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                       onSubmitted: (_) => _submit(),
                     ),
                     const SizedBox(height: 24),
@@ -188,10 +187,7 @@ class _PhoneField extends StatelessWidget {
           controller: controller,
           keyboardType: TextInputType.phone,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          style: const TextStyle(
-            fontSize: 15,
-            color: AppColors.darkText,
-          ),
+          style: const TextStyle(fontSize: 15, color: AppColors.darkText),
           decoration: InputDecoration(
             hintText: '0912 345 678',
             hintStyle: const TextStyle(color: AppColors.mutedText),
@@ -199,9 +195,7 @@ class _PhoneField extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               margin: const EdgeInsets.only(right: 8),
               decoration: const BoxDecoration(
-                border: Border(
-                  right: BorderSide(color: AppColors.border),
-                ),
+                border: Border(right: BorderSide(color: AppColors.border)),
               ),
               child: const Text(
                 '🇻🇳 +84',
@@ -293,7 +287,8 @@ class _PasswordField extends StatelessWidget {
   }
 }
 
-OutlineInputBorder _border(Color color, {double width = 1}) => OutlineInputBorder(
+OutlineInputBorder _border(Color color, {double width = 1}) =>
+    OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(color: color, width: width),
     );

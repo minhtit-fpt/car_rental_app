@@ -57,8 +57,19 @@ class _BookingScreenState extends State<BookingScreen> {
   String _fmtDate(DateTime? d) {
     if (d == null) return 'Select date';
     const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[d.month]} ${d.day}, ${d.year}';
   }
@@ -68,8 +79,8 @@ class _BookingScreenState extends State<BookingScreen> {
     final initial = isPickup
         ? (_pickupDate ?? now)
         : (_returnDate ??
-            (_pickupDate?.add(const Duration(days: 1)) ??
-                now.add(const Duration(days: 1))));
+              (_pickupDate?.add(const Duration(days: 1)) ??
+                  now.add(const Duration(days: 1))));
 
     final picked = await showDatePicker(
       context: context,
@@ -196,8 +207,8 @@ class _BookingScreenState extends State<BookingScreen> {
                     label: _currentStep == _BookingStep.details
                         ? 'Continue to Payment →'
                         : _currentStep == _BookingStep.payment
-                            ? 'Confirm Booking →'
-                            : 'Done',
+                        ? 'Confirm Booking →'
+                        : 'Done',
                   ),
                   const SizedBox(height: 32),
                 ],
@@ -305,8 +316,7 @@ class _StepDot extends StatelessWidget {
           ),
           child: Center(
             child: isDone
-                ? const Icon(Icons.check_rounded,
-                    color: Colors.white, size: 14)
+                ? const Icon(Icons.check_rounded, color: Colors.white, size: 14)
                 : Text(
                     number,
                     style: TextStyle(
@@ -408,8 +418,10 @@ class _BookingSummaryCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
-                  child: Text(vehicle.emoji,
-                      style: const TextStyle(fontSize: 28)),
+                  child: Text(
+                    vehicle.emoji,
+                    style: const TextStyle(fontSize: 28),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -426,9 +438,13 @@ class _BookingSummaryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${vehicle.year} · ${vehicle.isElectric ? 'Electric' : vehicle.type}',
+                    vehicle.isElectric
+                        ? 'Electric · ${vehicle.typeLabel}'
+                        : vehicle.typeLabel,
                     style: const TextStyle(
-                        fontSize: 12, color: AppColors.mutedText),
+                      fontSize: 12,
+                      color: AppColors.mutedText,
+                    ),
                   ),
                 ],
               ),
@@ -438,7 +454,8 @@ class _BookingSummaryCard extends StatelessWidget {
           const Divider(color: AppColors.border, height: 1),
           const SizedBox(height: 12),
           _SummaryRow(
-            label: '$days day${days > 1 ? 's' : ''} × \$${vehicle.pricePerDay.toStringAsFixed(0)}',
+            label:
+                '$days day${days > 1 ? 's' : ''} × \$${vehicle.pricePerDay.toStringAsFixed(0)}',
             value: '\$${subtotal.toStringAsFixed(0)}',
           ),
           const SizedBox(height: 8),
@@ -492,14 +509,18 @@ class _SummaryRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.secondaryText)),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.darkText)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: AppColors.secondaryText),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.darkText,
+          ),
+        ),
       ],
     );
   }
@@ -733,10 +754,14 @@ class _TextInputField extends StatelessWidget {
               prefixStyle: const TextStyle(fontSize: 13),
               hintText: hint,
               hintStyle: const TextStyle(
-                  fontSize: 12, color: AppColors.mutedText),
+                fontSize: 12,
+                color: AppColors.mutedText,
+              ),
               border: InputBorder.none,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
               isDense: true,
             ),
           ),
@@ -885,8 +910,7 @@ class _BookingSuccessDialog extends StatelessWidget {
                 ),
                 child: const Text(
                   'Back to Home',
-                  style:
-                      TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                 ),
               ),
             ),

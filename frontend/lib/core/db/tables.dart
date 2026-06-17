@@ -63,8 +63,9 @@ class BookingDrafts extends Table {
       text().withDefault(const Constant('draft'))(); // draft|submitting
 
   @override
-  List<String> get customConstraints =>
-      ["CHECK (\"sync_state\" IN ('draft','submitting'))"];
+  List<String> get customConstraints => [
+    "CHECK (\"sync_state\" IN ('draft','submitting'))",
+  ];
 }
 
 /// Mirror cuộc hội thoại để hiển thị danh sách nhanh. id = ChatConversation.id.
@@ -87,6 +88,7 @@ class ChatMessagesLocal extends Table {
       text().withDefault(const Constant('pending'))(); // pending|sent|failed
 
   @override
-  List<String> get customConstraints =>
-      ["CHECK (\"sync_state\" IN ('pending','sent','failed'))"];
+  List<String> get customConstraints => [
+    "CHECK (\"sync_state\" IN ('pending','sent','failed'))",
+  ];
 }

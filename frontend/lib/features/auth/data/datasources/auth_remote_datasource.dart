@@ -44,4 +44,10 @@ class AuthRemoteDataSource {
 
   Future<void> logout(String refreshToken) =>
       _client.post('/api/auth/logout', data: {'refreshToken': refreshToken});
+
+  /// PATCH `/api/users/me` → `PublicUser`. MVP chỉ cập nhật email.
+  Future<Map<String, dynamic>> updateProfile({String? email}) async {
+    final data = await _client.patch('/api/users/me', data: {'email': email});
+    return data as Map<String, dynamic>;
+  }
 }

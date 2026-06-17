@@ -25,9 +25,9 @@ class KycUploadCubit extends Cubit<KycUploadState> {
   }
 
   KycUploadState _withDoc(String type, KycDocState doc) => switch (type) {
-        'cccd' => state.copyWith(cccd: doc),
-        'license' => state.copyWith(license: doc),
-        'selfie' => state.copyWith(selfie: doc),
-        _ => state,
-      };
+    'cccd' => state.copyWith(cccd: doc),
+    'license' => state.copyWith(license: doc),
+    'selfie' => state.copyWith(selfie: doc),
+    _ => state,
+  };
 }

@@ -31,7 +31,9 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
     final now = DateTime.now();
     final initial = isPickup
         ? (_pickupDate ?? now)
-        : (_returnDate ?? (_pickupDate?.add(const Duration(days: 1)) ?? now.add(const Duration(days: 1))));
+        : (_returnDate ??
+              (_pickupDate?.add(const Duration(days: 1)) ??
+                  now.add(const Duration(days: 1))));
 
     final picked = await showDatePicker(
       context: context,
@@ -143,8 +145,11 @@ class _GallerySliverAppBar extends StatelessWidget {
         child: CircleAvatar(
           backgroundColor: Colors.white.withAlpha(230),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded,
-                color: AppColors.darkText, size: 20),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: AppColors.darkText,
+              size: 20,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -155,8 +160,11 @@ class _GallerySliverAppBar extends StatelessWidget {
           child: CircleAvatar(
             backgroundColor: Colors.white.withAlpha(230),
             child: IconButton(
-              icon: const Icon(Icons.favorite_border_rounded,
-                  color: AppColors.darkText, size: 20),
+              icon: const Icon(
+                Icons.favorite_border_rounded,
+                color: AppColors.darkText,
+                size: 20,
+              ),
               onPressed: () {},
             ),
           ),
@@ -193,8 +201,7 @@ class _GalleryGrid extends StatelessWidget {
               ),
             ),
             child: Center(
-              child: Text(vehicle.emoji,
-                  style: const TextStyle(fontSize: 96)),
+              child: Text(vehicle.emoji, style: const TextStyle(fontSize: 96)),
             ),
           ),
         ),
@@ -216,8 +223,10 @@ class _GalleryGrid extends StatelessWidget {
                     ),
                   ),
                   child: Center(
-                    child: Text(vehicle.emoji,
-                        style: const TextStyle(fontSize: 36)),
+                    child: Text(
+                      vehicle.emoji,
+                      style: const TextStyle(fontSize: 36),
+                    ),
                   ),
                 ),
               ),
@@ -238,8 +247,10 @@ class _GalleryGrid extends StatelessWidget {
                         ),
                       ),
                       child: Center(
-                        child: Text(vehicle.emoji,
-                            style: const TextStyle(fontSize: 36)),
+                        child: Text(
+                          vehicle.emoji,
+                          style: const TextStyle(fontSize: 36),
+                        ),
                       ),
                     ),
                     Container(color: Colors.black.withAlpha(102)),
@@ -296,8 +307,10 @@ class _CarHeaderSection extends StatelessWidget {
               const SizedBox(width: 10),
               // Superhost badge
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF00D4AA), Color(0xFF00B894)],
@@ -317,7 +330,7 @@ class _CarHeaderSection extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '★ ${vehicle.rating} (${vehicle.reviewCount} reviews) · ${vehicle.reviewCount ~/ 2} trips · Hosted by ${vehicle.ownerName}',
+            '★ ${vehicle.rating ?? '—'} · Được đăng bởi ${vehicle.ownerName ?? 'chủ xe'}',
             style: const TextStyle(
               fontSize: 13,
               color: AppColors.secondaryText,
@@ -357,8 +370,10 @@ class _FeatureTags extends StatelessWidget {
         children: _tags
             .map(
               (tag) => Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE6F2FF),
                   borderRadius: BorderRadius.circular(10),
@@ -391,7 +406,7 @@ class _SpecificationsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final specs = [
-      ('Year', '${vehicle.year}'),
+      ('Loại', vehicle.typeLabel),
       ('Seats', '5'),
       ('Transmission', 'Auto'),
       ('Fuel Type', vehicle.isElectric ? 'Electric' : 'Gasoline'),
@@ -432,13 +447,16 @@ class _SpecificationsCard extends StatelessWidget {
               final isLast = entry.key == specs.length - 1;
               final spec = entry.value;
               return Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 13,
+                ),
                 decoration: BoxDecoration(
                   border: isLast
                       ? null
                       : const Border(
-                          bottom: BorderSide(color: AppColors.border)),
+                          bottom: BorderSide(color: AppColors.border),
+                        ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -482,7 +500,7 @@ class _AboutCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final desc =
         'Experience the ${vehicle.name} — a premium ${vehicle.isElectric ? 'electric' : ''} car. '
-        'This ${vehicle.year} model is perfect for city drives and weekend getaways, '
+        'This vehicle is perfect for city drives and weekend getaways, '
         'maintained in excellent condition by our verified host.';
 
     return Padding(
@@ -573,7 +591,11 @@ class _StickyPricingBar extends StatelessWidget {
         ],
       ),
       padding: EdgeInsets.fromLTRB(
-          20, 14, 20, MediaQuery.of(context).padding.bottom + 14),
+        20,
+        14,
+        20,
+        MediaQuery.of(context).padding.bottom + 14,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -651,8 +673,7 @@ class _StickyPricingBar extends StatelessWidget {
                   ),
                   child: const Text(
                     'Rent Now',
-                    style:
-                        TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                   ),
                 ),
               ),
@@ -661,10 +682,7 @@ class _StickyPricingBar extends StatelessWidget {
           const SizedBox(height: 4),
           const Text(
             'Free cancellation up to 24h before pickup',
-            style: TextStyle(
-              fontSize: 10,
-              color: AppColors.mutedText,
-            ),
+            style: TextStyle(fontSize: 10, color: AppColors.mutedText),
           ),
         ],
       ),

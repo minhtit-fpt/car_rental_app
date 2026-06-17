@@ -47,8 +47,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
               selectedIndex: _selectedImageIndex,
               onFavoriteToggle: () =>
                   setState(() => _isFavorite = !_isFavorite),
-              onImageChanged: (i) =>
-                  setState(() => _selectedImageIndex = i),
+              onImageChanged: (i) => setState(() => _selectedImageIndex = i),
             ),
             SliverToBoxAdapter(
               child: Column(
@@ -157,9 +156,7 @@ class _DetailAppBar extends StatelessWidget {
                       isFavorite
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
-                      color: isFavorite
-                          ? AppColors.danger
-                          : AppColors.darkText,
+                      color: isFavorite ? AppColors.danger : AppColors.darkText,
                       size: 20,
                     ),
                   ),
@@ -359,10 +356,7 @@ class _TitleSection extends StatelessWidget {
                 ),
                 const Text(
                   '/ngày',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.mutedText,
-                  ),
+                  style: TextStyle(fontSize: 12, color: AppColors.mutedText),
                 ),
               ],
             ),
@@ -370,25 +364,34 @@ class _TitleSection extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
+          vehicle.isElectric
+              ? 'Điện · ${vehicle.typeLabel}'
+              : vehicle.typeLabel,
           style: const TextStyle(fontSize: 13, color: AppColors.mutedText),
         ),
         const SizedBox(height: 10),
         // Rating + location + status
         Row(
           children: [
-            RatingStars(rating: vehicle.rating, size: 14),
-            const SizedBox(width: 6),
-            Text(
-              '${vehicle.rating.toStringAsFixed(1)} (${vehicle.reviewCount})',
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.secondaryText,
-                fontWeight: FontWeight.w500,
+            if (vehicle.hasRating) ...[
+              RatingStars(rating: vehicle.rating!, size: 14),
+              const SizedBox(width: 6),
+              Text(
+                '${vehicle.rating!.toStringAsFixed(1)} (${vehicle.reviewCount})',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.secondaryText,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
+              const SizedBox(width: 10),
+            ],
+            StatusChip(
+              label: vehicle.isAvailable ? 'Còn xe' : 'Đã thuê',
+              color: vehicle.isAvailable
+                  ? AppColors.success
+                  : AppColors.mutedText,
             ),
-            const SizedBox(width: 10),
-            StatusChip(label: 'Còn xe', color: AppColors.success),
           ],
         ),
         const SizedBox(height: 6),
@@ -438,9 +441,7 @@ class _SpecsGrid extends StatelessWidget {
     ];
 
     return Row(
-      children: specs
-          .map((s) => Expanded(child: _SpecCard(spec: s)))
-          .toList(),
+      children: specs.map((s) => Expanded(child: _SpecCard(spec: s))).toList(),
     );
   }
 }
@@ -557,7 +558,7 @@ class _OwnerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  vehicle.ownerName,
+                  vehicle.ownerName ?? 'Chủ xe',
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -832,8 +833,7 @@ class _ReviewsSection extends StatelessWidget {
           name: 'Hùng T.',
           rating: 4,
           date: '03/05/2025',
-          comment:
-              'Xe tốt, điều hoà mát. Giao xe hơi muộn 15 phút nhưng ổn.',
+          comment: 'Xe tốt, điều hoà mát. Giao xe hơi muộn 15 phút nhưng ổn.',
         ),
       ],
     );
@@ -944,9 +944,7 @@ class _BottomBar extends StatelessWidget {
           padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPad),
           decoration: BoxDecoration(
             color: Colors.white.withAlpha(230),
-            border: const Border(
-              top: BorderSide(color: AppColors.inkLight),
-            ),
+            border: const Border(top: BorderSide(color: AppColors.inkLight)),
           ),
           child: Row(
             children: [
@@ -966,10 +964,7 @@ class _BottomBar extends StatelessWidget {
                   ),
                   const Text(
                     '/ngày',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.mutedText,
-                    ),
+                    style: TextStyle(fontSize: 12, color: AppColors.mutedText),
                   ),
                 ],
               ),
@@ -979,7 +974,8 @@ class _BottomBar extends StatelessWidget {
                 child: SizedBox(
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () => context.push('/booking/dates', extra: vehicle),
+                    onPressed: () =>
+                        context.push('/booking/dates', extra: vehicle),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.accent,
                       foregroundColor: Colors.white,

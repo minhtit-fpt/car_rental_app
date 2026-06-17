@@ -21,10 +21,7 @@ final socialRoutes = [
     path: '/notifications',
     builder: (context, state) => const NotificationListScreen(),
   ),
-  GoRoute(
-    path: '/loyalty',
-    builder: (context, state) => const LoyaltyScreen(),
-  ),
+  GoRoute(path: '/loyalty', builder: (context, state) => const LoyaltyScreen()),
   GoRoute(
     path: '/community',
     builder: (context, state) => const CommunityFeedScreen(),

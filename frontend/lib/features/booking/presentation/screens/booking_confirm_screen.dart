@@ -10,8 +10,18 @@ import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 
 const _months = [
-  'Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6',
-  'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12',
+  'Th1',
+  'Th2',
+  'Th3',
+  'Th4',
+  'Th5',
+  'Th6',
+  'Th7',
+  'Th8',
+  'Th9',
+  'Th10',
+  'Th11',
+  'Th12',
 ];
 
 String _fmtDate(DateTime d) => '${d.day} ${_months[d.month - 1]} ${d.year}';
@@ -41,12 +51,30 @@ class _BookingConfirmView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<BookingCubit, BookingFormState>(
-      listenWhen: (p, c) => c.submitted && !p.submitted,
-      listener: (context, _) => context.pushReplacement(
-        '/booking/contract',
-        extra: {'vehicle': vehicle, 'cubit': context.read<BookingCubit>()},
-      ),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<BookingCubit, BookingFormState>(
+          listenWhen: (p, c) => c.submitted && !p.submitted,
+          listener: (context, _) => context.pushReplacement(
+            '/booking/contract',
+            extra: {'vehicle': vehicle, 'cubit': context.read<BookingCubit>()},
+          ),
+        ),
+        BlocListener<BookingCubit, BookingFormState>(
+          listenWhen: (p, c) =>
+              c.errorMessage != null && c.errorMessage != p.errorMessage,
+          listener: (context, state) {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage ?? 'Đặt xe thất bại'),
+                  backgroundColor: AppColors.accent,
+                ),
+              );
+          },
+        ),
+      ],
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: Scaffold(
@@ -92,8 +120,8 @@ class _BookingConfirmView extends StatelessWidget {
                               onPressed: s.isSubmitting
                                   ? null
                                   : () => context
-                                      .read<BookingCubit>()
-                                      .confirmBooking(),
+                                        .read<BookingCubit>()
+                                        .confirmBooking(vehicleId: vehicle.id),
                               isLoading: s.isSubmitting,
                               icon: Icons.lock_outline_rounded,
                             ),
@@ -179,7 +207,9 @@ class _VehicleCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
+                  vehicle.isElectric
+                      ? 'Điện · ${vehicle.typeLabel}'
+                      : vehicle.typeLabel,
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.mutedText,
@@ -218,14 +248,14 @@ class _VehicleCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 3),
                     Text(
-                      vehicle.rating.toStringAsFixed(1),
+                      vehicle.rating?.toStringAsFixed(1) ?? '—',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.secondaryText,
                       ),
                     ),
                     Text(
-                      ' · ${vehicle.ownerName}',
+                      ' · ${vehicle.ownerName ?? 'Chủ xe'}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.mutedText,
@@ -390,10 +420,7 @@ class _PaymentMethodCard extends StatelessWidget {
               children: [
                 Text(
                   'Thẻ tín dụng',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.mutedText,
-                  ),
+                  style: TextStyle(fontSize: 12, color: AppColors.mutedText),
                 ),
                 Text(
                   '**** **** **** 4242',
@@ -456,7 +483,10 @@ class _TotalCard extends StatelessWidget {
           if (state.withDelivery)
             const _SummaryLine(label: 'Giao xe', value: '50K'),
           _SummaryLine(label: 'Bảo hiểm (5%)', value: '${insurance.toInt()}K'),
-          _SummaryLine(label: 'Phí dịch vụ (3%)', value: '${(rentalTotal * 0.03).toInt()}K'),
+          _SummaryLine(
+            label: 'Phí dịch vụ (3%)',
+            value: '${(rentalTotal * 0.03).toInt()}K',
+          ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Divider(color: AppColors.border, height: 1),
@@ -500,14 +530,21 @@ class _SummaryLine extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 13, color: AppColors.secondaryText)),
-          Text('$value VNĐ',
-              style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.darkText,
-                  fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.secondaryText,
+            ),
+          ),
+          Text(
+            '$value VNĐ',
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.darkText,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

@@ -104,7 +104,10 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
         backgroundColor: AppColors.surface,
         title: const Text(
           'Tài khoản',
-          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.darkText),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkText,
+          ),
         ),
         actions: [
           IconButton(
@@ -138,10 +141,7 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
       ),
       body: IndexedStack(
         index: _role,
-        children: const [
-          RenterDashboardScreen(),
-          OwnerDashboardScreen(),
-        ],
+        children: const [RenterDashboardScreen(), OwnerDashboardScreen()],
       ),
     );
   }

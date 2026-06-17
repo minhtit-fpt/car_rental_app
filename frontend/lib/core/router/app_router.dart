@@ -15,10 +15,15 @@ import 'package:frontend/core/router/social_routes.dart';
 import 'package:frontend/core/router/vehicle_routes.dart';
 import 'package:frontend/core/shell/app_shell.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_users_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_revenue_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_disputes_cubit.dart';
 import 'package:frontend/features/admin/presentation/screens/admin_dashboard_screen.dart';
 import 'package:frontend/features/auth/domain/entities/user_role.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/auth/presentation/screens/splash_screen.dart';
+import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 
 /// Các route công khai (không cần đăng nhập).
 const _publicRoutes = {'/login', '/register', '/otp'};
@@ -72,18 +77,24 @@ GoRouter createAppRouter(AuthCubit authCubit) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: _splash,
-        builder: (context, state) => const SplashScreen(),
-      ),
+      GoRoute(path: _splash, builder: (context, state) => const SplashScreen()),
       GoRoute(
         path: '/',
-        builder: (context, state) => const AppShell(),
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<VehicleListCubit>()..load(),
+          child: const AppShell(),
+        ),
       ),
       GoRoute(
         path: '/admin',
-        builder: (context, state) => BlocProvider(
-          create: (_) => sl<AdminCubit>()..loadStats(),
+        builder: (context, state) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => sl<AdminCubit>()..loadStats()),
+            BlocProvider(create: (_) => sl<AdminUsersCubit>()..load()),
+            BlocProvider(create: (_) => sl<AdminKycCubit>()..load()),
+            BlocProvider(create: (_) => sl<AdminRevenueCubit>()..load()),
+            BlocProvider(create: (_) => sl<AdminDisputesCubit>()..load()),
+          ],
           child: const AdminDashboardScreen(),
         ),
       ),
@@ -97,9 +108,8 @@ GoRouter createAppRouter(AuthCubit authCubit) {
       ...profileRoutes,
       ...adminRoutes,
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(child: Text('Page not found: ${state.uri}')),
-    ),
+    errorBuilder: (context, state) =>
+        Scaffold(body: Center(child: Text('Page not found: ${state.uri}'))),
   );
 }
 

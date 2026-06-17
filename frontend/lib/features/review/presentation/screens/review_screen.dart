@@ -1,31 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/review/presentation/cubit/review_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
-class ReviewScreen extends StatefulWidget {
-  const ReviewScreen({super.key, required this.vehicle});
+class ReviewScreen extends StatelessWidget {
+  const ReviewScreen({
+    super.key,
+    required this.bookingId,
+    required this.vehicle,
+  });
 
+  /// Đơn đã hoàn tất/đang diễn ra cần đánh giá.
+  final String bookingId;
   final Vehicle vehicle;
 
   @override
-  State<ReviewScreen> createState() => _ReviewScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<ReviewCubit>(),
+      child: _ReviewView(bookingId: bookingId, vehicle: vehicle),
+    );
+  }
 }
 
-class _ReviewScreenState extends State<ReviewScreen> {
+class _ReviewView extends StatefulWidget {
+  const _ReviewView({required this.bookingId, required this.vehicle});
+
+  final String bookingId;
+  final Vehicle vehicle;
+
+  @override
+  State<_ReviewView> createState() => _ReviewViewState();
+}
+
+class _ReviewViewState extends State<_ReviewView> {
   int _vehicleRating = 0;
   int _ownerRating = 0;
   final _commentController = TextEditingController();
   final List<String> _selectedTags = [];
-  bool _isSubmitting = false;
 
   static const _positiveTags = [
-    'Xe sạch', 'Đúng giờ', 'Chủ xe thân thiện',
-    'Xe đúng mô tả', 'Giao xe tận nơi', 'Giá hợp lý',
+    'Xe sạch',
+    'Đúng giờ',
+    'Chủ xe thân thiện',
+    'Xe đúng mô tả',
+    'Giao xe tận nơi',
+    'Giá hợp lý',
   ];
 
   @override
@@ -36,10 +63,18 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   bool get _canSubmit => _vehicleRating > 0 && _ownerRating > 0;
 
-  Future<void> _submit() async {
-    setState(() => _isSubmitting = true);
-    await Future.delayed(const Duration(milliseconds: 1000));
-    if (mounted) context.go('/');
+  void _submit(BuildContext context) {
+    final tagNote = _selectedTags.join(', ');
+    final text = _commentController.text.trim();
+    final comment = [tagNote, text].where((s) => s.isNotEmpty).join(' — ');
+    // Backend lưu 1 đánh giá/đơn (người thuê → chủ xe). Gộp 2 thang điểm thành
+    // điểm tổng để khớp model một-rating của backend.
+    final rating = ((_vehicleRating + _ownerRating) / 2).round().clamp(1, 5);
+    context.read<ReviewCubit>().submit(
+      bookingId: widget.bookingId,
+      rating: rating,
+      comment: comment.isEmpty ? null : comment,
+    );
   }
 
   @override
@@ -74,10 +109,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     _RatingCard(
                       title: 'Chủ xe',
                       emoji: '👤',
-                      subtitle: widget.vehicle.ownerName,
+                      subtitle: widget.vehicle.ownerName ?? 'Chủ xe',
                       rating: _ownerRating,
-                      onRatingChanged: (r) =>
-                          setState(() => _ownerRating = r),
+                      onRatingChanged: (r) => setState(() => _ownerRating = r),
                     ),
 
                     const SizedBox(height: 16),
@@ -97,11 +131,36 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     const SizedBox(height: 16),
                     _CommentCard(controller: _commentController),
                     const SizedBox(height: 20),
-                    PrimaryButton(
-                      label: 'Gửi đánh giá',
-                      onPressed: _canSubmit && !_isSubmitting ? _submit : null,
-                      isLoading: _isSubmitting,
-                      icon: Icons.star_rounded,
+                    BlocConsumer<ReviewCubit, ReviewSubmitState>(
+                      listener: (context, state) {
+                        switch (state) {
+                          case ReviewSubmitted():
+                            context.go('/');
+                          case ReviewSubmitError(:final message):
+                            ScaffoldMessenger.of(context)
+                              ..hideCurrentSnackBar()
+                              ..showSnackBar(
+                                SnackBar(
+                                  content: Text(message),
+                                  backgroundColor: AppColors.accent,
+                                ),
+                              );
+                          case ReviewIdle():
+                          case ReviewSubmitting():
+                            break;
+                        }
+                      },
+                      builder: (context, state) {
+                        final isSubmitting = state is ReviewSubmitting;
+                        return PrimaryButton(
+                          label: 'Gửi đánh giá',
+                          onPressed: _canSubmit && !isSubmitting
+                              ? () => _submit(context)
+                              : null,
+                          isLoading: isSubmitting,
+                          icon: Icons.star_rounded,
+                        );
+                      },
                     ),
                     const SizedBox(height: 24),
                   ],
@@ -145,8 +204,7 @@ class _VehicleCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child:
-                  Text(vehicle.emoji, style: const TextStyle(fontSize: 26)),
+              child: Text(vehicle.emoji, style: const TextStyle(fontSize: 26)),
             ),
           ),
           const SizedBox(width: 12),
@@ -154,16 +212,22 @@ class _VehicleCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(vehicle.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.darkText,
-                    )),
                 Text(
-                  '${vehicle.year} · ${vehicle.isElectric ? 'Điện' : vehicle.type}',
+                  vehicle.name,
                   style: const TextStyle(
-                      fontSize: 12, color: AppColors.mutedText),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.darkText,
+                  ),
+                ),
+                Text(
+                  vehicle.isElectric
+                      ? 'Điện · ${vehicle.typeLabel}'
+                      : vehicle.typeLabel,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.mutedText,
+                  ),
                 ),
               ],
             ),
@@ -173,8 +237,7 @@ class _VehicleCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.successSoft,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: AppColors.success.withAlpha(80)),
+              border: Border.all(color: AppColors.success.withAlpha(80)),
             ),
             child: const Text(
               '✅ Đã hoàn thành',
@@ -233,16 +296,22 @@ class _RatingCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.darkText,
-                      )),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkText,
+                    ),
+                  ),
                   if (subtitle != null)
-                    Text(subtitle!,
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.mutedText)),
+                    Text(
+                      subtitle!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.mutedText,
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -320,16 +389,16 @@ class _TagsCard extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 7),
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppColors.primary.withAlpha(26)
                         : AppColors.background,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.border,
+                      color: isSelected ? AppColors.primary : AppColors.border,
                       width: isSelected ? 1.5 : 1,
                     ),
                   ),
@@ -393,8 +462,10 @@ class _CommentCard extends StatelessWidget {
             maxLength: 500,
             decoration: InputDecoration(
               hintText: 'Chia sẻ trải nghiệm của bạn...',
-              hintStyle:
-                  const TextStyle(fontSize: 13, color: AppColors.mutedText),
+              hintStyle: const TextStyle(
+                fontSize: 13,
+                color: AppColors.mutedText,
+              ),
               filled: true,
               fillColor: AppColors.background,
               border: OutlineInputBorder(
@@ -411,8 +482,7 @@ class _CommentCard extends StatelessWidget {
               ),
               contentPadding: const EdgeInsets.all(12),
             ),
-            style:
-                const TextStyle(fontSize: 13, color: AppColors.darkText),
+            style: const TextStyle(fontSize: 13, color: AppColors.darkText),
           ),
         ],
       ),

@@ -5,8 +5,10 @@ class KycDocState {
   final DocStatus status;
   final String? fileName;
 
-  KycDocState copyWith({DocStatus? status, String? fileName}) =>
-      KycDocState(status: status ?? this.status, fileName: fileName ?? this.fileName);
+  KycDocState copyWith({DocStatus? status, String? fileName}) => KycDocState(
+    status: status ?? this.status,
+    fileName: fileName ?? this.fileName,
+  );
 }
 
 class KycUploadState {
@@ -35,12 +37,11 @@ class KycUploadState {
     KycDocState? selfie,
     bool? isSubmitting,
     bool? submitted,
-  }) =>
-      KycUploadState(
-        cccd: cccd ?? this.cccd,
-        license: license ?? this.license,
-        selfie: selfie ?? this.selfie,
-        isSubmitting: isSubmitting ?? this.isSubmitting,
-        submitted: submitted ?? this.submitted,
-      );
+  }) => KycUploadState(
+    cccd: cccd ?? this.cccd,
+    license: license ?? this.license,
+    selfie: selfie ?? this.selfie,
+    isSubmitting: isSubmitting ?? this.isSubmitting,
+    submitted: submitted ?? this.submitted,
+  );
 }

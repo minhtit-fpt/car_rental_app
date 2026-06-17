@@ -10,6 +10,5 @@ class RegisterUseCase {
     required String phone,
     required String password,
     String? email,
-  }) =>
-      _repository.register(phone: phone, password: password, email: email);
+  }) => _repository.register(phone: phone, password: password, email: email);
 }

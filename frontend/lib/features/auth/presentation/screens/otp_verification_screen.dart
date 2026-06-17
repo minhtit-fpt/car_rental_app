@@ -98,8 +98,10 @@ class _OtpViewState extends State<_OtpView> {
             backgroundColor: AppColors.background,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded,
-                  color: AppColors.darkText),
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.darkText,
+              ),
               onPressed: () => context.pop(),
             ),
           ),
@@ -196,8 +198,11 @@ class _OtpViewState extends State<_OtpView> {
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.info_outline_rounded,
-                            size: 16, color: AppColors.primary),
+                        Icon(
+                          Icons.info_outline_rounded,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(

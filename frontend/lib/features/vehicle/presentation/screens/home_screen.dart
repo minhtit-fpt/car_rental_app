@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,13 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedCity = 0;
-  final _cities = const [
-    'TP. HCM',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Nha Trang',
-    'Đà Lạt',
-  ];
+  final _cities = const ['TP. HCM', 'Hà Nội', 'Đà Nẵng', 'Nha Trang', 'Đà Lạt'];
 
   @override
   Widget build(BuildContext context) {
@@ -96,10 +92,7 @@ class _TopBar extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          _NavIconButton(
-            icon: Icons.notifications_outlined,
-            onTap: () {},
-          ),
+          _NavIconButton(icon: Icons.notifications_outlined, onTap: () {}),
         ],
       ),
     );
@@ -423,7 +416,11 @@ class _FeaturedCarsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cars = kMockVehicles.take(3).toList();
+    final state = context.watch<VehicleListCubit>().state;
+    final cars = switch (state) {
+      VehicleListLoaded(:final vehicles) => vehicles.take(3).toList(),
+      _ => const <Vehicle>[],
+    };
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -454,20 +451,33 @@ class _FeaturedCarsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // Vertical list of car row tiles
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: cars.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final v = cars[index];
-              return CarListTile(
-                vehicle: v,
-                onTap: () => context.push('/vehicles/${v.id}', extra: v),
-              );
-            },
-          ),
+          // Danh sách rút gọn — phụ thuộc trạng thái tải xe từ backend.
+          switch (state) {
+            VehicleListLoading() => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            VehicleListError() => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'Không tải được xe nổi bật',
+                style: TextStyle(fontSize: 13, color: AppColors.secondaryText),
+              ),
+            ),
+            VehicleListLoaded() => ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: cars.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final v = cars[index];
+                return CarListTile(
+                  vehicle: v,
+                  onTap: () => context.push('/vehicles/${v.id}', extra: v),
+                );
+              },
+            ),
+          },
         ],
       ),
     );

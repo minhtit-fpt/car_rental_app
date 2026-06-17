@@ -1,4 +1,9 @@
-import type { KycStatus, Prisma, UserRole } from "@prisma/client";
+import type {
+  DisputeStatus,
+  KycStatus,
+  Prisma,
+  UserRole,
+} from "@prisma/client";
 import { prisma } from "@/db/prisma";
 
 // Tầng truy cập DB cho các truy vấn tổng hợp của ADMIN (stats / users / KYC queue).
@@ -49,6 +54,19 @@ export const adminRepository = {
     return result._sum.amount?.toNumber() ?? 0;
   },
 
+  // Doanh thu PAID gộp theo tháng (date_trunc) kể từ `since`. Các tháng không
+  // có thanh toán sẽ thiếu — tầng service tự bù 0 để chuỗi liền mạch.
+  monthlyRevenue(since: Date): Promise<{ month: Date; total: number }[]> {
+    return prisma.$queryRaw<{ month: Date; total: number }[]>`
+      SELECT date_trunc('month', "paidAt") AS month,
+             COALESCE(SUM("amount"), 0)::float8 AS total
+      FROM "Payment"
+      WHERE "status" = 'PAID' AND "paidAt" >= ${since}
+      GROUP BY 1
+      ORDER BY 1 ASC
+    `;
+  },
+
   findUsers(filter: UserListFilter) {
     const where = buildUserWhere(filter);
     return prisma.$transaction([
@@ -87,6 +105,28 @@ export const adminRepository = {
         },
       }),
       prisma.kYCVerification.count({ where }),
+    ]);
+  },
+
+  findDisputes(status: DisputeStatus, skip: number, take: number) {
+    const where: Prisma.DisputeWhereInput = { status };
+    return prisma.$transaction([
+      prisma.dispute.findMany({
+        where,
+        // Ưu tiên cao trước (HIGH < MEDIUM < LOW theo thứ tự enum), mới trước.
+        orderBy: [{ priority: "asc" }, { createdAt: "desc" }],
+        skip,
+        take,
+        select: {
+          id: true,
+          bookingId: true,
+          title: true,
+          priority: true,
+          status: true,
+          createdAt: true,
+        },
+      }),
+      prisma.dispute.count({ where }),
     ]);
   },
 };
