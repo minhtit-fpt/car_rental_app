@@ -5,6 +5,7 @@ import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.
 import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/register_usecase.dart';
+import 'package:frontend/features/auth/domain/usecases/update_profile_usecase.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_state.dart';
 
 export 'package:frontend/features/auth/presentation/cubit/auth_state.dart';
@@ -17,16 +18,19 @@ class AuthCubit extends Cubit<AuthState> {
     required RegisterUseCase register,
     required LogoutUseCase logout,
     required GetCurrentUserUseCase getCurrentUser,
-  })  : _login = login,
-        _register = register,
-        _logout = logout,
-        _getCurrentUser = getCurrentUser,
-        super(const AuthState.unknown());
+    required UpdateProfileUseCase updateProfile,
+  }) : _login = login,
+       _register = register,
+       _logout = logout,
+       _getCurrentUser = getCurrentUser,
+       _updateProfile = updateProfile,
+       super(const AuthState.unknown());
 
   final LoginUseCase _login;
   final RegisterUseCase _register;
   final LogoutUseCase _logout;
   final GetCurrentUserUseCase _getCurrentUser;
+  final UpdateProfileUseCase _updateProfile;
 
   /// Gọi 1 lần lúc khởi động: token còn hạn → authenticated, ngược lại → unauthenticated.
   Future<void> checkSession() async {
@@ -44,10 +48,9 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await _login(phone: phone, password: password);
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on ApiException catch (e) {
-      emit(AuthState(
-        status: AuthStatus.unauthenticated,
-        errorMessage: e.message,
-      ));
+      emit(
+        AuthState(status: AuthStatus.unauthenticated, errorMessage: e.message),
+      );
     }
   }
 
@@ -65,10 +68,27 @@ class AuthCubit extends Cubit<AuthState> {
       );
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on ApiException catch (e) {
-      emit(AuthState(
-        status: AuthStatus.unauthenticated,
-        errorMessage: e.message,
-      ));
+      emit(
+        AuthState(status: AuthStatus.unauthenticated, errorMessage: e.message),
+      );
+    }
+  }
+
+  /// Cập nhật hồ sơ (email). Trả true nếu thành công; giữ phiên khi lỗi.
+  Future<bool> updateProfile({String? email}) async {
+    try {
+      final user = await _updateProfile(email: email);
+      emit(AuthState(status: AuthStatus.authenticated, user: user));
+      return true;
+    } on ApiException catch (e) {
+      emit(
+        AuthState(
+          status: AuthStatus.authenticated,
+          user: state.user,
+          errorMessage: e.message,
+        ),
+      );
+      return false;
     }
   }
 

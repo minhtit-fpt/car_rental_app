@@ -7,14 +7,14 @@ enum UserRole {
 
   /// Parse từ giá trị server. Giá trị lạ → mặc định [renter] (an toàn nhất).
   static UserRole fromApi(String value) => switch (value.toUpperCase()) {
-        'OWNER' => UserRole.owner,
-        'ADMIN' => UserRole.admin,
-        _ => UserRole.renter,
-      };
+    'OWNER' => UserRole.owner,
+    'ADMIN' => UserRole.admin,
+    _ => UserRole.renter,
+  };
 
   String get apiValue => switch (this) {
-        UserRole.renter => 'RENTER',
-        UserRole.owner => 'OWNER',
-        UserRole.admin => 'ADMIN',
-      };
+    UserRole.renter => 'RENTER',
+    UserRole.owner => 'OWNER',
+    UserRole.admin => 'ADMIN',
+  };
 }

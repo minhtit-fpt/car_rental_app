@@ -13,7 +13,9 @@ class AppColors {
   static const Color navySoft = Color(0xFFEEF3FA); // navy-50
 
   // ── Accent — Lacquer Orange ───────────────────────────────────────
-  static const Color accent = Color(0xFFF26A1F); // orange-500 — CTA / active state
+  static const Color accent = Color(
+    0xFFF26A1F,
+  ); // orange-500 — CTA / active state
   static const Color orange = Color(0xFFF26A1F); // alias for accent
   static const Color orangeDark = Color(0xFFD2540E); // orange-600
   static const Color orangeSoft = Color(0xFFFFF3EC); // orange-50

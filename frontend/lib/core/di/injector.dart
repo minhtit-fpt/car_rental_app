@@ -13,6 +13,7 @@ import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.
 import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/register_usecase.dart';
+import 'package:frontend/features/auth/domain/usecases/update_profile_usecase.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/admin/data/datasources/admin_remote_datasource.dart';
 import 'package:frontend/features/admin/data/repositories/admin_repository_impl.dart';
@@ -32,6 +33,11 @@ import 'package:frontend/features/vehicle/data/repositories/vehicle_repository_i
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
 import 'package:frontend/features/vehicle/domain/usecases/list_vehicles_usecase.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
+import 'package:frontend/features/kyc/data/datasources/kyc_remote_datasource.dart';
+import 'package:frontend/features/kyc/data/repositories/kyc_repository_impl.dart';
+import 'package:frontend/features/kyc/domain/repositories/kyc_repository.dart';
+import 'package:frontend/features/kyc/domain/usecases/get_kyc_status_usecase.dart';
+import 'package:frontend/features/kyc/presentation/cubit/kyc_status_cubit.dart';
 
 /// Service locator toàn cục.
 final GetIt sl = GetIt.instance;
@@ -66,6 +72,7 @@ void setupAuth() {
         register: RegisterUseCase(sl<AuthRepository>()),
         logout: LogoutUseCase(sl<AuthRepository>()),
         getCurrentUser: GetCurrentUserUseCase(sl<AuthRepository>()),
+        updateProfile: UpdateProfileUseCase(sl<AuthRepository>()),
       ),
     );
 }
@@ -111,5 +118,16 @@ void setupVehicle() {
       () => VehicleListCubit(
         listVehicles: ListVehiclesUseCase(sl<VehicleRepository>()),
       ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho KYC. Gọi sau [setupAuth] (cần [ApiClient]).
+void setupKyc() {
+  sl
+    ..registerSingleton<KycRepository>(
+      KycRepositoryImpl(KycRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<KycStatusCubit>(
+      () => KycStatusCubit(getStatus: GetKycStatusUseCase(sl<KycRepository>())),
     );
 }

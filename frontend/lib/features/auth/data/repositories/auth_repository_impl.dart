@@ -49,6 +49,10 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<AuthUser> updateProfile({String? email}) async =>
+      AuthUserModel.fromJson(await _remote.updateProfile(email: email));
+
+  @override
   Future<void> logout() async {
     final refreshToken = await _secureStorage.readRefreshToken();
     try {
@@ -63,8 +67,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   Future<AuthUser> _persistSession(Map<String, dynamic> result) async {
-    final tokens =
-        AuthTokensModel.fromJson(result['tokens'] as Map<String, dynamic>);
+    final tokens = AuthTokensModel.fromJson(
+      result['tokens'] as Map<String, dynamic>,
+    );
     final user = AuthUserModel.fromJson(result['user'] as Map<String, dynamic>);
     await _secureStorage.saveTokens(
       accessToken: tokens.accessToken,

@@ -16,6 +16,7 @@ Future<void> main() async {
   setupAuth(); // ApiClient + auth repository/usecases + AuthCubit
   setupAdmin(); // admin repository + AdminCubit factory
   setupVehicle(); // vehicle repository + VehicleListCubit factory
+  setupKyc(); // kyc repository + KycStatusCubit factory
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );

@@ -45,10 +45,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     FocusScope.of(context).unfocus();
     final email = _emailController.text.trim();
     context.read<AuthCubit>().register(
-          phone: _phoneController.text.trim(),
-          password: _passwordController.text,
-          email: email.isEmpty ? null : email,
-        );
+      phone: _phoneController.text.trim(),
+      password: _passwordController.text,
+      email: email.isEmpty ? null : email,
+    );
   }
 
   @override
@@ -79,8 +79,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             backgroundColor: AppColors.background,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded,
-                  color: AppColors.darkText),
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.darkText,
+              ),
               onPressed: () => context.pop(),
             ),
             title: const Text(
@@ -113,9 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _phoneController,
                       hint: '0912 345 678',
                       keyboardType: TextInputType.phone,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (v) {
                         if (v == null || v.isEmpty) {
                           return 'Vui lòng nhập số điện thoại';
@@ -142,9 +142,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _passwordController,
                       hint: 'Tối thiểu 8 ký tự',
                       obscure: _obscurePassword,
-                      onToggleObscure: () => setState(
-                        () => _obscurePassword = !_obscurePassword,
-                      ),
+                      onToggleObscure: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                       validator: (v) {
                         if (v == null || v.isEmpty) {
                           return 'Vui lòng nhập mật khẩu';
@@ -161,9 +160,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _confirmController,
                       hint: 'Nhập lại mật khẩu',
                       obscure: _obscureConfirm,
-                      onToggleObscure: () => setState(
-                        () => _obscureConfirm = !_obscureConfirm,
-                      ),
+                      onToggleObscure: () =>
+                          setState(() => _obscureConfirm = !_obscureConfirm),
                       validator: (v) {
                         if (v != _passwordController.text) {
                           return 'Mật khẩu nhập lại không khớp';
@@ -314,10 +312,7 @@ class _TermsCheckbox extends StatelessWidget {
         Expanded(
           child: RichText(
             text: const TextSpan(
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.secondaryText,
-              ),
+              style: TextStyle(fontSize: 13, color: AppColors.secondaryText),
               children: [
                 TextSpan(text: 'Tôi đồng ý với '),
                 TextSpan(
@@ -345,7 +340,8 @@ class _TermsCheckbox extends StatelessWidget {
   }
 }
 
-OutlineInputBorder _border(Color color, {double width = 1}) => OutlineInputBorder(
+OutlineInputBorder _border(Color color, {double width = 1}) =>
+    OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(color: color, width: width),
     );

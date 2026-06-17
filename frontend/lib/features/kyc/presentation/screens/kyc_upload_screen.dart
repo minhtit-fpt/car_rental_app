@@ -46,9 +46,15 @@ class _KycUploadView extends StatelessWidget {
                     children: [
                       _InfoBanner(),
                       const SizedBox(height: 20),
-                      const _StepLabel(step: '1', title: 'CCCD / Căn cước công dân'),
+                      const _StepLabel(
+                        step: '1',
+                        title: 'CCCD / Căn cước công dân',
+                      ),
                       const SizedBox(height: 10),
-                      _DocTile(docType: 'cccd', icon: Icons.credit_card_rounded),
+                      _DocTile(
+                        docType: 'cccd',
+                        icon: Icons.credit_card_rounded,
+                      ),
                       const SizedBox(height: 20),
                       const _StepLabel(step: '2', title: 'Bằng lái xe'),
                       const SizedBox(height: 10),
@@ -57,7 +63,10 @@ class _KycUploadView extends StatelessWidget {
                         icon: Icons.drive_eta_rounded,
                       ),
                       const SizedBox(height: 20),
-                      const _StepLabel(step: '3', title: 'Ảnh chân dung (selfie)'),
+                      const _StepLabel(
+                        step: '3',
+                        title: 'Ảnh chân dung (selfie)',
+                      ),
                       const SizedBox(height: 10),
                       _DocTile(
                         docType: 'selfie',
@@ -155,11 +164,7 @@ class _StepLabel extends StatelessWidget {
 }
 
 class _DocTile extends StatelessWidget {
-  const _DocTile({
-    required this.docType,
-    required this.icon,
-    this.hint,
-  });
+  const _DocTile({required this.docType, required this.icon, this.hint});
 
   final String docType;
   final IconData icon;
@@ -194,8 +199,8 @@ class _DocTile extends StatelessWidget {
                 color: isUploaded
                     ? AppColors.success.withAlpha(80)
                     : isUploading
-                        ? AppColors.primary.withAlpha(80)
-                        : AppColors.border,
+                    ? AppColors.primary.withAlpha(80)
+                    : AppColors.border,
                 width: isUploaded || isUploading ? 1.5 : 1,
               ),
               boxShadow: const [
@@ -245,8 +250,8 @@ class _DocTile extends StatelessWidget {
                         isUploaded
                             ? 'Đã tải lên'
                             : isUploading
-                                ? 'Đang tải...'
-                                : 'Chạm để tải ảnh',
+                            ? 'Đang tải...'
+                            : 'Chạm để tải ảnh',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -281,13 +286,9 @@ class _DocTile extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  isUploaded
-                      ? Icons.edit_outlined
-                      : Icons.upload_rounded,
+                  isUploaded ? Icons.edit_outlined : Icons.upload_rounded,
                   size: 18,
-                  color: isUploaded
-                      ? AppColors.mutedText
-                      : AppColors.primary,
+                  color: isUploaded ? AppColors.mutedText : AppColors.primary,
                 ),
               ],
             ),

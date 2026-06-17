@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
@@ -14,15 +16,23 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameController =
-      TextEditingController(text: 'Nguyễn Văn An');
-  final _emailController =
-      TextEditingController(text: 'an.nguyen@email.com');
-  final _phoneController =
-      TextEditingController(text: '0912 345 678');
-  final _bioController = TextEditingController(
-      text: 'Tài xế kinh nghiệm 5 năm. Thích du lịch khám phá.');
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _bioController;
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Tiền điền từ phiên đăng nhập. Backend MVP chỉ lưu email; SĐT chỉ đọc;
+    // họ tên & giới thiệu chưa có trường backend nên để trống.
+    final user = context.read<AuthCubit>().state.user;
+    _nameController = TextEditingController();
+    _emailController = TextEditingController(text: user?.email ?? '');
+    _phoneController = TextEditingController(text: user?.phone ?? '');
+    _bioController = TextEditingController();
+  }
 
   @override
   void dispose() {
@@ -35,8 +45,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _save() async {
     setState(() => _isSubmitting = true);
-    await Future.delayed(const Duration(milliseconds: 1000));
-    if (mounted) context.pop();
+    final email = _emailController.text.trim();
+    final cubit = context.read<AuthCubit>();
+    final success = await cubit.updateProfile(
+      email: email.isEmpty ? null : email,
+    );
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    final messenger = ScaffoldMessenger.of(context);
+    if (success) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Đã cập nhật hồ sơ')),
+      );
+      context.pop();
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(cubit.state.errorMessage ?? 'Cập nhật thất bại'),
+        ),
+      );
+    }
   }
 
   @override
@@ -227,8 +255,9 @@ class _ProfileField extends StatelessWidget {
           decoration: InputDecoration(
             prefixIcon: Icon(icon, size: 18, color: AppColors.primary),
             filled: true,
-            fillColor:
-                readOnly ? AppColors.border.withAlpha(40) : AppColors.background,
+            fillColor: readOnly
+                ? AppColors.border.withAlpha(40)
+                : AppColors.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.border),
@@ -241,12 +270,16 @@ class _ProfileField extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primary),
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
             isDense: true,
             helperText: helperText,
             helperStyle: const TextStyle(
-                fontSize: 11, color: AppColors.mutedText),
+              fontSize: 11,
+              color: AppColors.mutedText,
+            ),
           ),
           style: TextStyle(
             fontSize: 13,
@@ -290,7 +323,9 @@ class _BioCard extends StatelessWidget {
             decoration: InputDecoration(
               hintText: 'Chia sẻ một chút về bản thân...',
               hintStyle: const TextStyle(
-                  fontSize: 13, color: AppColors.mutedText),
+                fontSize: 13,
+                color: AppColors.mutedText,
+              ),
               filled: true,
               fillColor: AppColors.background,
               border: OutlineInputBorder(

@@ -10,8 +10,8 @@ import 'package:frontend/core/storage/secure_storage.dart';
 /// Trả về thẳng phần `data` của envelope; ném [ApiException] khi thất bại.
 class ApiClient {
   ApiClient(this._secureStorage, {Dio? dio, Dio? refreshDio})
-      : _dio = dio ?? Dio(_baseOptions),
-        _refreshDio = refreshDio ?? Dio(_baseOptions) {
+    : _dio = dio ?? Dio(_baseOptions),
+      _refreshDio = refreshDio ?? Dio(_baseOptions) {
     _dio.interceptors.add(
       InterceptorsWrapper(onRequest: _onRequest, onError: _onError),
     );
@@ -53,6 +53,9 @@ class ApiClient {
 
   Future<dynamic> post(String path, {Object? data}) =>
       _send(() => _dio.post<dynamic>(path, data: data));
+
+  Future<dynamic> patch(String path, {Object? data}) =>
+      _send(() => _dio.patch<dynamic>(path, data: data));
 
   Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
       _send(() => _dio.get<dynamic>(path, queryParameters: query));

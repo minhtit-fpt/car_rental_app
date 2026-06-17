@@ -18,4 +18,7 @@ abstract interface class AuthRepository {
 
   /// Thu hồi refresh token ở server (best-effort) và xoá toàn bộ token cục bộ.
   Future<void> logout();
+
+  /// Cập nhật hồ sơ (MVP: email) qua `/api/users/me`, trả user mới.
+  Future<AuthUser> updateProfile({String? email});
 }
