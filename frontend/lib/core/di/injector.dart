@@ -33,8 +33,21 @@ import 'package:frontend/features/vehicle/data/repositories/vehicle_repository_i
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
 import 'package:frontend/features/vehicle/domain/usecases/create_vehicle_usecase.dart';
 import 'package:frontend/features/vehicle/domain/usecases/list_vehicles_usecase.dart';
+import 'package:frontend/features/vehicle/domain/usecases/get_vehicle_availability_usecase.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
+import 'package:frontend/features/vehicle/presentation/cubit/vehicle_availability_cubit.dart';
 import 'package:frontend/features/owner/presentation/cubit/vehicle_form_cubit.dart';
+import 'package:frontend/features/owner/data/datasources/owner_remote_datasource.dart';
+import 'package:frontend/features/owner/data/repositories/owner_repository_impl.dart';
+import 'package:frontend/features/owner/domain/repositories/owner_repository.dart';
+import 'package:frontend/features/owner/domain/usecases/list_owner_bookings_usecase.dart';
+import 'package:frontend/features/owner/domain/usecases/approve_booking_usecase.dart';
+import 'package:frontend/features/owner/domain/usecases/reject_booking_usecase.dart';
+import 'package:frontend/features/owner/domain/usecases/get_owner_revenue_usecase.dart';
+import 'package:frontend/features/owner/presentation/cubit/owner_bookings_cubit.dart';
+import 'package:frontend/features/owner/presentation/cubit/owner_revenue_cubit.dart';
+import 'package:frontend/features/owner/presentation/cubit/my_vehicles_cubit.dart';
+import 'package:frontend/features/owner/presentation/cubit/booking_action_cubit.dart';
 import 'package:frontend/features/booking/data/datasources/booking_remote_datasource.dart';
 import 'package:frontend/features/booking/data/repositories/booking_repository_impl.dart';
 import 'package:frontend/features/booking/domain/repositories/booking_repository.dart';
@@ -148,6 +161,43 @@ void setupVehicle() {
     ..registerFactory<VehicleFormCubit>(
       () => VehicleFormCubit(
         createVehicle: CreateVehicleUseCase(sl<VehicleRepository>()),
+      ),
+    )
+    ..registerFactory<VehicleAvailabilityCubit>(
+      () => VehicleAvailabilityCubit(
+        getAvailability: GetVehicleAvailabilityUseCase(sl<VehicleRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho chủ xe. Gọi sau [setupVehicle]
+/// (cần [ApiClient] + [VehicleRepository] cho "xe của tôi").
+void setupOwner() {
+  sl
+    ..registerSingleton<OwnerRepository>(
+      OwnerRepositoryImpl(OwnerRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<OwnerBookingsCubit>(
+      () => OwnerBookingsCubit(
+        listBookings: ListOwnerBookingsUseCase(sl<OwnerRepository>()),
+        approveBooking: ApproveBookingUseCase(sl<OwnerRepository>()),
+        rejectBooking: RejectBookingUseCase(sl<OwnerRepository>()),
+      ),
+    )
+    ..registerFactory<OwnerRevenueCubit>(
+      () => OwnerRevenueCubit(
+        getRevenue: GetOwnerRevenueUseCase(sl<OwnerRepository>()),
+      ),
+    )
+    ..registerFactory<MyVehiclesCubit>(
+      () => MyVehiclesCubit(
+        listVehicles: ListVehiclesUseCase(sl<VehicleRepository>()),
+      ),
+    )
+    ..registerFactory<BookingActionCubit>(
+      () => BookingActionCubit(
+        approveBooking: ApproveBookingUseCase(sl<OwnerRepository>()),
+        rejectBooking: RejectBookingUseCase(sl<OwnerRepository>()),
       ),
     );
 }

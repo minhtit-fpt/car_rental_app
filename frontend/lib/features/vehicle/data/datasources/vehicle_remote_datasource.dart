@@ -13,6 +13,7 @@ class VehicleRemoteDataSource {
     bool? available,
     num? minPrice,
     num? maxPrice,
+    bool? mine,
     int page = 1,
     int limit = 20,
   }) async {
@@ -23,9 +24,16 @@ class VehicleRemoteDataSource {
       'available': ?available?.toString(),
       'minPrice': ?minPrice,
       'maxPrice': ?maxPrice,
+      'mine': ?(mine == true ? 'true' : null),
     };
     final data = await _client.get('/api/vehicles', query: query);
     return (data as Map<String, dynamic>)['items'] as List<dynamic>;
+  }
+
+  /// `GET /api/vehicles/:id/availability` — lịch bận (các đơn chiếm chỗ).
+  Future<Map<String, dynamic>> availability(String id) async {
+    final data = await _client.get('/api/vehicles/$id/availability');
+    return data as Map<String, dynamic>;
   }
 
   /// `GET /api/vehicles/:id` — chi tiết một xe.

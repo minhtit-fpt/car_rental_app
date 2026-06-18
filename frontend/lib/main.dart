@@ -20,6 +20,7 @@ Future<void> main() async {
   setupPayment(); // payment repository + PaymentCubit factory
   setupReview(); // review repository + ReviewCubit factory
   setupKyc(); // kyc repository + KycStatusCubit factory
+  setupOwner(); // owner repository + owner/bookings/revenue cubits
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );

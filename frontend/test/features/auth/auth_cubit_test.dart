@@ -8,6 +8,7 @@ import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.
 import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/register_usecase.dart';
+import 'package:frontend/features/auth/domain/usecases/update_profile_usecase.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 
 const _user = AuthUser(
@@ -48,6 +49,10 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> logout() async => loggedOut = true;
+
+  @override
+  Future<AuthUser> updateProfile({String? email}) async =>
+      currentUserResult ?? loginResult!;
 }
 
 AuthCubit _buildCubit(_FakeAuthRepository repo) => AuthCubit(
@@ -55,6 +60,7 @@ AuthCubit _buildCubit(_FakeAuthRepository repo) => AuthCubit(
       register: RegisterUseCase(repo),
       logout: LogoutUseCase(repo),
       getCurrentUser: GetCurrentUserUseCase(repo),
+      updateProfile: UpdateProfileUseCase(repo),
     );
 
 void main() {

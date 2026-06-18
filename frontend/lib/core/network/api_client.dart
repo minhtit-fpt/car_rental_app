@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:frontend/core/config/app_config.dart';
 import 'package:frontend/core/network/api_exception.dart';
+import 'package:frontend/core/network/logging_interceptor.dart';
 import 'package:frontend/core/storage/secure_storage.dart';
 
 /// Bọc Dio: gắn access token, tự refresh khi gặp 401, và bóc envelope
@@ -15,6 +17,13 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(onRequest: _onRequest, onError: _onError),
     );
+    if (kDebugMode) {
+      debugPrint('[API] base URL = ${_baseOptions.baseUrl}');
+      final logger = LoggingInterceptor();
+      _dio.interceptors.add(logger);
+      _refreshDio.interceptors.add(logger);
+      _uploadDio.interceptors.add(logger);
+    }
   }
 
   final SecureStorage _secureStorage;

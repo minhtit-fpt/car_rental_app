@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/features/owner/presentation/cubit/vehicle_form_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/domain/entities/vehicle_availability.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
 import 'package:frontend/features/vehicle/domain/usecases/create_vehicle_usecase.dart';
 
@@ -40,11 +41,16 @@ class _FakeVehicleRepository implements VehicleRepository {
   Future<Vehicle> getVehicle(String id) => throw UnimplementedError();
 
   @override
+  Future<VehicleAvailability> getAvailability(String id) =>
+      throw UnimplementedError();
+
+  @override
   Future<List<Vehicle>> listVehicles({
     bool? isElectric,
     bool? available,
     num? minPrice,
     num? maxPrice,
+    bool? mine,
     int page = 1,
     int limit = 20,
   }) => throw UnimplementedError();

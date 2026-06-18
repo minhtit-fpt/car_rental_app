@@ -1,6 +1,8 @@
 import 'package:frontend/features/vehicle/data/datasources/vehicle_remote_datasource.dart';
+import 'package:frontend/features/vehicle/data/models/vehicle_availability_model.dart';
 import 'package:frontend/features/vehicle/data/models/vehicle_model.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/domain/entities/vehicle_availability.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
 
 class VehicleRepositoryImpl implements VehicleRepository {
@@ -14,6 +16,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
     bool? available,
     num? minPrice,
     num? maxPrice,
+    bool? mine,
     int page = 1,
     int limit = 20,
   }) async {
@@ -22,6 +25,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
       available: available,
       minPrice: minPrice,
       maxPrice: maxPrice,
+      mine: mine,
       page: page,
       limit: limit,
     );
@@ -33,6 +37,10 @@ class VehicleRepositoryImpl implements VehicleRepository {
   @override
   Future<Vehicle> getVehicle(String id) async =>
       VehicleModel.fromJson(await _remote.getById(id));
+
+  @override
+  Future<VehicleAvailability> getAvailability(String id) async =>
+      VehicleAvailabilityModel.fromJson(await _remote.availability(id));
 
   @override
   Future<Vehicle> createVehicle({

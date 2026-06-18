@@ -17,8 +17,16 @@ export const listVehiclesQuerySchema = z.object({
   available: boolQuery.optional(),
   minPrice: z.coerce.number().nonnegative().optional(),
   maxPrice: z.coerce.number().nonnegative().optional(),
+  // mine=true → chỉ trả xe của người gọi (cần đăng nhập), xử lý ở route handler.
+  mine: boolQuery.optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
+});
+
+// Cửa sổ thời gian truy vấn lịch bận của một xe (mặc định từ hôm nay).
+export const availabilityQuerySchema = z.object({
+  from: z.string().datetime({ offset: true }).optional(),
+  to: z.string().datetime({ offset: true }).optional(),
 });
 
 export const nearbyQuerySchema = z.object({
@@ -59,6 +67,7 @@ export const updateVehicleSchema = z
   });
 
 export type ListVehiclesQuery = z.infer<typeof listVehiclesQuerySchema>;
+export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>;
 export type NearbyQuery = z.infer<typeof nearbyQuerySchema>;
 export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;
 export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>;

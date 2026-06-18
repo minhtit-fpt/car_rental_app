@@ -11,6 +11,7 @@ class ListVehiclesUseCase {
     bool? available,
     num? minPrice,
     num? maxPrice,
+    bool? mine,
     int page = 1,
     int limit = 20,
   }) => _repository.listVehicles(
@@ -18,6 +19,7 @@ class ListVehiclesUseCase {
     available: available,
     minPrice: minPrice,
     maxPrice: maxPrice,
+    mine: mine,
     page: page,
     limit: limit,
   );
