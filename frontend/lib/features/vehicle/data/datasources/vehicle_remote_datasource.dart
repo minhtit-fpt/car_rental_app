@@ -34,6 +34,31 @@ class VehicleRemoteDataSource {
     return data as Map<String, dynamic>;
   }
 
+  /// `POST /api/vehicles` — chủ xe đăng xe mới (cần role OWNER). Trả về xe vừa tạo.
+  Future<Map<String, dynamic>> create({
+    required String type,
+    required String title,
+    required double pricePerHour,
+    required bool isElectric,
+    required bool deliveryAvailable,
+    required double lat,
+    required double lng,
+  }) async {
+    final data = await _client.post(
+      '/api/vehicles',
+      data: {
+        'type': type,
+        'title': title,
+        'pricePerHour': pricePerHour,
+        'isElectric': isElectric,
+        'deliveryAvailable': deliveryAvailable,
+        'lat': lat,
+        'lng': lng,
+      },
+    );
+    return data as Map<String, dynamic>;
+  }
+
   /// `GET /api/vehicles/nearby` — danh sách phẳng (không bọc `items`).
   Future<List<dynamic>> nearby({
     required double lat,

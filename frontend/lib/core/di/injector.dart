@@ -31,13 +31,18 @@ import 'package:frontend/features/admin/presentation/cubit/admin_disputes_cubit.
 import 'package:frontend/features/vehicle/data/datasources/vehicle_remote_datasource.dart';
 import 'package:frontend/features/vehicle/data/repositories/vehicle_repository_impl.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
+import 'package:frontend/features/vehicle/domain/usecases/create_vehicle_usecase.dart';
 import 'package:frontend/features/vehicle/domain/usecases/list_vehicles_usecase.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
+import 'package:frontend/features/owner/presentation/cubit/vehicle_form_cubit.dart';
 import 'package:frontend/features/booking/data/datasources/booking_remote_datasource.dart';
 import 'package:frontend/features/booking/data/repositories/booking_repository_impl.dart';
 import 'package:frontend/features/booking/domain/repositories/booking_repository.dart';
 import 'package:frontend/features/booking/domain/usecases/create_booking_usecase.dart';
+import 'package:frontend/features/booking/domain/usecases/list_bookings_usecase.dart';
+import 'package:frontend/features/booking/domain/usecases/cancel_booking_usecase.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
+import 'package:frontend/features/booking/presentation/cubit/my_trips_cubit.dart';
 import 'package:frontend/features/payment/data/datasources/payment_remote_datasource.dart';
 import 'package:frontend/features/payment/data/repositories/payment_repository_impl.dart';
 import 'package:frontend/features/payment/domain/repositories/payment_repository.dart';
@@ -48,12 +53,17 @@ import 'package:frontend/features/review/data/datasources/review_remote_datasour
 import 'package:frontend/features/review/data/repositories/review_repository_impl.dart';
 import 'package:frontend/features/review/domain/repositories/review_repository.dart';
 import 'package:frontend/features/review/domain/usecases/create_review_usecase.dart';
+import 'package:frontend/features/review/domain/usecases/list_user_reviews_usecase.dart';
 import 'package:frontend/features/review/presentation/cubit/review_cubit.dart';
+import 'package:frontend/features/review/presentation/cubit/user_reviews_cubit.dart';
 import 'package:frontend/features/kyc/data/datasources/kyc_remote_datasource.dart';
 import 'package:frontend/features/kyc/data/repositories/kyc_repository_impl.dart';
 import 'package:frontend/features/kyc/domain/repositories/kyc_repository.dart';
 import 'package:frontend/features/kyc/domain/usecases/get_kyc_status_usecase.dart';
+import 'package:frontend/features/kyc/domain/usecases/submit_kyc_usecase.dart';
+import 'package:frontend/features/kyc/domain/usecases/upload_kyc_document_usecase.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_status_cubit.dart';
+import 'package:frontend/features/kyc/presentation/cubit/kyc_upload_cubit.dart';
 
 /// Service locator toàn cục.
 final GetIt sl = GetIt.instance;
@@ -134,6 +144,11 @@ void setupVehicle() {
       () => VehicleListCubit(
         listVehicles: ListVehiclesUseCase(sl<VehicleRepository>()),
       ),
+    )
+    ..registerFactory<VehicleFormCubit>(
+      () => VehicleFormCubit(
+        createVehicle: CreateVehicleUseCase(sl<VehicleRepository>()),
+      ),
     );
 }
 
@@ -147,6 +162,12 @@ void setupBooking() {
     ..registerFactory<BookingCubit>(
       () => BookingCubit(
         createBooking: CreateBookingUseCase(sl<BookingRepository>()),
+      ),
+    )
+    ..registerFactory<MyTripsCubit>(
+      () => MyTripsCubit(
+        listBookings: ListBookingsUseCase(sl<BookingRepository>()),
+        cancelBooking: CancelBookingUseCase(sl<BookingRepository>()),
       ),
     );
 }
@@ -177,6 +198,11 @@ void setupReview() {
       () => ReviewCubit(
         createReview: CreateReviewUseCase(sl<ReviewRepository>()),
       ),
+    )
+    ..registerFactory<UserReviewsCubit>(
+      () => UserReviewsCubit(
+        listUserReviews: ListUserReviewsUseCase(sl<ReviewRepository>()),
+      ),
     );
 }
 
@@ -188,5 +214,11 @@ void setupKyc() {
     )
     ..registerFactory<KycStatusCubit>(
       () => KycStatusCubit(getStatus: GetKycStatusUseCase(sl<KycRepository>())),
+    )
+    ..registerFactory<KycUploadCubit>(
+      () => KycUploadCubit(
+        uploadDocument: UploadKycDocumentUseCase(sl<KycRepository>()),
+        submitKyc: SubmitKycUseCase(sl<KycRepository>()),
+      ),
     );
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/features/booking/presentation/screens/my_trips_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/car_list_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/home_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/owner_dashboard_screen.dart';
@@ -29,6 +30,7 @@ class _AppShellState extends State<AppShell> {
         children: [
           HomeScreen(onCarsTap: () => _navigateTo(1)),
           const CarListScreen(),
+          const MyTripsScreen(),
           const _PlaceholderScreen(label: '🗺️', title: 'Map'),
           const _DashboardSelectorScreen(),
         ],
@@ -58,6 +60,7 @@ class _BottomNav extends StatelessWidget {
         currentIndex: currentIndex,
         onTap: onTap,
         backgroundColor: Colors.transparent,
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.search_outlined),
@@ -68,6 +71,11 @@ class _BottomNav extends StatelessWidget {
             icon: Icon(Icons.directions_car_outlined),
             activeIcon: Icon(Icons.directions_car_rounded),
             label: 'Xe',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long_outlined),
+            activeIcon: Icon(Icons.receipt_long_rounded),
+            label: 'Chuyến',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map_outlined),

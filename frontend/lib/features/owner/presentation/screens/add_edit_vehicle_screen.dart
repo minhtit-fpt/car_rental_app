@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/owner/presentation/cubit/vehicle_form_cubit.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
@@ -19,38 +21,71 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   final _nameController = TextEditingController(text: '');
   final _priceController = TextEditingController(text: '');
   final _descController = TextEditingController(text: '');
-  String _selectedType = 'Sedan';
+  // Vị trí mặc định: trung tâm Hà Nội (chưa có map picker — sẽ thay sau).
+  final _latController = TextEditingController(text: '21.0278');
+  final _lngController = TextEditingController(text: '105.8342');
+  String _selectedType = 'CAR';
   bool _isElectric = false;
   bool _deliveryAvailable = false;
   bool _isSubmitting = false;
 
-  static const _types = ['Sedan', 'SUV', 'Pickup', 'Hatchback', 'Van'];
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.isEdit) {
-      _nameController.text = 'Tesla Model 3';
-      _priceController.text = '890';
-      _descController.text = 'Xe điện cao cấp, trang bị đầy đủ tiện nghi.';
-      _selectedType = 'Sedan';
-      _isElectric = true;
-      _deliveryAvailable = true;
-    }
-  }
+  // Khớp enum VehicleType của backend: value gửi server → nhãn hiển thị.
+  static const _types = {
+    'CAR': 'Ô tô',
+    'MOTORBIKE': 'Xe máy',
+    'BICYCLE': 'Xe đạp',
+  };
 
   @override
   void dispose() {
     _nameController.dispose();
     _priceController.dispose();
     _descController.dispose();
+    _latController.dispose();
+    _lngController.dispose();
     super.dispose();
   }
 
+  void _snack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _submit() async {
+    if (widget.isEdit) {
+      _snack('Tính năng chỉnh sửa xe đang hoàn thiện');
+      return;
+    }
+    final title = _nameController.text.trim();
+    final price = double.tryParse(_priceController.text.trim());
+    final lat = double.tryParse(_latController.text.trim());
+    final lng = double.tryParse(_lngController.text.trim());
+    if (title.isEmpty) return _snack('Vui lòng nhập tên xe');
+    if (price == null || price <= 0) return _snack('Giá thuê phải lớn hơn 0');
+    if (lat == null || lng == null) return _snack('Toạ độ không hợp lệ');
+
     setState(() => _isSubmitting = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (mounted) context.pop();
+    final cubit = sl<VehicleFormCubit>();
+    await cubit.create(
+      type: _selectedType,
+      title: title,
+      pricePerHour: price,
+      isElectric: _isElectric,
+      deliveryAvailable: _deliveryAvailable,
+      lat: lat,
+      lng: lng,
+    );
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    switch (cubit.state) {
+      case VehicleFormSuccess():
+        _snack('Đăng xe thành công');
+        context.pop();
+      case VehicleFormError(:final message):
+        _snack(message);
+      case VehicleFormIdle():
+      case VehicleFormSubmitting():
+        break;
+    }
   }
 
   @override
@@ -86,6 +121,11 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                     ),
                     const SizedBox(height: 16),
                     _DescriptionCard(controller: _descController),
+                    const SizedBox(height: 16),
+                    _LocationCard(
+                      latController: _latController,
+                      lngController: _lngController,
+                    ),
                     const SizedBox(height: 16),
                     _OptionsCard(
                       isElectric: _isElectric,
@@ -224,7 +264,7 @@ class _BasicInfoCard extends StatelessWidget {
   final TextEditingController nameController;
   final TextEditingController priceController;
   final String selectedType;
-  final List<String> types;
+  final Map<String, String> types;
   final ValueChanged<String> onTypeChanged;
 
   @override
@@ -258,8 +298,8 @@ class _BasicInfoCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _FormField(
-                  label: 'Giá/ngày (K VNĐ)',
-                  hint: 'VD: 850',
+                  label: 'Giá/giờ (VNĐ)',
+                  hint: 'VD: 50000',
                   controller: priceController,
                   keyboardType: TextInputType.number,
                 ),
@@ -348,7 +388,7 @@ class _TypeDropdown extends StatelessWidget {
   });
 
   final String value;
-  final List<String> items;
+  final Map<String, String> items;
   final ValueChanged<String> onChanged;
 
   @override
@@ -388,14 +428,82 @@ class _TypeDropdown extends StatelessWidget {
           ),
           style: const TextStyle(
               fontSize: 13, color: AppColors.darkText),
-          items: items
-              .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+          items: items.entries
+              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
               .toList(),
           onChanged: (v) {
             if (v != null) onChanged(v);
           },
         ),
       ],
+    );
+  }
+}
+
+class _LocationCard extends StatelessWidget {
+  const _LocationCard({
+    required this.latController,
+    required this.lngController,
+  });
+
+  final TextEditingController latController;
+  final TextEditingController lngController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.cardShadowColor,
+            blurRadius: 12,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(title: 'Vị trí xe'),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _FormField(
+                  label: 'Vĩ độ (lat)',
+                  hint: 'VD: 21.0278',
+                  controller: latController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _FormField(
+                  label: 'Kinh độ (lng)',
+                  hint: 'VD: 105.8342',
+                  controller: lngController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Chọn vị trí trên bản đồ sẽ sớm được hỗ trợ.',
+            style: TextStyle(fontSize: 11, color: AppColors.mutedText),
+          ),
+        ],
+      ),
     );
   }
 }

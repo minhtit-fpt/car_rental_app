@@ -35,6 +35,27 @@ class VehicleRepositoryImpl implements VehicleRepository {
       VehicleModel.fromJson(await _remote.getById(id));
 
   @override
+  Future<Vehicle> createVehicle({
+    required String type,
+    required String title,
+    required double pricePerHour,
+    required bool isElectric,
+    required bool deliveryAvailable,
+    required double lat,
+    required double lng,
+  }) async => VehicleModel.fromJson(
+    await _remote.create(
+      type: type,
+      title: title,
+      pricePerHour: pricePerHour,
+      isElectric: isElectric,
+      deliveryAvailable: deliveryAvailable,
+      lat: lat,
+      lng: lng,
+    ),
+  );
+
+  @override
   Future<List<Vehicle>> nearbyVehicles({
     required double lat,
     required double lng,

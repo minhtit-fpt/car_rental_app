@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_upload_cubit.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
@@ -13,7 +14,7 @@ class KycUploadScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => KycUploadCubit(),
+      create: (_) => sl<KycUploadCubit>(),
       child: const _KycUploadView(),
     );
   }
@@ -25,8 +26,18 @@ class _KycUploadView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocListener<KycUploadCubit, KycUploadState>(
-      listenWhen: (p, c) => c.submitted && !p.submitted,
-      listener: (context, _) => context.pushReplacement('/kyc/status'),
+      listenWhen: (p, c) =>
+          (c.submitted && !p.submitted) ||
+          (c.errorMessage != null && c.errorMessage != p.errorMessage),
+      listener: (context, state) {
+        if (state.submitted) {
+          context.pushReplacement('/kyc/status');
+        } else if (state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.errorMessage!)),
+          );
+        }
+      },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: Scaffold(

@@ -13,6 +13,17 @@ abstract interface class VehicleRepository {
 
   Future<Vehicle> getVehicle(String id);
 
+  /// `POST /api/vehicles` — chủ xe đăng xe mới.
+  Future<Vehicle> createVehicle({
+    required String type,
+    required String title,
+    required double pricePerHour,
+    required bool isElectric,
+    required bool deliveryAvailable,
+    required double lat,
+    required double lng,
+  });
+
   Future<List<Vehicle>> nearbyVehicles({
     required double lat,
     required double lng,

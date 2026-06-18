@@ -23,6 +23,10 @@ class ApiClient {
   /// Dio riêng cho refresh — KHÔNG gắn interceptor để tránh đệ quy 401.
   final Dio _refreshDio;
 
+  /// Dio riêng cho upload nhị phân lên presigned URL (MinIO/S3) — KHÔNG gắn
+  /// interceptor/Authorization để không phá chữ ký URL, KHÔNG bóc envelope.
+  final Dio _uploadDio = Dio();
+
   static final BaseOptions _baseOptions = BaseOptions(
     baseUrl: _normalizeBaseUrl(AppConfig.apiBaseUrl),
     connectTimeout: const Duration(seconds: 10),
@@ -59,6 +63,29 @@ class ApiClient {
 
   Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
       _send(() => _dio.get<dynamic>(path, queryParameters: query));
+
+  /// PUT nhị phân lên một URL tuyệt đối (presigned URL). Trả về khi máy chủ lưu
+  /// trữ phản hồi 2xx; ném [ApiException] khi thất bại.
+  Future<void> putBinary(
+    String url,
+    List<int> bytes, {
+    required String contentType,
+  }) async {
+    try {
+      await _uploadDio.put<dynamic>(
+        url,
+        data: Stream<List<int>>.fromIterable([bytes]),
+        options: Options(
+          headers: {
+            Headers.contentLengthHeader: bytes.length,
+            'Content-Type': contentType,
+          },
+        ),
+      );
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
 
   Future<dynamic> _send(Future<Response<dynamic>> Function() call) async {
     try {
