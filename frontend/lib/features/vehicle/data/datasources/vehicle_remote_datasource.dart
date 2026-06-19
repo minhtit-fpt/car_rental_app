@@ -51,6 +51,10 @@ class VehicleRemoteDataSource {
     required bool deliveryAvailable,
     required double lat,
     required double lng,
+    int? seats,
+    int? doors,
+    String? transmission,
+    String? city,
   }) async {
     final data = await _client.post(
       '/api/vehicles',
@@ -60,11 +64,55 @@ class VehicleRemoteDataSource {
         'pricePerHour': pricePerHour,
         'isElectric': isElectric,
         'deliveryAvailable': deliveryAvailable,
+        'seats': ?seats,
+        'doors': ?doors,
+        'transmission': ?transmission,
+        'city': ?city,
         'lat': lat,
         'lng': lng,
       },
     );
     return data as Map<String, dynamic>;
+  }
+
+  /// `PATCH /api/vehicles/:id` — chủ xe cập nhật xe (cần role OWNER, sở hữu xe).
+  /// Chỉ gửi các trường khác null. `type` không cho phép đổi theo schema backend.
+  Future<Map<String, dynamic>> update(
+    String id, {
+    String? title,
+    double? pricePerHour,
+    bool? isElectric,
+    bool? deliveryAvailable,
+    bool? isAvailable,
+    int? seats,
+    int? doors,
+    String? transmission,
+    String? city,
+    double? lat,
+    double? lng,
+  }) async {
+    final data = await _client.patch(
+      '/api/vehicles/$id',
+      data: {
+        'title': ?title,
+        'pricePerHour': ?pricePerHour,
+        'isElectric': ?isElectric,
+        'deliveryAvailable': ?deliveryAvailable,
+        'isAvailable': ?isAvailable,
+        'seats': ?seats,
+        'doors': ?doors,
+        'transmission': ?transmission,
+        'city': ?city,
+        'lat': ?lat,
+        'lng': ?lng,
+      },
+    );
+    return data as Map<String, dynamic>;
+  }
+
+  /// `DELETE /api/vehicles/:id` — chủ xe gỡ xe.
+  Future<void> delete(String id) async {
+    await _client.delete('/api/vehicles/$id');
   }
 
   /// `GET /api/vehicles/nearby` — danh sách phẳng (không bọc `items`).

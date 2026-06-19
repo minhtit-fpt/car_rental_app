@@ -73,6 +73,9 @@ class ApiClient {
   Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
       _send(() => _dio.get<dynamic>(path, queryParameters: query));
 
+  Future<dynamic> delete(String path, {Object? data}) =>
+      _send(() => _dio.delete<dynamic>(path, data: data));
+
   /// PUT nhị phân lên một URL tuyệt đối (presigned URL). Trả về khi máy chủ lưu
   /// trữ phản hồi 2xx; ném [ApiException] khi thất bại.
   Future<void> putBinary(

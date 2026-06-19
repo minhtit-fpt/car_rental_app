@@ -11,6 +11,10 @@ abstract final class VehicleModel {
     isElectric: json['isElectric'] as bool? ?? false,
     isAvailable: json['isAvailable'] as bool? ?? true,
     deliveryAvailable: json['deliveryAvailable'] as bool? ?? false,
+    seats: (json['seats'] as num?)?.toInt(),
+    doors: (json['doors'] as num?)?.toInt(),
+    transmission: json['transmission'] as String?,
+    city: json['city'] as String?,
     // Chỉ endpoint `nearby` mới kèm khoảng cách.
     distanceMeters: (json['distanceMeters'] as num?)?.round(),
   );

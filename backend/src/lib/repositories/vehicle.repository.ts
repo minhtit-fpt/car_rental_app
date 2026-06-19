@@ -25,6 +25,10 @@ export interface CreateVehicleData {
   isElectric: boolean;
   deliveryAvailable: boolean;
   isAvailable: boolean;
+  seats?: number;
+  doors?: number;
+  transmission?: string;
+  city?: string;
   lat: number;
   lng: number;
 }
@@ -35,6 +39,10 @@ export interface UpdateVehicleData {
   isElectric?: boolean;
   deliveryAvailable?: boolean;
   isAvailable?: boolean;
+  seats?: number;
+  doors?: number;
+  transmission?: string;
+  city?: string;
   lat?: number;
   lng?: number;
 }
@@ -56,6 +64,10 @@ export interface NearbyRow {
   isElectric: boolean;
   isAvailable: boolean;
   deliveryAvailable: boolean;
+  seats: number | null;
+  doors: number | null;
+  transmission: string | null;
+  city: string | null;
   createdAt: Date;
   updatedAt: Date;
   lat: number;
@@ -104,11 +116,14 @@ export const vehicleRepository = {
     await prisma.$executeRaw(Prisma.sql`
       INSERT INTO "Vehicle"
         ("id","ownerId","type","title","pricePerHour","isElectric",
-         "isAvailable","deliveryAvailable","location","createdAt","updatedAt")
+         "isAvailable","deliveryAvailable","seats","doors","transmission",
+         "city","location","createdAt","updatedAt")
       VALUES (
         ${id}::uuid, ${data.ownerId}::uuid, ${data.type}::"VehicleType",
         ${data.title}, ${data.pricePerHour}, ${data.isElectric},
         ${data.isAvailable}, ${data.deliveryAvailable},
+        ${data.seats ?? null}, ${data.doors ?? null},
+        ${data.transmission ?? null}, ${data.city ?? null},
         ST_SetSRID(ST_MakePoint(${data.lng}, ${data.lat}), 4326)::geography,
         now(), now()
       )
@@ -131,6 +146,12 @@ export const vehicleRepository = {
         deliveryAvailable: data.deliveryAvailable,
       }),
       ...(data.isAvailable !== undefined && { isAvailable: data.isAvailable }),
+      ...(data.seats !== undefined && { seats: data.seats }),
+      ...(data.doors !== undefined && { doors: data.doors }),
+      ...(data.transmission !== undefined && {
+        transmission: data.transmission,
+      }),
+      ...(data.city !== undefined && { city: data.city }),
     };
     if (Object.keys(scalar).length > 0) {
       await prisma.vehicle.update({ where: { id }, data: scalar });
@@ -162,6 +183,7 @@ export const vehicleRepository = {
         "id", "ownerId", "type", "title",
         "pricePerHour"::float8 AS "pricePerHour",
         "isElectric", "isAvailable", "deliveryAvailable",
+        "seats", "doors", "transmission", "city",
         "createdAt", "updatedAt",
         ST_Y("location"::geometry) AS "lat",
         ST_X("location"::geometry) AS "lng",

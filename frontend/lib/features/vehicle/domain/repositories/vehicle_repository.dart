@@ -27,7 +27,30 @@ abstract interface class VehicleRepository {
     required bool deliveryAvailable,
     required double lat,
     required double lng,
+    int? seats,
+    int? doors,
+    String? transmission,
+    String? city,
   });
+
+  /// `PATCH /api/vehicles/:id` — chủ xe cập nhật xe. Chỉ truyền field cần đổi.
+  Future<Vehicle> updateVehicle(
+    String id, {
+    String? title,
+    double? pricePerHour,
+    bool? isElectric,
+    bool? deliveryAvailable,
+    bool? isAvailable,
+    int? seats,
+    int? doors,
+    String? transmission,
+    String? city,
+    double? lat,
+    double? lng,
+  });
+
+  /// `DELETE /api/vehicles/:id` — chủ xe gỡ xe.
+  Future<void> deleteVehicle(String id);
 
   Future<List<Vehicle>> nearbyVehicles({
     required double lat,

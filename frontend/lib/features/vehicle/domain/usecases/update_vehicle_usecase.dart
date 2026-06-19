@@ -1,35 +1,37 @@
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
 
-/// Đăng xe mới (`POST /api/vehicles`). Chỉ chủ xe (role OWNER) gọi được.
-class CreateVehicleUseCase {
-  const CreateVehicleUseCase(this._repository);
+/// Cập nhật xe (`PATCH /api/vehicles/:id`). Chỉ chủ sở hữu xe gọi được.
+class UpdateVehicleUseCase {
+  const UpdateVehicleUseCase(this._repository);
 
   final VehicleRepository _repository;
 
-  Future<Vehicle> call({
-    required String type,
-    required String title,
-    required double pricePerHour,
-    required bool isElectric,
-    required bool deliveryAvailable,
-    required double lat,
-    required double lng,
+  Future<Vehicle> call(
+    String id, {
+    String? title,
+    double? pricePerHour,
+    bool? isElectric,
+    bool? deliveryAvailable,
+    bool? isAvailable,
     int? seats,
     int? doors,
     String? transmission,
     String? city,
-  }) => _repository.createVehicle(
-    type: type,
+    double? lat,
+    double? lng,
+  }) => _repository.updateVehicle(
+    id,
     title: title,
     pricePerHour: pricePerHour,
     isElectric: isElectric,
     deliveryAvailable: deliveryAvailable,
-    lat: lat,
-    lng: lng,
+    isAvailable: isAvailable,
     seats: seats,
     doors: doors,
     transmission: transmission,
     city: city,
+    lat: lat,
+    lng: lng,
   );
 }

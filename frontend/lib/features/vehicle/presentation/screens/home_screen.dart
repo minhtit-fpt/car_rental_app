@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
+import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
@@ -18,7 +20,80 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedCity = 0;
+  DateTime? _startDate;
+  DateTime? _endDate;
   final _cities = const ['TP. HCM', 'Hà Nội', 'Đà Nẵng', 'Nha Trang', 'Đà Lạt'];
+  // Toạ độ tâm mỗi thành phố (cùng thứ tự với [_cities]) để lọc xe quanh đó.
+  static const _cityCoords = [
+    (lat: 10.7769, lng: 106.7009), // TP. HCM
+    (lat: 21.0278, lng: 105.8342), // Hà Nội
+    (lat: 16.0544, lng: 108.2022), // Đà Nẵng
+    (lat: 12.2388, lng: 109.1967), // Nha Trang
+    (lat: 11.9404, lng: 108.4583), // Đà Lạt
+  ];
+  final _search = sl<SearchSession>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Khôi phục ngày đã chọn lần tìm trước (nếu có) khi quay lại màn chính.
+    _startDate = _search.startDate;
+    _endDate = _search.endDate;
+  }
+
+  Future<void> _pickCity() async {
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) =>
+          _CityPickerSheet(cities: _cities, selected: _selectedCity),
+    );
+    if (picked != null && mounted) {
+      setState(() => _selectedCity = picked);
+    }
+  }
+
+  Future<void> _pickDates() async {
+    final now = DateTime.now();
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+      initialDateRange: (_startDate != null && _endDate != null)
+          ? DateTimeRange(start: _startDate!, end: _endDate!)
+          : null,
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: AppColors.primary,
+            onPrimary: Colors.white,
+            surface: AppColors.surface,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (range != null && mounted) {
+      setState(() {
+        _startDate = range.start;
+        _endDate = range.end;
+      });
+      // Lưu lại để luồng đặt xe prefill theo ngày người dùng vừa chọn.
+      _search.setDates(range.start, range.end);
+    }
+  }
+
+  void _onSearch() {
+    // Lọc xe theo thành phố đã chọn: tải xe quanh tâm thành phố (endpoint
+    // /nearby), rồi chuyển sang tab "Xe" để xem kết quả. Ngày đã lưu ở
+    // SearchSession để prefill khi đặt xe.
+    final city = _cityCoords[_selectedCity];
+    context.read<VehicleListCubit>().loadNearby(lat: city.lat, lng: city.lng);
+    widget.onCarsTap();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +110,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   const _TopBar(),
                   _GreetingHeader(),
                   const SizedBox(height: 16),
-                  const _SearchCard(),
+                  _SearchCard(
+                    cityLabel: _cities[_selectedCity],
+                    startDate: _startDate,
+                    endDate: _endDate,
+                    onTapLocation: _pickCity,
+                    onTapDates: _pickDates,
+                    onSearch: _onSearch,
+                  ),
                   const SizedBox(height: 20),
                   _CityChips(
                     cities: _cities,
                     selected: _selectedCity,
-                    onSelect: (i) => setState(() => _selectedCity = i),
+                    onSelect: (i) {
+                      setState(() => _selectedCity = i);
+                      final c = _cityCoords[i];
+                      context.read<VehicleListCubit>().loadNearby(
+                        lat: c.lat,
+                        lng: c.lng,
+                      );
+                    },
                   ),
                   const SizedBox(height: 20),
                   _FeaturedCarsSection(onSeeAllTap: widget.onCarsTap),
@@ -165,7 +254,21 @@ class _GreetingHeader extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _SearchCard extends StatelessWidget {
-  const _SearchCard();
+  const _SearchCard({
+    required this.cityLabel,
+    required this.startDate,
+    required this.endDate,
+    required this.onTapLocation,
+    required this.onTapDates,
+    required this.onSearch,
+  });
+
+  final String cityLabel;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final VoidCallback onTapLocation;
+  final VoidCallback onTapDates;
+  final VoidCallback onSearch;
 
   @override
   Widget build(BuildContext context) {
@@ -187,40 +290,53 @@ class _SearchCard extends StatelessWidget {
         child: Column(
           children: [
             // Location row
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.location_on_outlined,
-                    size: 20,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'ĐIỂM NHẬN',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.mutedText,
-                          letterSpacing: 0.6,
-                        ),
+            InkWell(
+              onTap: onTapLocation,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 20,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'ĐIỂM NHẬN',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.mutedText,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            cityLabel,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.darkText,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 1),
-                      Text(
-                        'Quận 1, TP. HCM',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.darkText,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 20,
+                      color: AppColors.mutedText,
+                    ),
+                  ],
+                ),
               ),
             ),
             const Divider(height: 1, color: AppColors.inkLight),
@@ -230,15 +346,21 @@ class _SearchCard extends StatelessWidget {
                 Expanded(
                   child: _DateField(
                     label: 'NHẬN XE',
-                    value: 'T2, 15/06 · 9:00',
+                    value: startDate == null
+                        ? 'Chọn ngày'
+                        : _fmtSearchDate(startDate!),
                     borderRight: true,
+                    onTap: onTapDates,
                   ),
                 ),
                 Expanded(
                   child: _DateField(
                     label: 'TRẢ XE',
-                    value: 'T4, 17/06 · 18:00',
+                    value: endDate == null
+                        ? 'Chọn ngày'
+                        : _fmtSearchDate(endDate!),
                     borderRight: false,
+                    onTap: onTapDates,
                   ),
                 ),
               ],
@@ -250,7 +372,7 @@ class _SearchCard extends StatelessWidget {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: onSearch,
                   icon: const Icon(Icons.search_rounded, size: 18),
                   label: const Text('Tìm xe'),
                   style: ElevatedButton.styleFrom(
@@ -275,58 +397,148 @@ class _SearchCard extends StatelessWidget {
   }
 }
 
+/// Định dạng ngày ngắn cho thanh tìm kiếm, ví dụ "T2, 15/06".
+String _fmtSearchDate(DateTime d) {
+  const weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+  final dd = d.day.toString().padLeft(2, '0');
+  final mm = d.month.toString().padLeft(2, '0');
+  return '${weekdays[d.weekday - 1]}, $dd/$mm';
+}
+
 class _DateField extends StatelessWidget {
   const _DateField({
     required this.label,
     required this.value,
     required this.borderRight,
+    required this.onTap,
   });
 
   final String label;
   final String value;
   final bool borderRight;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: borderRight
-            ? const Border(right: BorderSide(color: AppColors.inkLight))
-            : null,
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          border: borderRight
+              ? const Border(right: BorderSide(color: AppColors.inkLight))
+              : null,
+        ),
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 16,
+              color: AppColors.primary,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mutedText,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkText,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.calendar_today_outlined,
-            size: 16,
-            color: AppColors.primary,
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.mutedText,
-                  letterSpacing: 0.5,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// City Picker (bottom sheet)
+// ─────────────────────────────────────────────
+
+class _CityPickerSheet extends StatelessWidget {
+  const _CityPickerSheet({required this.cities, required this.selected});
+
+  final List<String> cities;
+  final int selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: 1),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.darkText,
-                ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Chọn điểm nhận xe',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkText,
               ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 8),
+            for (int i = 0; i < cities.length; i++)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  Icons.location_on_outlined,
+                  color: i == selected
+                      ? AppColors.primary
+                      : AppColors.mutedText,
+                ),
+                title: Text(
+                  cities[i],
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: i == selected
+                        ? FontWeight.w700
+                        : FontWeight.w500,
+                    color: AppColors.darkText,
+                  ),
+                ),
+                trailing: i == selected
+                    ? const Icon(
+                        Icons.check_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      )
+                    : null,
+                onTap: () => Navigator.pop(context, i),
+              ),
+          ],
+        ),
       ),
     );
   }

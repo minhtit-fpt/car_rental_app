@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:frontend/core/db/app_database.dart';
 import 'package:frontend/core/network/api_client.dart';
+import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/storage/kv_storage.dart';
 import 'package:frontend/core/storage/secure_storage.dart';
 import 'package:frontend/features/auth/data/datasources/auth_remote_datasource.dart';
@@ -32,7 +33,10 @@ import 'package:frontend/features/vehicle/data/datasources/vehicle_remote_dataso
 import 'package:frontend/features/vehicle/data/repositories/vehicle_repository_impl.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
 import 'package:frontend/features/vehicle/domain/usecases/create_vehicle_usecase.dart';
+import 'package:frontend/features/vehicle/domain/usecases/delete_vehicle_usecase.dart';
+import 'package:frontend/features/vehicle/domain/usecases/list_nearby_vehicles_usecase.dart';
 import 'package:frontend/features/vehicle/domain/usecases/list_vehicles_usecase.dart';
+import 'package:frontend/features/vehicle/domain/usecases/update_vehicle_usecase.dart';
 import 'package:frontend/features/vehicle/domain/usecases/get_vehicle_availability_usecase.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_availability_cubit.dart';
@@ -177,17 +181,20 @@ void setupAdmin() {
 /// [VehicleListCubit] là factory — mỗi lần vào shell người thuê tạo mới + load.
 void setupVehicle() {
   sl
+    ..registerSingleton<SearchSession>(SearchSession())
     ..registerSingleton<VehicleRepository>(
       VehicleRepositoryImpl(VehicleRemoteDataSource(sl<ApiClient>())),
     )
     ..registerFactory<VehicleListCubit>(
       () => VehicleListCubit(
         listVehicles: ListVehiclesUseCase(sl<VehicleRepository>()),
+        listNearbyVehicles: ListNearbyVehiclesUseCase(sl<VehicleRepository>()),
       ),
     )
     ..registerFactory<VehicleFormCubit>(
       () => VehicleFormCubit(
         createVehicle: CreateVehicleUseCase(sl<VehicleRepository>()),
+        updateVehicle: UpdateVehicleUseCase(sl<VehicleRepository>()),
       ),
     )
     ..registerFactory<VehicleAvailabilityCubit>(
@@ -219,6 +226,7 @@ void setupOwner() {
     ..registerFactory<MyVehiclesCubit>(
       () => MyVehiclesCubit(
         listVehicles: ListVehiclesUseCase(sl<VehicleRepository>()),
+        deleteVehicle: DeleteVehicleUseCase(sl<VehicleRepository>()),
       ),
     )
     ..registerFactory<BookingActionCubit>(

@@ -611,30 +611,97 @@ class _OwnedCarRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () =>
-                    context.push('/owner/vehicle/edit', extra: vehicle),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.border),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ActionChip(
+                    label: 'Sửa',
+                    color: AppColors.secondaryText,
+                    onTap: () => _onEdit(context),
                   ),
-                  child: const Text(
-                    'Sửa',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.secondaryText,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  const SizedBox(width: 6),
+                  _ActionChip(
+                    label: 'Xoá',
+                    color: AppColors.danger,
+                    onTap: () => _confirmDelete(context),
                   ),
-                ),
+                ],
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _onEdit(BuildContext context) async {
+    final changed = await context.push<bool>(
+      '/owner/vehicle/edit',
+      extra: vehicle,
+    );
+    if (changed == true && context.mounted) {
+      context.read<MyVehiclesCubit>().load();
+    }
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Xoá xe?'),
+        content: Text('Bạn chắc chắn muốn gỡ "${vehicle.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Huỷ'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            child: const Text('Xoá'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final error = await context.read<MyVehiclesCubit>().delete(vehicle.id);
+    messenger.showSnackBar(
+      SnackBar(content: Text(error ?? 'Đã xoá xe')),
+    );
+  }
+}
+
+class _ActionChip extends StatelessWidget {
+  const _ActionChip({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: color,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
     );
   }

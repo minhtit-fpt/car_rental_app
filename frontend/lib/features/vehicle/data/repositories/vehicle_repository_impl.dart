@@ -51,6 +51,10 @@ class VehicleRepositoryImpl implements VehicleRepository {
     required bool deliveryAvailable,
     required double lat,
     required double lng,
+    int? seats,
+    int? doors,
+    String? transmission,
+    String? city,
   }) async => VehicleModel.fromJson(
     await _remote.create(
       type: type,
@@ -60,8 +64,46 @@ class VehicleRepositoryImpl implements VehicleRepository {
       deliveryAvailable: deliveryAvailable,
       lat: lat,
       lng: lng,
+      seats: seats,
+      doors: doors,
+      transmission: transmission,
+      city: city,
     ),
   );
+
+  @override
+  Future<Vehicle> updateVehicle(
+    String id, {
+    String? title,
+    double? pricePerHour,
+    bool? isElectric,
+    bool? deliveryAvailable,
+    bool? isAvailable,
+    int? seats,
+    int? doors,
+    String? transmission,
+    String? city,
+    double? lat,
+    double? lng,
+  }) async => VehicleModel.fromJson(
+    await _remote.update(
+      id,
+      title: title,
+      pricePerHour: pricePerHour,
+      isElectric: isElectric,
+      deliveryAvailable: deliveryAvailable,
+      isAvailable: isAvailable,
+      seats: seats,
+      doors: doors,
+      transmission: transmission,
+      city: city,
+      lat: lat,
+      lng: lng,
+    ),
+  );
+
+  @override
+  Future<void> deleteVehicle(String id) => _remote.delete(id);
 
   @override
   Future<List<Vehicle>> nearbyVehicles({

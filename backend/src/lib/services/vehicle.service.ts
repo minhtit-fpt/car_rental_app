@@ -20,6 +20,10 @@ export interface PublicVehicle {
   isElectric: boolean;
   isAvailable: boolean;
   deliveryAvailable: boolean;
+  seats: number | null;
+  doors: number | null;
+  transmission: string | null;
+  city: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +71,10 @@ function toPublicVehicle(v: Vehicle): PublicVehicle {
     isElectric: v.isElectric,
     isAvailable: v.isAvailable,
     deliveryAvailable: v.deliveryAvailable,
+    seats: v.seats,
+    doors: v.doors,
+    transmission: v.transmission,
+    city: v.city,
     createdAt: v.createdAt,
     updatedAt: v.updatedAt,
   };
@@ -82,6 +90,10 @@ function toNearbyVehicle(row: NearbyRow): NearbyVehicle {
     isElectric: row.isElectric,
     isAvailable: row.isAvailable,
     deliveryAvailable: row.deliveryAvailable,
+    seats: row.seats,
+    doors: row.doors,
+    transmission: row.transmission,
+    city: row.city,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     lat: row.lat,
