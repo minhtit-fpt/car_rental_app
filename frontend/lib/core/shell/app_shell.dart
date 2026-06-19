@@ -106,6 +106,10 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Chỉ tài khoản có vai OWNER mới thấy bộ chuyển Người thuê / Chủ xe.
+    // Người thuê thuần tuý chỉ thấy dashboard Người thuê.
+    final isOwner = context.watch<AuthCubit>().state.user?.isOwner ?? false;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -124,33 +128,37 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
             onPressed: () => context.read<AuthCubit>().logout(),
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Container(
-            color: AppColors.surface,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Row(
-              children: [
-                _RoleChip(
-                  label: '👤 Người thuê',
-                  isActive: _role == 0,
-                  onTap: () => setState(() => _role = 0),
+        bottom: isOwner
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(48),
+                child: Container(
+                  color: AppColors.surface,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Row(
+                    children: [
+                      _RoleChip(
+                        label: '👤 Người thuê',
+                        isActive: _role == 0,
+                        onTap: () => setState(() => _role = 0),
+                      ),
+                      const SizedBox(width: 8),
+                      _RoleChip(
+                        label: '🚗 Chủ xe',
+                        isActive: _role == 1,
+                        onTap: () => setState(() => _role = 1),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 8),
-                _RoleChip(
-                  label: '🚗 Chủ xe',
-                  isActive: _role == 1,
-                  onTap: () => setState(() => _role = 1),
-                ),
-              ],
-            ),
-          ),
-        ),
+              )
+            : null,
       ),
-      body: IndexedStack(
-        index: _role,
-        children: const [RenterDashboardScreen(), OwnerDashboardScreen()],
-      ),
+      body: isOwner
+          ? IndexedStack(
+              index: _role,
+              children: const [RenterDashboardScreen(), OwnerDashboardScreen()],
+            )
+          : const RenterDashboardScreen(),
     );
   }
 }

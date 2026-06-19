@@ -1,66 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
-
-class _Conversation {
-  const _Conversation({
-    required this.id,
-    required this.name,
-    required this.emoji,
-    required this.lastMessage,
-    required this.time,
-    this.unread = 0,
-    this.vehicleName = '',
-  });
-  final String id;
-  final String name;
-  final String emoji;
-  final String lastMessage;
-  final String time;
-  final int unread;
-  final String vehicleName;
-}
-
-const _kConversations = [
-  _Conversation(
-    id: '1',
-    name: 'Minh T.',
-    emoji: '👤',
-    lastMessage: 'Xe đã sẵn sàng, bạn nhận lúc mấy giờ?',
-    time: '14:32',
-    unread: 2,
-    vehicleName: 'Tesla Model 3',
-  ),
-  _Conversation(
-    id: '2',
-    name: 'Linh N.',
-    emoji: '👤',
-    lastMessage: 'Cảm ơn bạn đã thuê xe của mình!',
-    time: 'Hôm qua',
-    vehicleName: 'BMW X5',
-  ),
-  _Conversation(
-    id: '3',
-    name: 'Đức P.',
-    emoji: '👤',
-    lastMessage: 'Bạn có thể gia hạn thêm 1 ngày không?',
-    time: '10/05',
-    unread: 1,
-    vehicleName: 'Mercedes C300',
-  ),
-  _Conversation(
-    id: '4',
-    name: 'Hoa L.',
-    emoji: '👤',
-    lastMessage: 'Mình đã nhận được xe rồi, cảm ơn!',
-    time: '08/05',
-    vehicleName: 'Toyota Camry',
-  ),
-];
+import 'package:frontend/features/chat/domain/entities/conversation.dart';
+import 'package:frontend/features/chat/presentation/cubit/conversation_list_cubit.dart';
 
 class ConversationListScreen extends StatelessWidget {
   const ConversationListScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<ConversationListCubit>(
+      create: (_) => sl<ConversationListCubit>()..load(),
+      child: const _ConversationListView(),
+    );
+  }
+}
+
+class _ConversationListView extends StatelessWidget {
+  const _ConversationListView();
 
   @override
   Widget build(BuildContext context) {
@@ -98,17 +58,43 @@ class ConversationListScreen extends StatelessWidget {
             child: Container(height: 1, color: AppColors.border),
           ),
         ),
-        body: ListView.separated(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: _kConversations.length,
-          separatorBuilder: (_, _) =>
-              const Divider(color: AppColors.border, height: 1, indent: 70),
-          itemBuilder: (context, index) {
-            final conv = _kConversations[index];
-            return _ConversationTile(
-              conversation: conv,
-              onTap: () => context.push('/chat/${conv.id}', extra: conv.name),
-            );
+        body: BlocBuilder<ConversationListCubit, ConversationListState>(
+          builder: (context, state) => switch (state) {
+            ConversationListLoading() =>
+              const Center(child: CircularProgressIndicator()),
+            ConversationListError(:final message) => _ErrorView(
+                message: message,
+                onRetry: () => context.read<ConversationListCubit>().load(),
+              ),
+            ConversationListLoaded(:final conversations) => conversations.isEmpty
+                ? const _EmptyView()
+                : RefreshIndicator(
+                    onRefresh: () =>
+                        context.read<ConversationListCubit>().load(),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: conversations.length,
+                      separatorBuilder: (_, _) => const Divider(
+                          color: AppColors.border, height: 1, indent: 70),
+                      itemBuilder: (context, index) {
+                        final conv = conversations[index];
+                        return _ConversationTile(
+                          conversation: conv,
+                          onTap: () async {
+                            await context.push(
+                              '/chat/${conv.id}',
+                              extra: conv.partnerName,
+                            );
+                            if (context.mounted) {
+                              await context
+                                  .read<ConversationListCubit>()
+                                  .load();
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
           },
         ),
       ),
@@ -116,18 +102,60 @@ class ConversationListScreen extends StatelessWidget {
   }
 }
 
-class _ConversationTile extends StatelessWidget {
-  const _ConversationTile({
-    required this.conversation,
-    required this.onTap,
-  });
+class _EmptyView extends StatelessWidget {
+  const _EmptyView();
 
-  final _Conversation conversation;
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('💬', style: TextStyle(fontSize: 40)),
+          SizedBox(height: 12),
+          Text('Chưa có cuộc trò chuyện nào',
+              style: TextStyle(fontSize: 14, color: AppColors.mutedText)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 14, color: AppColors.secondaryText)),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: onRetry, child: const Text('Thử lại')),
+        ],
+      ),
+    );
+  }
+}
+
+class _ConversationTile extends StatelessWidget {
+  const _ConversationTile({required this.conversation, required this.onTap});
+
+  final Conversation conversation;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final hasUnread = conversation.unread > 0;
+    final hasUnread = conversation.unreadCount > 0;
 
     return InkWell(
       onTap: onTap,
@@ -144,11 +172,8 @@ class _ConversationTile extends StatelessWidget {
                     color: AppColors.primary.withAlpha(26),
                     shape: BoxShape.circle,
                   ),
-                  child: Center(
-                    child: Text(
-                      conversation.emoji,
-                      style: const TextStyle(fontSize: 22),
-                    ),
+                  child: const Center(
+                    child: Text('👤', style: TextStyle(fontSize: 22)),
                   ),
                 ),
                 if (hasUnread)
@@ -164,7 +189,7 @@ class _ConversationTile extends StatelessWidget {
                       ),
                       child: Center(
                         child: Text(
-                          '${conversation.unread}',
+                          '${conversation.unreadCount}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -185,42 +210,32 @@ class _ConversationTile extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        conversation.name,
+                        conversation.partnerName,
                         style: TextStyle(
                           fontSize: 15,
-                          fontWeight: hasUnread
-                              ? FontWeight.bold
-                              : FontWeight.w500,
+                          fontWeight:
+                              hasUnread ? FontWeight.bold : FontWeight.w500,
                           color: AppColors.darkText,
                         ),
                       ),
-                      Text(
-                        conversation.time,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: hasUnread
-                              ? AppColors.primary
-                              : AppColors.mutedText,
-                          fontWeight: hasUnread
-                              ? FontWeight.w600
-                              : FontWeight.normal,
+                      if (conversation.lastMessageAt != null)
+                        Text(
+                          _shortTime(conversation.lastMessageAt!),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: hasUnread
+                                ? AppColors.primary
+                                : AppColors.mutedText,
+                            fontWeight: hasUnread
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 2),
-                  if (conversation.vehicleName.isNotEmpty)
-                    Text(
-                      '🚗 ${conversation.vehicleName}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  const SizedBox(height: 2),
                   Text(
-                    conversation.lastMessage,
+                    conversation.lastMessage ?? 'Bắt đầu trò chuyện',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -228,9 +243,8 @@ class _ConversationTile extends StatelessWidget {
                       color: hasUnread
                           ? AppColors.darkText
                           : AppColors.mutedText,
-                      fontWeight: hasUnread
-                          ? FontWeight.w500
-                          : FontWeight.normal,
+                      fontWeight:
+                          hasUnread ? FontWeight.w500 : FontWeight.normal,
                     ),
                   ),
                 ],
@@ -241,4 +255,14 @@ class _ConversationTile extends StatelessWidget {
       ),
     );
   }
+}
+
+String _shortTime(DateTime time) {
+  final diff = DateTime.now().difference(time);
+  if (diff.inDays == 0) {
+    return '${time.hour.toString().padLeft(2, '0')}:'
+        '${time.minute.toString().padLeft(2, '0')}';
+  }
+  if (diff.inDays == 1) return 'Hôm qua';
+  return '${time.day}/${time.month}';
 }

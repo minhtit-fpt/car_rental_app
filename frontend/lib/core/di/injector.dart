@@ -77,6 +77,33 @@ import 'package:frontend/features/kyc/domain/usecases/submit_kyc_usecase.dart';
 import 'package:frontend/features/kyc/domain/usecases/upload_kyc_document_usecase.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_status_cubit.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_upload_cubit.dart';
+import 'package:frontend/features/notification/data/datasources/notification_remote_datasource.dart';
+import 'package:frontend/features/notification/data/repositories/notification_repository_impl.dart';
+import 'package:frontend/features/notification/domain/repositories/notification_repository.dart';
+import 'package:frontend/features/notification/domain/usecases/list_notifications_usecase.dart';
+import 'package:frontend/features/notification/domain/usecases/mark_all_read_usecase.dart';
+import 'package:frontend/features/notification/domain/usecases/mark_notification_read_usecase.dart';
+import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
+import 'package:frontend/features/loyalty/data/datasources/loyalty_remote_datasource.dart';
+import 'package:frontend/features/loyalty/data/repositories/loyalty_repository_impl.dart';
+import 'package:frontend/features/loyalty/domain/repositories/loyalty_repository.dart';
+import 'package:frontend/features/loyalty/domain/usecases/get_loyalty_summary_usecase.dart';
+import 'package:frontend/features/loyalty/presentation/cubit/loyalty_cubit.dart';
+import 'package:frontend/features/community/data/datasources/community_remote_datasource.dart';
+import 'package:frontend/features/community/data/repositories/community_repository_impl.dart';
+import 'package:frontend/features/community/domain/repositories/community_repository.dart';
+import 'package:frontend/features/community/domain/usecases/create_story_usecase.dart';
+import 'package:frontend/features/community/domain/usecases/like_story_usecase.dart';
+import 'package:frontend/features/community/domain/usecases/list_stories_usecase.dart';
+import 'package:frontend/features/community/presentation/cubit/community_cubit.dart';
+import 'package:frontend/features/chat/data/datasources/chat_remote_datasource.dart';
+import 'package:frontend/features/chat/data/repositories/chat_repository_impl.dart';
+import 'package:frontend/features/chat/domain/repositories/chat_repository.dart';
+import 'package:frontend/features/chat/domain/usecases/list_conversations_usecase.dart';
+import 'package:frontend/features/chat/domain/usecases/list_messages_usecase.dart';
+import 'package:frontend/features/chat/domain/usecases/send_message_usecase.dart';
+import 'package:frontend/features/chat/presentation/cubit/conversation_list_cubit.dart';
+import 'package:frontend/features/chat/presentation/cubit/chat_cubit.dart';
 
 /// Service locator toàn cục.
 final GetIt sl = GetIt.instance;
@@ -269,6 +296,70 @@ void setupKyc() {
       () => KycUploadCubit(
         uploadDocument: UploadKycDocumentUseCase(sl<KycRepository>()),
         submitKyc: SubmitKycUseCase(sl<KycRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho thông báo. Gọi sau [setupAuth].
+void setupNotification() {
+  sl
+    ..registerSingleton<NotificationRepository>(
+      NotificationRepositoryImpl(NotificationRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<NotificationCubit>(
+      () => NotificationCubit(
+        listNotifications:
+            ListNotificationsUseCase(sl<NotificationRepository>()),
+        markRead: MarkNotificationReadUseCase(sl<NotificationRepository>()),
+        markAllRead:
+            MarkAllNotificationsReadUseCase(sl<NotificationRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho điểm thưởng. Gọi sau [setupAuth].
+void setupLoyalty() {
+  sl
+    ..registerSingleton<LoyaltyRepository>(
+      LoyaltyRepositoryImpl(LoyaltyRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<LoyaltyCubit>(
+      () => LoyaltyCubit(
+        getSummary: GetLoyaltySummaryUseCase(sl<LoyaltyRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho cộng đồng. Gọi sau [setupAuth].
+void setupCommunity() {
+  sl
+    ..registerSingleton<CommunityRepository>(
+      CommunityRepositoryImpl(CommunityRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<CommunityCubit>(
+      () => CommunityCubit(
+        listStories: ListStoriesUseCase(sl<CommunityRepository>()),
+        createStory: CreateStoryUseCase(sl<CommunityRepository>()),
+        likeStory: LikeStoryUseCase(sl<CommunityRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho chat (REST + polling). Gọi sau [setupAuth].
+void setupChat() {
+  sl
+    ..registerSingleton<ChatRepository>(
+      ChatRepositoryImpl(ChatRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<ConversationListCubit>(
+      () => ConversationListCubit(
+        listConversations: ListConversationsUseCase(sl<ChatRepository>()),
+      ),
+    )
+    ..registerFactory<ChatCubit>(
+      () => ChatCubit(
+        listMessages: ListMessagesUseCase(sl<ChatRepository>()),
+        sendMessage: SendMessageUseCase(sl<ChatRepository>()),
       ),
     );
 }

@@ -1,62 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/features/chat/domain/entities/message.dart';
+import 'package:frontend/features/chat/presentation/cubit/chat_cubit.dart';
 
-class _Message {
-  const _Message({
-    required this.text,
-    required this.isMe,
-    required this.time,
+class ChatScreen extends StatelessWidget {
+  const ChatScreen({
+    super.key,
+    required this.conversationId,
+    required this.partnerName,
   });
-  final String text;
-  final bool isMe;
-  final String time;
-}
 
-final _kMessages = [
-  const _Message(
-      text: 'Xin chào! Xe có sẵn ngày mai không ạ?',
-      isMe: true,
-      time: '09:12'),
-  const _Message(
-      text: 'Có bạn nhé! Xe sẵn sàng từ 7 giờ sáng.',
-      isMe: false,
-      time: '09:15'),
-  const _Message(
-      text: 'Bạn có thể giao xe tới quận 1 được không ạ?',
-      isMe: true,
-      time: '09:16'),
-  const _Message(
-      text: 'Được nhé, phí giao 50K. Địa chỉ cụ thể là gì vậy bạn?',
-      isMe: false,
-      time: '09:18'),
-  const _Message(
-      text: '123 Lê Lợi, phường Bến Nghé ạ.',
-      isMe: true,
-      time: '09:20'),
-  const _Message(
-      text: 'Ok mình note lại rồi. Mình sẽ giao trước 8 giờ nhé!',
-      isMe: false,
-      time: '09:22'),
-  const _Message(
-      text: 'Xe đã sẵn sàng, bạn nhận lúc mấy giờ?',
-      isMe: false,
-      time: '14:32'),
-];
-
-class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key, required this.partnerName});
-
+  final String conversationId;
   final String partnerName;
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  Widget build(BuildContext context) {
+    final currentUserId = context.read<AuthCubit>().state.user?.id ?? '';
+    return BlocProvider<ChatCubit>(
+      create: (_) => sl<ChatCubit>()..start(conversationId),
+      child: _ChatView(
+        partnerName: partnerName,
+        currentUserId: currentUserId,
+      ),
+    );
+  }
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatView extends StatefulWidget {
+  const _ChatView({required this.partnerName, required this.currentUserId});
+
+  final String partnerName;
+  final String currentUserId;
+
+  @override
+  State<_ChatView> createState() => _ChatViewState();
+}
+
+class _ChatViewState extends State<_ChatView> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
-  final _messages = List<_Message>.from(_kMessages);
 
   @override
   void dispose() {
@@ -65,16 +51,19 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  void _send() {
+  Future<void> _send() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    final now = DateTime.now();
-    final time =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    setState(() {
-      _messages.add(_Message(text: text, isMe: true, time: time));
-    });
     _controller.clear();
+    final error = await context.read<ChatCubit>().send(text);
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
+    }
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -97,7 +86,8 @@ class _ChatScreenState extends State<ChatScreen> {
           elevation: 0,
           surfaceTintColor: Colors.transparent,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.darkText),
+            icon:
+                const Icon(Icons.arrow_back_rounded, color: AppColors.darkText),
             onPressed: () => Navigator.pop(context),
           ),
           title: Row(
@@ -114,34 +104,16 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.partnerName,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkText,
-                    ),
-                  ),
-                  const Text(
-                    '🟢 Đang hoạt động',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.success,
-                    ),
-                  ),
-                ],
+              Text(
+                widget.partnerName,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkText,
+                ),
               ),
             ],
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.phone_outlined, color: AppColors.primary),
-              onPressed: () {},
-            ),
-          ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
             child: Container(height: 1, color: AppColors.border),
@@ -150,20 +122,46 @@ class _ChatScreenState extends State<ChatScreen> {
         body: Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  return _MessageBubble(message: _messages[index]);
+              child: BlocConsumer<ChatCubit, ChatState>(
+                listenWhen: (a, b) =>
+                    a is ChatLoaded &&
+                    b is ChatLoaded &&
+                    b.messages.length > a.messages.length,
+                listener: (_, _) => _scrollToBottom(),
+                builder: (context, state) => switch (state) {
+                  ChatLoading() =>
+                    const Center(child: CircularProgressIndicator()),
+                  ChatError(:final message) => Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Text(message,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.secondaryText)),
+                      ),
+                    ),
+                  ChatLoaded(:final messages) => messages.isEmpty
+                      ? const Center(
+                          child: Text('Chưa có tin nhắn nào',
+                              style: TextStyle(
+                                  fontSize: 14, color: AppColors.mutedText)),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          itemCount: messages.length,
+                          itemBuilder: (context, index) => _MessageBubble(
+                            message: messages[index],
+                            isMe: messages[index].senderId ==
+                                widget.currentUserId,
+                          ),
+                        ),
                 },
               ),
             ),
-            _InputBar(
-              controller: _controller,
-              onSend: _send,
-            ),
+            _InputBar(controller: _controller, onSend: _send),
           ],
         ),
       ),
@@ -172,12 +170,14 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message});
-  final _Message message;
+  const _MessageBubble({required this.message, required this.isMe});
+  final Message message;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
-    final isMe = message.isMe;
+    final time = '${message.sentAt.hour.toString().padLeft(2, '0')}:'
+        '${message.sentAt.minute.toString().padLeft(2, '0')}';
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -205,8 +205,8 @@ class _MessageBubble extends StatelessWidget {
                   isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   constraints: BoxConstraints(
                     maxWidth: MediaQuery.of(context).size.width * 0.72,
                   ),
@@ -229,18 +229,17 @@ class _MessageBubble extends StatelessWidget {
                     ],
                   ),
                   child: Text(
-                    message.text,
+                    message.body,
                     style: TextStyle(
                       fontSize: 14,
-                      color:
-                          isMe ? Colors.white : AppColors.darkText,
+                      color: isMe ? Colors.white : AppColors.darkText,
                       height: 1.4,
                     ),
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  message.time,
+                  time,
                   style: const TextStyle(
                       fontSize: 10, color: AppColors.mutedText),
                 ),
@@ -254,10 +253,7 @@ class _MessageBubble extends StatelessWidget {
 }
 
 class _InputBar extends StatelessWidget {
-  const _InputBar({
-    required this.controller,
-    required this.onSend,
-  });
+  const _InputBar({required this.controller, required this.onSend});
 
   final TextEditingController controller;
   final VoidCallback onSend;
@@ -290,15 +286,15 @@ class _InputBar extends StatelessWidget {
                 onSubmitted: (_) => onSend(),
                 decoration: const InputDecoration(
                   hintText: 'Nhắn tin...',
-                  hintStyle: TextStyle(
-                      fontSize: 14, color: AppColors.mutedText),
+                  hintStyle:
+                      TextStyle(fontSize: 14, color: AppColors.mutedText),
                   border: InputBorder.none,
                   contentPadding:
                       EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   isDense: true,
                 ),
-                style: const TextStyle(
-                    fontSize: 14, color: AppColors.darkText),
+                style:
+                    const TextStyle(fontSize: 14, color: AppColors.darkText),
                 maxLines: null,
               ),
             ),
