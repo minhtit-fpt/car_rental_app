@@ -1,74 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
-
-enum _NotifType { booking, payment, system, promo }
-
-class _Notif {
-  const _Notif({
-    required this.title,
-    required this.body,
-    required this.time,
-    required this.type,
-    this.isRead = false,
-  });
-  final String title;
-  final String body;
-  final String time;
-  final _NotifType type;
-  final bool isRead;
-}
-
-const _kNotifs = [
-  _Notif(
-    title: 'Chuyến đi được xác nhận',
-    body: 'Tesla Model 3 đã được xác nhận cho ngày 20/05. Chúc bạn có chuyến đi vui vẻ!',
-    time: 'Vừa xong',
-    type: _NotifType.booking,
-  ),
-  _Notif(
-    title: 'Thanh toán thành công',
-    body: 'Giao dịch 890K VNĐ đã được xử lý thành công qua VNPay.',
-    time: '5 phút trước',
-    type: _NotifType.payment,
-  ),
-  _Notif(
-    title: 'Nhắc nhở trả xe',
-    body: 'Chuyến đi của bạn kết thúc vào ngày mai. Vui lòng trả xe đúng giờ.',
-    time: '1 giờ trước',
-    type: _NotifType.booking,
-    isRead: true,
-  ),
-  _Notif(
-    title: 'Ưu đãi dành cho bạn',
-    body: 'Giảm 15% cho chuyến đi cuối tuần. Áp dụng mã WEEKEND15 khi đặt xe.',
-    time: 'Hôm qua',
-    type: _NotifType.promo,
-    isRead: true,
-  ),
-  _Notif(
-    title: 'KYC đã được duyệt',
-    body: 'Tài khoản của bạn đã được xác minh thành công. Bạn có thể thuê xe ngay!',
-    time: '2 ngày trước',
-    type: _NotifType.system,
-    isRead: true,
-  ),
-  _Notif(
-    title: 'Đánh giá mới',
-    body: 'Minh T. đã để lại đánh giá 5 sao cho chuyến đi của bạn.',
-    time: '3 ngày trước',
-    type: _NotifType.booking,
-    isRead: true,
-  ),
-];
+import 'package:frontend/features/notification/domain/entities/notification.dart';
+import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
 
 class NotificationListScreen extends StatelessWidget {
   const NotificationListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final unreadCount = _kNotifs.where((n) => !n.isRead).length;
+    return BlocProvider<NotificationCubit>(
+      create: (_) => sl<NotificationCubit>()..load(),
+      child: const _NotificationView(),
+    );
+  }
+}
 
+class _NotificationView extends StatelessWidget {
+  const _NotificationView();
+
+  @override
+  Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
@@ -77,49 +31,55 @@ class NotificationListScreen extends StatelessWidget {
           backgroundColor: AppColors.surface,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
-          title: Row(
-            children: [
-              Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  gradient: AppColors.logoGradient,
-                  borderRadius: BorderRadius.circular(7),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Thông báo',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkText,
-                ),
-              ),
-              if (unreadCount > 0) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '$unreadCount',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+          title: BlocBuilder<NotificationCubit, NotificationState>(
+            builder: (context, state) {
+              final unread =
+                  state is NotificationLoaded ? state.data.unreadCount : 0;
+              return Row(
+                children: [
+                  Container(
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.logoGradient,
+                      borderRadius: BorderRadius.circular(7),
                     ),
                   ),
-                ),
-              ],
-            ],
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Thông báo',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkText,
+                    ),
+                  ),
+                  if (unread > 0) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '$unread',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
           actions: [
             TextButton(
-              onPressed: () {},
+              onPressed: () => context.read<NotificationCubit>().markAllRead(),
               child: const Text(
                 'Đọc tất cả',
                 style: TextStyle(
@@ -134,29 +94,96 @@ class NotificationListScreen extends StatelessWidget {
             child: Container(height: 1, color: AppColors.border),
           ),
         ),
-        body: ListView.separated(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: _kNotifs.length,
-          separatorBuilder: (_, _) =>
-              const Divider(color: AppColors.border, height: 1, indent: 68),
-          itemBuilder: (context, index) =>
-              _NotifTile(notif: _kNotifs[index]),
+        body: BlocBuilder<NotificationCubit, NotificationState>(
+          builder: (context, state) => switch (state) {
+            NotificationLoading() =>
+              const Center(child: CircularProgressIndicator()),
+            NotificationError(:final message) => _ErrorView(
+                message: message,
+                onRetry: () => context.read<NotificationCubit>().load(),
+              ),
+            NotificationLoaded(:final data) => data.items.isEmpty
+                ? const _EmptyView()
+                : RefreshIndicator(
+                    onRefresh: () => context.read<NotificationCubit>().load(),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: data.items.length,
+                      separatorBuilder: (_, _) => const Divider(
+                          color: AppColors.border, height: 1, indent: 68),
+                      itemBuilder: (context, index) => _NotifTile(
+                        notif: data.items[index],
+                        onTap: () => context
+                            .read<NotificationCubit>()
+                            .markRead(data.items[index].id),
+                      ),
+                    ),
+                  ),
+          },
         ),
       ),
     );
   }
 }
 
+class _EmptyView extends StatelessWidget {
+  const _EmptyView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('🔔', style: TextStyle(fontSize: 40)),
+          SizedBox(height: 12),
+          Text(
+            'Chưa có thông báo nào',
+            style: TextStyle(fontSize: 14, color: AppColors.mutedText),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 14, color: AppColors.secondaryText)),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: onRetry, child: const Text('Thử lại')),
+        ],
+      ),
+    );
+  }
+}
+
 class _NotifTile extends StatelessWidget {
-  const _NotifTile({required this.notif});
-  final _Notif notif;
+  const _NotifTile({required this.notif, required this.onTap});
+  final AppNotification notif;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final info = _typeInfo(notif.type);
 
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       child: Container(
         color: notif.isRead ? null : AppColors.primary.withAlpha(7),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -171,8 +198,7 @@ class _NotifTile extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Text(info.emoji,
-                    style: const TextStyle(fontSize: 20)),
+                child: Text(info.emoji, style: const TextStyle(fontSize: 20)),
               ),
             ),
             const SizedBox(width: 12),
@@ -197,23 +223,25 @@ class _NotifTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        notif.time,
+                        _relativeTime(notif.createdAt),
                         style: const TextStyle(
                             fontSize: 11, color: AppColors.mutedText),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    notif.body,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.secondaryText,
-                      height: 1.4,
+                  if (notif.body != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      notif.body!,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.secondaryText,
+                        height: 1.4,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -235,24 +263,25 @@ class _NotifTile extends StatelessWidget {
     );
   }
 
-  ({String emoji, Color color}) _typeInfo(_NotifType type) {
+  ({String emoji, Color color}) _typeInfo(NotificationType type) {
     return switch (type) {
-      _NotifType.booking => (
-          emoji: '🚗',
-          color: AppColors.primary,
-        ),
-      _NotifType.payment => (
-          emoji: '💳',
-          color: AppColors.success,
-        ),
-      _NotifType.system => (
-          emoji: '🛡️',
-          color: AppColors.teal,
-        ),
-      _NotifType.promo => (
-          emoji: '🎁',
-          color: AppColors.orange,
-        ),
+      NotificationType.booking => (emoji: '🚗', color: AppColors.primary),
+      NotificationType.payment => (emoji: '💳', color: AppColors.success),
+      NotificationType.kyc => (emoji: '🛡️', color: AppColors.teal),
+      NotificationType.chat => (emoji: '💬', color: AppColors.primary),
+      NotificationType.promotion => (emoji: '🎁', color: AppColors.orange),
+      NotificationType.system => (emoji: '🔔', color: AppColors.mutedText),
     };
   }
+}
+
+/// Định dạng thời gian tương đối ngắn gọn (tiếng Việt).
+String _relativeTime(DateTime time) {
+  final diff = DateTime.now().difference(time);
+  if (diff.inMinutes < 1) return 'Vừa xong';
+  if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
+  if (diff.inHours < 24) return '${diff.inHours} giờ trước';
+  if (diff.inDays == 1) return 'Hôm qua';
+  if (diff.inDays < 7) return '${diff.inDays} ngày trước';
+  return '${time.day}/${time.month}';
 }

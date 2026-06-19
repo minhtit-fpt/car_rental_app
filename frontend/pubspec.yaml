@@ -41,6 +41,9 @@ dependencies:
   # WebView nhúng — mở cổng VNPay & bắt URL return để xác nhận thanh toán
   flutter_inappwebview: ^6.1.5
 
+  # Chọn ảnh giấy tờ KYC (CCCD, bằng lái, selfie) từ thư viện/camera
+  image_picker: ^1.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

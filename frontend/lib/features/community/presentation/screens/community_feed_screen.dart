@@ -1,83 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/community/domain/entities/trip_story.dart';
+import 'package:frontend/features/community/presentation/cubit/community_cubit.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 
-class _Story {
-  const _Story({
-    required this.id,
-    required this.author,
-    required this.vehicleName,
-    required this.location,
-    required this.content,
-    required this.emoji,
-    required this.likes,
-    required this.comments,
-    required this.time,
-    this.isLiked = false,
-  });
-  final String id;
-  final String author;
-  final String vehicleName;
-  final String location;
-  final String content;
-  final String emoji;
-  final int likes;
-  final int comments;
-  final String time;
-  final bool isLiked;
-}
-
-const _kStories = [
-  _Story(
-    id: '1',
-    author: 'Thanh N.',
-    vehicleName: 'Tesla Model 3',
-    location: 'Hà Nội → Ninh Bình',
-    content:
-        'Chuyến đi tuyệt vời với Tesla Model 3! Xe chạy êm, pin đủ cho cả chặng đường. Cảnh đẹp dọc đường đi Ninh Bình khiến mọi người đều thích thú. Sẽ thuê lại lần sau! ⚡🌿',
-    emoji: '🚗',
-    likes: 47,
-    comments: 12,
-    time: '2 giờ trước',
-    isLiked: true,
-  ),
-  _Story(
-    id: '2',
-    author: 'Hùng P.',
-    vehicleName: 'BMW X5',
-    location: 'TP.HCM → Vũng Tàu',
-    content:
-        'Cuối tuần chạy BMW X5 ra Vũng Tàu với gia đình. Xe rộng, thoải mái cho 5 người. Chủ xe nhiệt tình, giao xe tận nhà. Highly recommend! 🏖️',
-    emoji: '🚙',
-    likes: 31,
-    comments: 8,
-    time: '5 giờ trước',
-  ),
-  _Story(
-    id: '3',
-    author: 'Linh H.',
-    vehicleName: 'Kia EV6',
-    location: 'Đà Nẵng → Hội An',
-    content:
-        'Lần đầu thuê xe điện để đi Hội An. Trải nghiệm hoàn toàn khác! Yên tĩnh, không khí trong lành hơn. EV là tương lai của du lịch xanh 🌱⚡',
-    emoji: '⚡',
-    likes: 63,
-    comments: 24,
-    time: 'Hôm qua',
-  ),
-];
-
-class CommunityFeedScreen extends StatefulWidget {
+class CommunityFeedScreen extends StatelessWidget {
   const CommunityFeedScreen({super.key});
 
   @override
-  State<CommunityFeedScreen> createState() => _CommunityFeedScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider<CommunityCubit>(
+      create: (_) => sl<CommunityCubit>()..load(),
+      child: const _CommunityView(),
+    );
+  }
 }
 
-class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
-  final _likedStories = <String>{};
+class _CommunityView extends StatelessWidget {
+  const _CommunityView();
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +60,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                 IconButton(
                   icon: const Icon(Icons.add_circle_outline_rounded,
                       color: AppColors.primary),
-                  onPressed: () {},
+                  onPressed: () => _openComposer(context),
                 ),
               ],
               bottom: PreferredSize(
@@ -126,62 +69,171 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
               ),
             ),
           ],
-          body: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      _WriteStoryBanner(),
-                      const SizedBox(height: 16),
-                      const SectionHeader(
-                          title: 'Câu chuyện mới nhất'),
+          body: BlocBuilder<CommunityCubit, CommunityState>(
+            builder: (context, state) => switch (state) {
+              CommunityLoading() =>
+                const Center(child: CircularProgressIndicator()),
+              CommunityError(:final message) => _ErrorView(
+                  message: message,
+                  onRetry: () => context.read<CommunityCubit>().load(),
+                ),
+              CommunityLoaded(:final stories, :final likedIds) =>
+                RefreshIndicator(
+                  onRefresh: () => context.read<CommunityCubit>().load(),
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              _WriteStoryBanner(
+                                onTap: () => _openComposer(context),
+                              ),
+                              const SizedBox(height: 16),
+                              const SectionHeader(title: 'Câu chuyện mới nhất'),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (stories.isEmpty)
+                        const SliverToBoxAdapter(
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 60),
+                            child: Center(
+                              child: Text('Chưa có câu chuyện nào',
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      color: AppColors.mutedText)),
+                            ),
+                          ),
+                        )
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                          sliver: SliverList.separated(
+                            itemCount: stories.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 16),
+                            itemBuilder: (context, index) {
+                              final story = stories[index];
+                              return _StoryCard(
+                                story: story,
+                                isLiked: likedIds.contains(story.id),
+                                onLike: () => context
+                                    .read<CommunityCubit>()
+                                    .like(story.id),
+                              );
+                            },
+                          ),
+                        ),
                     ],
                   ),
                 ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                sliver: SliverList.separated(
-                  itemCount: _kStories.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    final story = _kStories[index];
-                    final isLiked = _likedStories.contains(story.id) ||
-                        story.isLiked;
-                    return _StoryCard(
-                      story: story,
-                      isLiked: isLiked,
-                      onLike: () {
-                        setState(() {
-                          if (_likedStories.contains(story.id)) {
-                            _likedStories.remove(story.id);
-                          } else {
-                            _likedStories.add(story.id);
-                          }
-                        });
-                      },
-                      onTap: () =>
-                          context.push('/community/${story.id}', extra: story),
-                    );
-                  },
-                ),
-              ),
-            ],
+            },
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _openComposer(BuildContext context) async {
+    final cubit = context.read<CommunityCubit>();
+    final controller = TextEditingController();
+    final content = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: 16 + MediaQuery.of(sheetContext).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Chia sẻ chuyến đi',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkText)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              maxLines: 4,
+              maxLength: 2000,
+              decoration: InputDecoration(
+                hintText: 'Kể về chuyến đi của bạn...',
+                filled: true,
+                fillColor: AppColors.background,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () {
+                final text = controller.text.trim();
+                if (text.isNotEmpty) Navigator.pop(sheetContext, text);
+              },
+              child: const Text('Đăng'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (content == null || !context.mounted) return;
+    final error = await cubit.createStory(content);
+    if (error != null && context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 14, color: AppColors.secondaryText)),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: onRetry, child: const Text('Thử lại')),
+        ],
       ),
     );
   }
 }
 
 class _WriteStoryBanner extends StatelessWidget {
+  const _WriteStoryBanner({required this.onTap});
+  final VoidCallback onTap;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -212,8 +264,8 @@ class _WriteStoryBanner extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: AppColors.background,
                   borderRadius: BorderRadius.circular(20),
@@ -221,8 +273,7 @@ class _WriteStoryBanner extends StatelessWidget {
                 ),
                 child: const Text(
                   'Chia sẻ chuyến đi của bạn...',
-                  style:
-                      TextStyle(fontSize: 13, color: AppColors.mutedText),
+                  style: TextStyle(fontSize: 13, color: AppColors.mutedText),
                 ),
               ),
             ),
@@ -238,181 +289,131 @@ class _StoryCard extends StatelessWidget {
     required this.story,
     required this.isLiked,
     required this.onLike,
-    required this.onTap,
   });
 
-  final _Story story;
+  final TripStory story;
   final bool isLiked;
   final VoidCallback onLike;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.cardShadowColor,
-              blurRadius: 12,
-              offset: Offset(0, 2),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.cardShadowColor,
+            blurRadius: 12,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 140,
+            decoration: const BoxDecoration(
+              gradient: AppColors.heroGradient,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image area (placeholder with gradient + emoji)
-            Container(
-              height: 160,
-              decoration: BoxDecoration(
-                gradient: AppColors.heroGradient,
-                borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20)),
-              ),
-              child: Stack(
-                children: [
-                  Center(
-                    child: Text(story.emoji,
-                        style: const TextStyle(fontSize: 64)),
-                  ),
-                  Positioned(
-                    bottom: 10,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+            child: const Center(
+              child: Text('🚗', style: TextStyle(fontSize: 64)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(100),
-                        borderRadius: BorderRadius.circular(20),
+                        color: AppColors.primary.withAlpha(26),
+                        shape: BoxShape.circle,
                       ),
+                      child: const Center(
+                        child: Text('👤', style: TextStyle(fontSize: 14)),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            story.authorName,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.darkText,
+                            ),
+                          ),
+                          Text(
+                            _relativeTime(story.createdAt),
+                            style: const TextStyle(
+                                fontSize: 11, color: AppColors.mutedText),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  story.content,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.secondaryText,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: onLike,
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.location_on_rounded,
-                              size: 12, color: Colors.white),
+                          Icon(
+                            isLiked
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            size: 18,
+                            color:
+                                isLiked ? AppColors.danger : AppColors.mutedText,
+                          ),
                           const SizedBox(width: 4),
                           Text(
-                            story.location,
+                            '${story.likes}',
                             style: const TextStyle(
-                                fontSize: 11, color: Colors.white),
+                                fontSize: 13, color: AppColors.secondaryText),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(26),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Center(
-                          child: Text('👤',
-                              style: TextStyle(fontSize: 14)),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              story.author,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.darkText,
-                              ),
-                            ),
-                            Text(
-                              '🚗 ${story.vehicleName} · ${story.time}',
-                              style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.mutedText),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    story.content,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.secondaryText,
-                      height: 1.5,
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: onLike,
-                        child: Row(
-                          children: [
-                            Icon(
-                              isLiked
-                                  ? Icons.favorite_rounded
-                                  : Icons.favorite_border_rounded,
-                              size: 18,
-                              color: isLiked
-                                  ? AppColors.danger
-                                  : AppColors.mutedText,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${story.likes + (isLiked && !story.isLiked ? 1 : 0)}',
-                              style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.secondaryText),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Row(
-                        children: [
-                          const Icon(Icons.chat_bubble_outline_rounded,
-                              size: 16, color: AppColors.mutedText),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${story.comments}',
-                            style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.secondaryText),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      const Icon(Icons.share_outlined,
-                          size: 16, color: AppColors.mutedText),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
+
+String _relativeTime(DateTime time) {
+  final diff = DateTime.now().difference(time);
+  if (diff.inMinutes < 1) return 'Vừa xong';
+  if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
+  if (diff.inHours < 24) return '${diff.inHours} giờ trước';
+  if (diff.inDays == 1) return 'Hôm qua';
+  if (diff.inDays < 7) return '${diff.inDays} ngày trước';
+  return '${time.day}/${time.month}';
 }

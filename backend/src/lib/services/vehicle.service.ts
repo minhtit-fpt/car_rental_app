@@ -1,5 +1,6 @@
-import type { Vehicle, VehicleType } from "@prisma/client";
+import { BookingStatus, type Vehicle, type VehicleType } from "@prisma/client";
 import { AppError } from "@/lib/errors/app-error";
+import { bookingRepository } from "@/lib/repositories/booking.repository";
 import {
   vehicleRepository,
   type NearbyRow,
@@ -35,6 +36,25 @@ export interface VehicleListResult {
   page: number;
   limit: number;
 }
+
+export interface BookedInterval {
+  id: string;
+  startTime: Date;
+  endTime: Date;
+  status: BookingStatus;
+}
+
+export interface VehicleAvailability {
+  vehicleId: string;
+  bookings: BookedInterval[];
+}
+
+// Trạng thái coi là "đã giữ chỗ" để hiển thị trên lịch (chờ xác nhận + đang thuê).
+const OCCUPYING_STATUSES: BookingStatus[] = [
+  BookingStatus.PENDING_PAYMENT,
+  BookingStatus.CONFIRMED,
+  BookingStatus.IN_PROGRESS,
+];
 
 // Decimal của Prisma → number cho JSON response.
 function toPublicVehicle(v: Vehicle): PublicVehicle {
@@ -98,6 +118,32 @@ export const vehicleService = {
       throw new AppError(404, "VEHICLE_NOT_FOUND", "Không tìm thấy xe");
     }
     return toPublicVehicle(v);
+  },
+
+  // Lịch bận của một xe suy ra từ các đơn đặt (chờ xác nhận/đang thuê) từ `from`.
+  async getAvailability(
+    id: string,
+    range: { from?: Date; to?: Date } = {},
+  ): Promise<VehicleAvailability> {
+    const vehicle = await vehicleRepository.findById(id);
+    if (!vehicle) {
+      throw new AppError(404, "VEHICLE_NOT_FOUND", "Không tìm thấy xe");
+    }
+    const from = range.from ?? new Date();
+    const rows = await bookingRepository.findByVehicle(
+      id,
+      OCCUPYING_STATUSES,
+      from,
+    );
+    const bookings = (
+      range.to ? rows.filter((b) => b.startTime <= range.to!) : rows
+    ).map((b) => ({
+      id: b.id,
+      startTime: b.startTime,
+      endTime: b.endTime,
+      status: b.status,
+    }));
+    return { vehicleId: id, bookings };
   },
 
   async nearby(params: {

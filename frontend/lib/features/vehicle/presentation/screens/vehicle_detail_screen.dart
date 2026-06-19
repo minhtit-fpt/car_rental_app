@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/review/presentation/widgets/user_reviews_section.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
@@ -66,6 +67,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                         const SizedBox(height: 20),
                         _OwnerCard(vehicle: v),
                         const SizedBox(height: 20),
+                        UserReviewsSection(userId: v.ownerId),
                         const _TripRulesCard(),
                         const SizedBox(height: 20),
                         const _PickupMapBlock(),

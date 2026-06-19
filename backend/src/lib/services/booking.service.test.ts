@@ -12,6 +12,9 @@ vi.mock("@/lib/repositories/booking.repository", () => ({
     create: vi.fn(),
     findById: vi.fn(),
     findManyByRenter: vi.fn(),
+    findManyByOwner: vi.fn(),
+    findByIdForOwner: vi.fn(),
+    findByVehicle: vi.fn(),
     hasActiveOverlap: vi.fn(),
     updateStatus: vi.fn(),
   },
@@ -152,5 +155,114 @@ describe("bookingService.cancel", () => {
       code: "BOOKING_NOT_CANCELLABLE",
     });
     expect(bookingRepository.updateStatus).not.toHaveBeenCalled();
+  });
+});
+
+const OWNER = "owner-1";
+
+function makeOwnerBooking(overrides: Partial<Booking> = {}) {
+  const b = makeBooking(overrides);
+  return {
+    ...b,
+    vehicle: { id: VEHICLE_ID, title: "VF8", type: VehicleType.CAR, ownerId: OWNER },
+    renter: { id: RENTER, phone: "0900000000", email: null },
+  };
+}
+
+describe("bookingService.listForOwner", () => {
+  it("maps owner bookings with nested vehicle + renter", async () => {
+    vi.mocked(bookingRepository.findManyByOwner).mockResolvedValue({
+      items: [makeOwnerBooking()] as never,
+      total: 1,
+    });
+    const result = await bookingService.listForOwner({
+      ownerId: OWNER,
+      page: 1,
+      limit: 20,
+    });
+    expect(result.total).toBe(1);
+    expect(result.items[0].vehicle.title).toBe("VF8");
+    expect(result.items[0].renter.phone).toBe("0900000000");
+  });
+});
+
+describe("bookingService.approve", () => {
+  it("confirms a PENDING_PAYMENT booking on the owner's vehicle", async () => {
+    vi.mocked(bookingRepository.findByIdForOwner)
+      .mockResolvedValueOnce(makeOwnerBooking() as never)
+      .mockResolvedValueOnce(
+        makeOwnerBooking({ status: BookingStatus.CONFIRMED }) as never,
+      );
+    vi.mocked(bookingRepository.hasActiveOverlap).mockResolvedValue(false);
+    vi.mocked(bookingRepository.updateStatus).mockResolvedValue(makeBooking());
+
+    const result = await bookingService.approve(OWNER, "book-1");
+
+    expect(bookingRepository.updateStatus).toHaveBeenCalledWith(
+      "book-1",
+      BookingStatus.CONFIRMED,
+    );
+    expect(result.status).toBe(BookingStatus.CONFIRMED);
+  });
+
+  it("throws 403 when the vehicle belongs to another owner", async () => {
+    vi.mocked(bookingRepository.findByIdForOwner).mockResolvedValue(
+      makeOwnerBooking() as never,
+    );
+    await expect(
+      bookingService.approve("other-owner", "book-1"),
+    ).rejects.toMatchObject({ status: 403, code: "FORBIDDEN" });
+    expect(bookingRepository.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it("throws 409 when the booking is not PENDING_PAYMENT", async () => {
+    vi.mocked(bookingRepository.findByIdForOwner).mockResolvedValue(
+      makeOwnerBooking({ status: BookingStatus.CONFIRMED }) as never,
+    );
+    await expect(bookingService.approve(OWNER, "book-1")).rejects.toMatchObject({
+      status: 409,
+      code: "BOOKING_NOT_APPROVABLE",
+    });
+  });
+
+  it("throws 409 BOOKING_CONFLICT when the slot is already taken", async () => {
+    vi.mocked(bookingRepository.findByIdForOwner).mockResolvedValue(
+      makeOwnerBooking() as never,
+    );
+    vi.mocked(bookingRepository.hasActiveOverlap).mockResolvedValue(true);
+    await expect(bookingService.approve(OWNER, "book-1")).rejects.toMatchObject({
+      status: 409,
+      code: "BOOKING_CONFLICT",
+    });
+    expect(bookingRepository.updateStatus).not.toHaveBeenCalled();
+  });
+});
+
+describe("bookingService.reject", () => {
+  it("cancels a PENDING_PAYMENT booking on the owner's vehicle", async () => {
+    vi.mocked(bookingRepository.findByIdForOwner)
+      .mockResolvedValueOnce(makeOwnerBooking() as never)
+      .mockResolvedValueOnce(
+        makeOwnerBooking({ status: BookingStatus.CANCELLED }) as never,
+      );
+    vi.mocked(bookingRepository.updateStatus).mockResolvedValue(makeBooking());
+
+    const result = await bookingService.reject(OWNER, "book-1");
+
+    expect(bookingRepository.updateStatus).toHaveBeenCalledWith(
+      "book-1",
+      BookingStatus.CANCELLED,
+    );
+    expect(result.status).toBe(BookingStatus.CANCELLED);
+  });
+
+  it("throws 409 when the booking is not PENDING_PAYMENT", async () => {
+    vi.mocked(bookingRepository.findByIdForOwner).mockResolvedValue(
+      makeOwnerBooking({ status: BookingStatus.IN_PROGRESS }) as never,
+    );
+    await expect(bookingService.reject(OWNER, "book-1")).rejects.toMatchObject({
+      status: 409,
+      code: "BOOKING_NOT_REJECTABLE",
+    });
   });
 });

@@ -19,10 +19,15 @@ function queryParams(req: Request): Record<string, string> {
   return Object.fromEntries(new URL(req.url).searchParams);
 }
 
-// GET /api/vehicles — danh sách + lọc (public).
+// GET /api/vehicles — danh sách + lọc (public). `mine=true` → chỉ xe của người
+// gọi (cần đăng nhập).
 export async function GET(req: Request): Promise<Response> {
   try {
-    const filters = listVehiclesQuerySchema.parse(queryParams(req));
+    const { mine, ...filters } = listVehiclesQuerySchema.parse(queryParams(req));
+    if (mine) {
+      const claims = await requireAuth(req);
+      return ok(await vehicleService.list({ ...filters, ownerId: claims.sub }));
+    }
     return ok(await vehicleService.list(filters));
   } catch (error) {
     return toErrorResponse(error);

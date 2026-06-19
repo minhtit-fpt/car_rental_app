@@ -31,13 +31,31 @@ import 'package:frontend/features/admin/presentation/cubit/admin_disputes_cubit.
 import 'package:frontend/features/vehicle/data/datasources/vehicle_remote_datasource.dart';
 import 'package:frontend/features/vehicle/data/repositories/vehicle_repository_impl.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
+import 'package:frontend/features/vehicle/domain/usecases/create_vehicle_usecase.dart';
 import 'package:frontend/features/vehicle/domain/usecases/list_vehicles_usecase.dart';
+import 'package:frontend/features/vehicle/domain/usecases/get_vehicle_availability_usecase.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
+import 'package:frontend/features/vehicle/presentation/cubit/vehicle_availability_cubit.dart';
+import 'package:frontend/features/owner/presentation/cubit/vehicle_form_cubit.dart';
+import 'package:frontend/features/owner/data/datasources/owner_remote_datasource.dart';
+import 'package:frontend/features/owner/data/repositories/owner_repository_impl.dart';
+import 'package:frontend/features/owner/domain/repositories/owner_repository.dart';
+import 'package:frontend/features/owner/domain/usecases/list_owner_bookings_usecase.dart';
+import 'package:frontend/features/owner/domain/usecases/approve_booking_usecase.dart';
+import 'package:frontend/features/owner/domain/usecases/reject_booking_usecase.dart';
+import 'package:frontend/features/owner/domain/usecases/get_owner_revenue_usecase.dart';
+import 'package:frontend/features/owner/presentation/cubit/owner_bookings_cubit.dart';
+import 'package:frontend/features/owner/presentation/cubit/owner_revenue_cubit.dart';
+import 'package:frontend/features/owner/presentation/cubit/my_vehicles_cubit.dart';
+import 'package:frontend/features/owner/presentation/cubit/booking_action_cubit.dart';
 import 'package:frontend/features/booking/data/datasources/booking_remote_datasource.dart';
 import 'package:frontend/features/booking/data/repositories/booking_repository_impl.dart';
 import 'package:frontend/features/booking/domain/repositories/booking_repository.dart';
 import 'package:frontend/features/booking/domain/usecases/create_booking_usecase.dart';
+import 'package:frontend/features/booking/domain/usecases/list_bookings_usecase.dart';
+import 'package:frontend/features/booking/domain/usecases/cancel_booking_usecase.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
+import 'package:frontend/features/booking/presentation/cubit/my_trips_cubit.dart';
 import 'package:frontend/features/payment/data/datasources/payment_remote_datasource.dart';
 import 'package:frontend/features/payment/data/repositories/payment_repository_impl.dart';
 import 'package:frontend/features/payment/domain/repositories/payment_repository.dart';
@@ -48,12 +66,44 @@ import 'package:frontend/features/review/data/datasources/review_remote_datasour
 import 'package:frontend/features/review/data/repositories/review_repository_impl.dart';
 import 'package:frontend/features/review/domain/repositories/review_repository.dart';
 import 'package:frontend/features/review/domain/usecases/create_review_usecase.dart';
+import 'package:frontend/features/review/domain/usecases/list_user_reviews_usecase.dart';
 import 'package:frontend/features/review/presentation/cubit/review_cubit.dart';
+import 'package:frontend/features/review/presentation/cubit/user_reviews_cubit.dart';
 import 'package:frontend/features/kyc/data/datasources/kyc_remote_datasource.dart';
 import 'package:frontend/features/kyc/data/repositories/kyc_repository_impl.dart';
 import 'package:frontend/features/kyc/domain/repositories/kyc_repository.dart';
 import 'package:frontend/features/kyc/domain/usecases/get_kyc_status_usecase.dart';
+import 'package:frontend/features/kyc/domain/usecases/submit_kyc_usecase.dart';
+import 'package:frontend/features/kyc/domain/usecases/upload_kyc_document_usecase.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_status_cubit.dart';
+import 'package:frontend/features/kyc/presentation/cubit/kyc_upload_cubit.dart';
+import 'package:frontend/features/notification/data/datasources/notification_remote_datasource.dart';
+import 'package:frontend/features/notification/data/repositories/notification_repository_impl.dart';
+import 'package:frontend/features/notification/domain/repositories/notification_repository.dart';
+import 'package:frontend/features/notification/domain/usecases/list_notifications_usecase.dart';
+import 'package:frontend/features/notification/domain/usecases/mark_all_read_usecase.dart';
+import 'package:frontend/features/notification/domain/usecases/mark_notification_read_usecase.dart';
+import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
+import 'package:frontend/features/loyalty/data/datasources/loyalty_remote_datasource.dart';
+import 'package:frontend/features/loyalty/data/repositories/loyalty_repository_impl.dart';
+import 'package:frontend/features/loyalty/domain/repositories/loyalty_repository.dart';
+import 'package:frontend/features/loyalty/domain/usecases/get_loyalty_summary_usecase.dart';
+import 'package:frontend/features/loyalty/presentation/cubit/loyalty_cubit.dart';
+import 'package:frontend/features/community/data/datasources/community_remote_datasource.dart';
+import 'package:frontend/features/community/data/repositories/community_repository_impl.dart';
+import 'package:frontend/features/community/domain/repositories/community_repository.dart';
+import 'package:frontend/features/community/domain/usecases/create_story_usecase.dart';
+import 'package:frontend/features/community/domain/usecases/like_story_usecase.dart';
+import 'package:frontend/features/community/domain/usecases/list_stories_usecase.dart';
+import 'package:frontend/features/community/presentation/cubit/community_cubit.dart';
+import 'package:frontend/features/chat/data/datasources/chat_remote_datasource.dart';
+import 'package:frontend/features/chat/data/repositories/chat_repository_impl.dart';
+import 'package:frontend/features/chat/domain/repositories/chat_repository.dart';
+import 'package:frontend/features/chat/domain/usecases/list_conversations_usecase.dart';
+import 'package:frontend/features/chat/domain/usecases/list_messages_usecase.dart';
+import 'package:frontend/features/chat/domain/usecases/send_message_usecase.dart';
+import 'package:frontend/features/chat/presentation/cubit/conversation_list_cubit.dart';
+import 'package:frontend/features/chat/presentation/cubit/chat_cubit.dart';
 
 /// Service locator toàn cục.
 final GetIt sl = GetIt.instance;
@@ -134,6 +184,48 @@ void setupVehicle() {
       () => VehicleListCubit(
         listVehicles: ListVehiclesUseCase(sl<VehicleRepository>()),
       ),
+    )
+    ..registerFactory<VehicleFormCubit>(
+      () => VehicleFormCubit(
+        createVehicle: CreateVehicleUseCase(sl<VehicleRepository>()),
+      ),
+    )
+    ..registerFactory<VehicleAvailabilityCubit>(
+      () => VehicleAvailabilityCubit(
+        getAvailability: GetVehicleAvailabilityUseCase(sl<VehicleRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho chủ xe. Gọi sau [setupVehicle]
+/// (cần [ApiClient] + [VehicleRepository] cho "xe của tôi").
+void setupOwner() {
+  sl
+    ..registerSingleton<OwnerRepository>(
+      OwnerRepositoryImpl(OwnerRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<OwnerBookingsCubit>(
+      () => OwnerBookingsCubit(
+        listBookings: ListOwnerBookingsUseCase(sl<OwnerRepository>()),
+        approveBooking: ApproveBookingUseCase(sl<OwnerRepository>()),
+        rejectBooking: RejectBookingUseCase(sl<OwnerRepository>()),
+      ),
+    )
+    ..registerFactory<OwnerRevenueCubit>(
+      () => OwnerRevenueCubit(
+        getRevenue: GetOwnerRevenueUseCase(sl<OwnerRepository>()),
+      ),
+    )
+    ..registerFactory<MyVehiclesCubit>(
+      () => MyVehiclesCubit(
+        listVehicles: ListVehiclesUseCase(sl<VehicleRepository>()),
+      ),
+    )
+    ..registerFactory<BookingActionCubit>(
+      () => BookingActionCubit(
+        approveBooking: ApproveBookingUseCase(sl<OwnerRepository>()),
+        rejectBooking: RejectBookingUseCase(sl<OwnerRepository>()),
+      ),
     );
 }
 
@@ -147,6 +239,12 @@ void setupBooking() {
     ..registerFactory<BookingCubit>(
       () => BookingCubit(
         createBooking: CreateBookingUseCase(sl<BookingRepository>()),
+      ),
+    )
+    ..registerFactory<MyTripsCubit>(
+      () => MyTripsCubit(
+        listBookings: ListBookingsUseCase(sl<BookingRepository>()),
+        cancelBooking: CancelBookingUseCase(sl<BookingRepository>()),
       ),
     );
 }
@@ -177,6 +275,11 @@ void setupReview() {
       () => ReviewCubit(
         createReview: CreateReviewUseCase(sl<ReviewRepository>()),
       ),
+    )
+    ..registerFactory<UserReviewsCubit>(
+      () => UserReviewsCubit(
+        listUserReviews: ListUserReviewsUseCase(sl<ReviewRepository>()),
+      ),
     );
 }
 
@@ -188,5 +291,75 @@ void setupKyc() {
     )
     ..registerFactory<KycStatusCubit>(
       () => KycStatusCubit(getStatus: GetKycStatusUseCase(sl<KycRepository>())),
+    )
+    ..registerFactory<KycUploadCubit>(
+      () => KycUploadCubit(
+        uploadDocument: UploadKycDocumentUseCase(sl<KycRepository>()),
+        submitKyc: SubmitKycUseCase(sl<KycRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho thông báo. Gọi sau [setupAuth].
+void setupNotification() {
+  sl
+    ..registerSingleton<NotificationRepository>(
+      NotificationRepositoryImpl(NotificationRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<NotificationCubit>(
+      () => NotificationCubit(
+        listNotifications:
+            ListNotificationsUseCase(sl<NotificationRepository>()),
+        markRead: MarkNotificationReadUseCase(sl<NotificationRepository>()),
+        markAllRead:
+            MarkAllNotificationsReadUseCase(sl<NotificationRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho điểm thưởng. Gọi sau [setupAuth].
+void setupLoyalty() {
+  sl
+    ..registerSingleton<LoyaltyRepository>(
+      LoyaltyRepositoryImpl(LoyaltyRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<LoyaltyCubit>(
+      () => LoyaltyCubit(
+        getSummary: GetLoyaltySummaryUseCase(sl<LoyaltyRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho cộng đồng. Gọi sau [setupAuth].
+void setupCommunity() {
+  sl
+    ..registerSingleton<CommunityRepository>(
+      CommunityRepositoryImpl(CommunityRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<CommunityCubit>(
+      () => CommunityCubit(
+        listStories: ListStoriesUseCase(sl<CommunityRepository>()),
+        createStory: CreateStoryUseCase(sl<CommunityRepository>()),
+        likeStory: LikeStoryUseCase(sl<CommunityRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho chat (REST + polling). Gọi sau [setupAuth].
+void setupChat() {
+  sl
+    ..registerSingleton<ChatRepository>(
+      ChatRepositoryImpl(ChatRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<ConversationListCubit>(
+      () => ConversationListCubit(
+        listConversations: ListConversationsUseCase(sl<ChatRepository>()),
+      ),
+    )
+    ..registerFactory<ChatCubit>(
+      () => ChatCubit(
+        listMessages: ListMessagesUseCase(sl<ChatRepository>()),
+        sendMessage: SendMessageUseCase(sl<ChatRepository>()),
+      ),
     );
 }

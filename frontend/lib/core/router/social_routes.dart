@@ -13,8 +13,9 @@ final socialRoutes = [
   GoRoute(
     path: '/chat/:id',
     builder: (context, state) {
+      final id = state.pathParameters['id']!;
       final name = state.extra as String? ?? 'Chủ xe';
-      return ChatScreen(partnerName: name);
+      return ChatScreen(conversationId: id, partnerName: name);
     },
   ),
   GoRoute(

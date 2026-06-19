@@ -12,6 +12,7 @@ export interface VehicleListFilters {
   available?: boolean;
   minPrice?: number;
   maxPrice?: number;
+  ownerId?: string;
   page: number;
   limit: number;
 }
@@ -65,6 +66,7 @@ export interface NearbyRow {
 function buildWhere(f: VehicleListFilters): Prisma.VehicleWhereInput {
   return {
     ...(f.type && { type: f.type }),
+    ...(f.ownerId && { ownerId: f.ownerId }),
     ...(f.isElectric !== undefined && { isElectric: f.isElectric }),
     ...(f.available !== undefined && { isAvailable: f.available }),
     ...((f.minPrice !== undefined || f.maxPrice !== undefined) && {

@@ -1,37 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/owner/domain/entities/owner_revenue.dart';
+import 'package:frontend/features/owner/presentation/cubit/owner_revenue_cubit.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 
-class RevenueReportScreen extends StatefulWidget {
+/// Định dạng VND đầy đủ với dấu phân cách nghìn (vd: 8409000 → "8.409.000").
+String _fmtVnd(num v) {
+  final s = v.round().abs().toString();
+  final buf = StringBuffer();
+  for (var i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
+    buf.write(s[i]);
+  }
+  return '${v < 0 ? '-' : ''}$buf';
+}
+
+/// Nhãn tháng `YYYY-MM` → `T<m>`.
+String _monthLabel(String ym) {
+  final parts = ym.split('-');
+  return parts.length == 2 ? 'T${int.parse(parts[1])}' : ym;
+}
+
+class RevenueReportScreen extends StatelessWidget {
   const RevenueReportScreen({super.key});
 
   @override
-  State<RevenueReportScreen> createState() => _RevenueReportScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<OwnerRevenueCubit>()..load(),
+      child: const _RevenueReportView(),
+    );
+  }
 }
 
-class _RevenueReportScreenState extends State<RevenueReportScreen> {
-  int _selectedPeriod = 1; // 0=week, 1=month, 2=year
-
-  static const _periods = ['Tuần', 'Tháng', 'Năm'];
-
-  static const _monthlyRevenue = [
-    _RevenueBar('T1', 0.4),
-    _RevenueBar('T2', 0.6),
-    _RevenueBar('T3', 0.5),
-    _RevenueBar('T4', 0.8),
-    _RevenueBar('T5', 0.7),
-    _RevenueBar('T6', 1.0),
-  ];
-
-  static const _transactions = [
-    _Transaction('Thanh N.', '05/06 – 08/06', 2403, true),
-    _Transaction('Hùng T.', '28/05 – 30/05', 1602, true),
-    _Transaction('Lan P.', '20/05 – 22/05', 1602, true),
-    _Transaction('Phí nền tảng', '01/06', -534, false),
-    _Transaction('Minh D.', '15/05 – 18/05', 2403, true),
-  ];
+class _RevenueReportView extends StatelessWidget {
+  const _RevenueReportView();
 
   @override
   Widget build(BuildContext context) {
@@ -47,27 +54,20 @@ class _RevenueReportScreenState extends State<RevenueReportScreen> {
               role: RvRole.owner,
             ),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 8),
-                    _SummaryCard(period: _periods[_selectedPeriod]),
-                    const SizedBox(height: 16),
-                    _PeriodSelector(
-                      selected: _selectedPeriod,
-                      periods: _periods,
-                      onChanged: (i) => setState(() => _selectedPeriod = i),
-                    ),
-                    const SizedBox(height: 16),
-                    _ChartCard(bars: _monthlyRevenue),
-                    const SizedBox(height: 16),
-                    _StatsRow(),
-                    const SizedBox(height: 16),
-                    _TransactionList(transactions: _transactions),
-                    const SizedBox(height: 24),
-                  ],
-                ),
+              child: BlocBuilder<OwnerRevenueCubit, OwnerRevenueState>(
+                builder: (context, state) => switch (state) {
+                  OwnerRevenueLoading() => const Padding(
+                    padding: EdgeInsets.only(top: 80),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  OwnerRevenueError(:final message) => _ErrorView(
+                    message: message,
+                    onRetry: () => context.read<OwnerRevenueCubit>().load(),
+                  ),
+                  OwnerRevenueLoaded(:final revenue) => _Content(
+                    revenue: revenue,
+                  ),
+                },
               ),
             ),
           ],
@@ -77,9 +77,60 @@ class _RevenueReportScreenState extends State<RevenueReportScreen> {
   }
 }
 
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        children: [
+          const SizedBox(height: 48),
+          const Icon(Icons.error_outline_rounded,
+              color: AppColors.danger, size: 40),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.secondaryText),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton(onPressed: onRetry, child: const Text('Thử lại')),
+        ],
+      ),
+    );
+  }
+}
+
+class _Content extends StatelessWidget {
+  const _Content({required this.revenue});
+  final OwnerRevenue revenue;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          _SummaryCard(revenue: revenue),
+          const SizedBox(height: 16),
+          _ChartCard(monthly: revenue.monthly),
+          const SizedBox(height: 16),
+          _TransactionList(transactions: revenue.transactions),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
+
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.period});
-  final String period;
+  const _SummaryCard({required this.revenue});
+  final OwnerRevenue revenue;
 
   @override
   Widget build(BuildContext context) {
@@ -93,35 +144,23 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Thu nhập $period này',
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.white70,
-            ),
+          const Text(
+            'Thu nhập tháng này',
+            style: TextStyle(fontSize: 13, color: Colors.white70),
           ),
           const SizedBox(height: 8),
-          const Text(
-            '8,409,000 VNĐ',
-            style: TextStyle(
+          Text(
+            '${_fmtVnd(revenue.monthRevenue)} VNĐ',
+            style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              _StatChip(
-                label: '12 chuyến',
-                icon: Icons.directions_car_rounded,
-              ),
-              const SizedBox(width: 8),
-              _StatChip(
-                label: '+18% vs tháng trước',
-                icon: Icons.trending_up_rounded,
-              ),
-            ],
+          _StatChip(
+            label: '${revenue.totalTrips} chuyến đã thanh toán',
+            icon: Icons.directions_car_rounded,
           ),
         ],
       ),
@@ -147,79 +186,23 @@ class _StatChip extends StatelessWidget {
         children: [
           Icon(icon, size: 13, color: Colors.white),
           const SizedBox(width: 5),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 12, color: Colors.white),
-          ),
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.white)),
         ],
       ),
     );
   }
 }
 
-class _PeriodSelector extends StatelessWidget {
-  const _PeriodSelector({
-    required this.selected,
-    required this.periods,
-    required this.onChanged,
-  });
-  final int selected;
-  final List<String> periods;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: List.generate(periods.length, (i) {
-          final isSelected = i == selected;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onChanged(i),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    periods[i],
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : AppColors.mutedText,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
-
-class _RevenueBar {
-  const _RevenueBar(this.label, this.fraction);
-  final String label;
-  final double fraction;
-}
-
 class _ChartCard extends StatelessWidget {
-  const _ChartCard({required this.bars});
-  final List<_RevenueBar> bars;
+  const _ChartCard({required this.monthly});
+  final List<RevenuePoint> monthly;
 
   @override
   Widget build(BuildContext context) {
+    final maxTotal = monthly.fold<double>(
+      0,
+      (m, p) => p.total > m ? p.total : m,
+    );
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -239,179 +222,79 @@ class _ChartCard extends StatelessWidget {
         children: [
           const SectionHeader(title: 'Biểu đồ doanh thu'),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 140,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: bars
-                  .map((bar) => Expanded(
-                        child: Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 4),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.bottomCenter,
-                                  child: FractionallySizedBox(
-                                    heightFactor: bar.fraction,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        gradient: bar.fraction == 1.0
-                                            ? AppColors.heroGradient
-                                            : LinearGradient(
-                                                begin: Alignment.topCenter,
-                                                end: Alignment.bottomCenter,
-                                                colors: [
-                                                  AppColors.primary
-                                                      .withAlpha(100),
-                                                  AppColors.primary
-                                                      .withAlpha(60),
-                                                ],
-                                              ),
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                          top: Radius.circular(6),
-                                        ),
-                                      ),
+          if (maxTotal == 0)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Center(
+                child: Text(
+                  'Chưa có doanh thu trong giai đoạn này',
+                  style: TextStyle(color: AppColors.mutedText, fontSize: 13),
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              height: 140,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: monthly.map((p) {
+                  final fraction = maxTotal == 0 ? 0.0 : p.total / maxTotal;
+                  final isPeak = p.total == maxTotal && p.total > 0;
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: FractionallySizedBox(
+                                heightFactor: fraction.clamp(0.02, 1.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: isPeak
+                                        ? AppColors.heroGradient
+                                        : LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              AppColors.primary.withAlpha(100),
+                                              AppColors.primary.withAlpha(60),
+                                            ],
+                                          ),
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(6),
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                bar.label,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.mutedText,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ))
-                  .toList(),
+                          const SizedBox(height: 6),
+                          Text(
+                            _monthLabel(p.month),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.mutedText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
-          ),
         ],
       ),
     );
   }
-}
-
-class _StatsRow extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            icon: Icons.star_rounded,
-            label: 'Đánh giá TB',
-            value: '4.9',
-            color: AppColors.warning,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.directions_car_rounded,
-            label: 'Tỉ lệ chấp nhận',
-            value: '94%',
-            color: AppColors.success,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.calendar_month_rounded,
-            label: 'Ngày cho thuê',
-            value: '38',
-            color: AppColors.primary,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.cardShadowColor,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withAlpha(26),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Icon(icon, size: 18, color: color),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 10,
-              color: AppColors.mutedText,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Transaction {
-  const _Transaction(this.name, this.date, this.amount, this.isIncome);
-  final String name;
-  final String date;
-  final int amount;
-  final bool isIncome;
 }
 
 class _TransactionList extends StatelessWidget {
   const _TransactionList({required this.transactions});
-  final List<_Transaction> transactions;
+  final List<OwnerTransaction> transactions;
 
   @override
   Widget build(BuildContext context) {
@@ -434,17 +317,27 @@ class _TransactionList extends StatelessWidget {
         children: [
           const SectionHeader(title: 'Giao dịch gần đây'),
           const SizedBox(height: 12),
-          ...transactions.asMap().entries.map((entry) {
-            final i = entry.key;
-            final tx = entry.value;
-            return Column(
-              children: [
-                _TransactionRow(transaction: tx),
-                if (i < transactions.length - 1)
-                  const Divider(color: AppColors.border, height: 16),
-              ],
-            );
-          }),
+          if (transactions.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Text(
+                  'Chưa có giao dịch nào',
+                  style: TextStyle(color: AppColors.mutedText, fontSize: 13),
+                ),
+              ),
+            )
+          else
+            ...transactions.asMap().entries.map((entry) {
+              final i = entry.key;
+              return Column(
+                children: [
+                  _TransactionRow(transaction: entry.value),
+                  if (i < transactions.length - 1)
+                    const Divider(color: AppColors.border, height: 16),
+                ],
+              );
+            }),
         ],
       ),
     );
@@ -453,14 +346,14 @@ class _TransactionList extends StatelessWidget {
 
 class _TransactionRow extends StatelessWidget {
   const _TransactionRow({required this.transaction});
-  final _Transaction transaction;
+  final OwnerTransaction transaction;
 
   @override
   Widget build(BuildContext context) {
-    final color = transaction.isIncome
-        ? AppColors.success
-        : AppColors.danger;
-    final sign = transaction.isIncome ? '+' : '';
+    const color = AppColors.success;
+    final d = transaction.startTime;
+    final dateLabel =
+        '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
 
     return Row(
       children: [
@@ -471,14 +364,8 @@ class _TransactionRow extends StatelessWidget {
             color: color.withAlpha(26),
             shape: BoxShape.circle,
           ),
-          child: Center(
-            child: Icon(
-              transaction.isIncome
-                  ? Icons.arrow_downward_rounded
-                  : Icons.arrow_upward_rounded,
-              size: 18,
-              color: color,
-            ),
+          child: const Center(
+            child: Icon(Icons.arrow_downward_rounded, size: 18, color: color),
           ),
         ),
         const SizedBox(width: 12),
@@ -487,7 +374,7 @@ class _TransactionRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                transaction.name,
+                transaction.vehicleTitle,
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -495,18 +382,15 @@ class _TransactionRow extends StatelessWidget {
                 ),
               ),
               Text(
-                transaction.date,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.mutedText,
-                ),
+                '${transaction.renterDisplayName} · $dateLabel',
+                style: const TextStyle(fontSize: 12, color: AppColors.mutedText),
               ),
             ],
           ),
         ),
         Text(
-          '$sign${transaction.amount}K VNĐ',
-          style: TextStyle(
+          '+${_fmtVnd(transaction.amount)} VNĐ',
+          style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: color,
