@@ -36,6 +36,7 @@ model User {
   id           String    @id @default(uuid()) @db.Uuid
   phone        String    @unique
   email        String?   @unique
+  name         String?
   passwordHash String
   // 1 user có thể giữ nhiều vai (RENTER + OWNER). ADMIN phải đứng một mình
   // (ép bằng CHECK constraint user_admin_exclusive trong migration).

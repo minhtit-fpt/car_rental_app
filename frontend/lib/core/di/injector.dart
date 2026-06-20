@@ -103,11 +103,13 @@ import 'package:frontend/features/community/presentation/cubit/community_cubit.d
 import 'package:frontend/features/chat/data/datasources/chat_remote_datasource.dart';
 import 'package:frontend/features/chat/data/repositories/chat_repository_impl.dart';
 import 'package:frontend/features/chat/domain/repositories/chat_repository.dart';
+import 'package:frontend/features/chat/domain/usecases/create_or_get_conversation_usecase.dart';
 import 'package:frontend/features/chat/domain/usecases/list_conversations_usecase.dart';
 import 'package:frontend/features/chat/domain/usecases/list_messages_usecase.dart';
 import 'package:frontend/features/chat/domain/usecases/send_message_usecase.dart';
 import 'package:frontend/features/chat/presentation/cubit/conversation_list_cubit.dart';
 import 'package:frontend/features/chat/presentation/cubit/chat_cubit.dart';
+import 'package:frontend/features/chat/presentation/cubit/start_conversation_cubit.dart';
 
 /// Service locator toàn cục.
 final GetIt sl = GetIt.instance;
@@ -316,11 +318,13 @@ void setupNotification() {
     )
     ..registerFactory<NotificationCubit>(
       () => NotificationCubit(
-        listNotifications:
-            ListNotificationsUseCase(sl<NotificationRepository>()),
+        listNotifications: ListNotificationsUseCase(
+          sl<NotificationRepository>(),
+        ),
         markRead: MarkNotificationReadUseCase(sl<NotificationRepository>()),
-        markAllRead:
-            MarkAllNotificationsReadUseCase(sl<NotificationRepository>()),
+        markAllRead: MarkAllNotificationsReadUseCase(
+          sl<NotificationRepository>(),
+        ),
       ),
     );
 }
@@ -368,6 +372,13 @@ void setupChat() {
       () => ChatCubit(
         listMessages: ListMessagesUseCase(sl<ChatRepository>()),
         sendMessage: SendMessageUseCase(sl<ChatRepository>()),
+      ),
+    )
+    ..registerFactory<StartConversationCubit>(
+      () => StartConversationCubit(
+        createOrGetConversation: CreateOrGetConversationUseCase(
+          sl<ChatRepository>(),
+        ),
       ),
     );
 }

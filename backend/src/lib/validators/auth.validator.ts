@@ -29,6 +29,7 @@ export const registerSchema = z.object({
   phone: phoneField,
   password: passwordField,
   email: z.string().email("Email không hợp lệ").optional(),
+  name: z.string().trim().min(1, "Tên không hợp lệ").max(80).optional(),
 });
 
 export const loginSchema = z.object({

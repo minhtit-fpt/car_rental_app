@@ -22,7 +22,7 @@ export const userRepository = {
 
   updateProfile(
     id: string,
-    data: Pick<Prisma.UserUpdateInput, "email">,
+    data: Pick<Prisma.UserUpdateInput, "email" | "name">,
   ): Promise<User> {
     return prisma.user.update({ where: { id }, data });
   },

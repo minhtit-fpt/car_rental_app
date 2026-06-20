@@ -2,8 +2,12 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/features/chat/presentation/cubit/start_conversation_cubit.dart';
 import 'package:frontend/features/review/presentation/widgets/user_reviews_section.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
@@ -67,12 +71,13 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                         const SizedBox(height: 20),
                         _OwnerCard(vehicle: v),
                         const SizedBox(height: 20),
-                        UserReviewsSection(userId: v.ownerId),
+                        UserReviewsSection(
+                          userId: v.ownerId,
+                          userName: v.ownerName,
+                        ),
                         const _TripRulesCard(),
                         const SizedBox(height: 20),
                         _PickupMapBlock(city: v.city),
-                        const SizedBox(height: 20),
-                        _ReviewsSection(vehicle: v),
                         const SizedBox(height: 100),
                       ],
                     ),
@@ -600,28 +605,93 @@ class _OwnerCard extends StatelessWidget {
             ),
           ),
           // Message button
-          OutlinedButton(
-            onPressed: () {},
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.primary),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: const Text(
-              'Nhắn tin',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          _MessageOwnerButton(vehicle: vehicle),
         ],
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Nút "Nhắn tin" — tạo/lấy hội thoại với chủ xe rồi mở màn chat.
+// Ẩn khi người dùng đang xem chính xe của mình.
+// ─────────────────────────────────────────────
+
+class _MessageOwnerButton extends StatelessWidget {
+  const _MessageOwnerButton({required this.vehicle});
+  final Vehicle vehicle;
+
+  @override
+  Widget build(BuildContext context) {
+    final currentUserId = context.read<AuthCubit>().state.user?.id;
+    if (currentUserId != null && currentUserId == vehicle.ownerId) {
+      return const SizedBox.shrink();
+    }
+    return BlocProvider<StartConversationCubit>(
+      create: (_) => sl<StartConversationCubit>(),
+      child: _MessageOwnerButtonView(vehicle: vehicle),
+    );
+  }
+}
+
+class _MessageOwnerButtonView extends StatelessWidget {
+  const _MessageOwnerButtonView({required this.vehicle});
+  final Vehicle vehicle;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<StartConversationCubit, StartConversationState>(
+      listener: (context, state) {
+        switch (state) {
+          case StartConversationReady(:final conversationId):
+            context.push(
+              '/chat/$conversationId',
+              extra: vehicle.ownerName ?? 'Chủ xe',
+            );
+          case StartConversationError(:final message):
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(message)));
+          case StartConversationIdle():
+          case StartConversationInProgress():
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is StartConversationInProgress;
+        return OutlinedButton(
+          onPressed: isLoading
+              ? null
+              : () => context.read<StartConversationCubit>().open(
+                  participantId: vehicle.ownerId,
+                ),
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: AppColors.primary),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: isLoading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
+                )
+              : const Text(
+                  'Nhắn tin',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+        );
+      },
     );
   }
 }
@@ -803,138 +873,6 @@ class _MapGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_MapGridPainter oldDelegate) => false;
-}
-
-// ─────────────────────────────────────────────
-// Reviews — 2 preview + see all
-// ─────────────────────────────────────────────
-
-class _ReviewsSection extends StatelessWidget {
-  const _ReviewsSection({required this.vehicle});
-  final Vehicle vehicle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionHeader(
-          title: 'Đánh giá',
-          trailing: GestureDetector(
-            onTap: () {},
-            child: const Text(
-              'Xem tất cả',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        const _ReviewCard(
-          name: 'Thanh N.',
-          rating: 5,
-          date: '12/05/2025',
-          comment: 'Xe sạch, đúng giờ, chủ xe nhiệt tình. Sẽ thuê lại!',
-        ),
-        const SizedBox(height: 10),
-        const _ReviewCard(
-          name: 'Hùng T.',
-          rating: 4,
-          date: '03/05/2025',
-          comment: 'Xe tốt, điều hoà mát. Giao xe hơi muộn 15 phút nhưng ổn.',
-        ),
-      ],
-    );
-  }
-}
-
-class _ReviewCard extends StatelessWidget {
-  const _ReviewCard({
-    required this.name,
-    required this.rating,
-    required this.date,
-    required this.comment,
-  });
-
-  final String name;
-  final int rating;
-  final String date;
-  final String comment;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.cardShadowColor,
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: const BoxDecoration(
-                  color: AppColors.navySoft,
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Text('👤', style: TextStyle(fontSize: 16)),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.darkText,
-                      ),
-                    ),
-                    Text(
-                      date,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.mutedText,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              RatingStars(rating: rating.toDouble(), size: 12),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            comment,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.secondaryText,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────

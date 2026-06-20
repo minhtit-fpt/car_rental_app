@@ -5,6 +5,7 @@ abstract final class VehicleModel {
   static Vehicle fromJson(Map<String, dynamic> json) => Vehicle(
     id: json['id'] as String,
     ownerId: json['ownerId'] as String,
+    ownerName: json['ownerName'] as String?,
     type: json['type'] as String,
     title: json['title'] as String,
     pricePerHour: (json['pricePerHour'] as num).toDouble(),

@@ -36,6 +36,7 @@ const PUBLIC_USER = {
   id: "user-1",
   phone: "+84901234567",
   email: null,
+  name: null,
   roles: [UserRole.RENTER],
   kycStatus: KycStatus.UNVERIFIED,
 };
