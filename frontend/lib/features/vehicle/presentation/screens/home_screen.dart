@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
@@ -181,31 +182,117 @@ class _TopBar extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          _NavIconButton(icon: Icons.notifications_outlined, onTap: () {}),
+          const _NotificationBell(),
         ],
       ),
     );
   }
 }
 
+/// Chuông thông báo: mở danh sách `/notifications` và hiển thị badge số chưa
+/// đọc. Tự tạo [NotificationCubit] (factory trong DI) và nạp khi dựng; nạp lại
+/// sau khi quay về để badge phản ánh các mục vừa đọc.
+class _NotificationBell extends StatelessWidget {
+  const _NotificationBell();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<NotificationCubit>(
+      create: (_) => sl<NotificationCubit>()..load(),
+      child: const _NotificationBellView(),
+    );
+  }
+}
+
+class _NotificationBellView extends StatelessWidget {
+  const _NotificationBellView();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<NotificationCubit, NotificationState>(
+      builder: (context, state) {
+        final unread = state is NotificationLoaded ? state.data.unreadCount : 0;
+        return _NavIconButton(
+          icon: Icons.notifications_outlined,
+          badgeCount: unread,
+          onTap: () async {
+            await context.push('/notifications');
+            if (context.mounted) {
+              context.read<NotificationCubit>().load();
+            }
+          },
+        );
+      },
+    );
+  }
+}
+
 class _NavIconButton extends StatelessWidget {
-  const _NavIconButton({required this.icon, required this.onTap});
+  const _NavIconButton({
+    required this.icon,
+    required this.onTap,
+    this.badgeCount = 0,
+  });
 
   final IconData icon;
   final VoidCallback onTap;
+  final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.surfaceSunken,
-          borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceSunken,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: AppColors.darkText),
+          ),
+          if (badgeCount > 0)
+            Positioned(
+              top: -4,
+              right: -4,
+              child: _UnreadBadge(count: badgeCount),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Chấm đỏ kèm số chưa đọc (hiển thị "9+" khi vượt 9). Viền trắng để tách
+/// khỏi nền surface phía sau.
+class _UnreadBadge extends StatelessWidget {
+  const _UnreadBadge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = count > 9 ? '9+' : '$count';
+    return Container(
+      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+        color: AppColors.danger,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: AppColors.surface, width: 1.5),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          height: 1,
         ),
-        child: Icon(icon, size: 20, color: AppColors.darkText),
       ),
     );
   }
