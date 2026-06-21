@@ -62,7 +62,7 @@ const OCCUPYING_STATUSES: BookingStatus[] = [
 ];
 
 // Decimal của Prisma → number cho JSON response.
-function toPublicVehicle(
+export function toPublicVehicle(
   v: Vehicle,
   ownerName: string | null,
 ): PublicVehicle {

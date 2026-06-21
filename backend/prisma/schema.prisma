@@ -58,6 +58,7 @@ model User {
   messagesSent    ChatMessage[]
   auditLogs       AuditLog[]
   disputes        Dispute[]
+  favorites       Favorite[]
 
   @@index([phone])
   @@index([roles], type: Gin)
@@ -141,13 +142,31 @@ model Vehicle {
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 
-  owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  bookings Booking[]
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  bookings  Booking[]
+  favorites Favorite[]
 
   @@index([ownerId])
   @@index([type])
   @@index([isAvailable])
   @@index([location], type: Gist)
+}
+
+// ============================================================
+// B3b — Favorite (xe đã lưu / tim)
+// ============================================================
+
+model Favorite {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  vehicleId String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vehicleId])
+  @@index([userId])
 }
 
 // ============================================================

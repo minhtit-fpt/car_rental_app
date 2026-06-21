@@ -2,6 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 
+/// Nút tim tròn nền trắng đặt trên ảnh xe (card / list tile). Bấm để lưu/bỏ.
+class _FavoriteHeartButton extends StatelessWidget {
+  const _FavoriteHeartButton({required this.isFavorite, required this.onTap});
+
+  final bool isFavorite;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(230),
+          shape: BoxShape.circle,
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.cardShadowColor,
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(
+          isFavorite
+              ? Icons.favorite_rounded
+              : Icons.favorite_border_rounded,
+          size: 17,
+          color: isFavorite ? AppColors.danger : AppColors.secondaryText,
+        ),
+      ),
+    );
+  }
+}
+
 // pricePerDay is stored in K VNĐ (e.g. 890 = 890K VNĐ)
 String _fmtVnd(double kAmount) {
   if (kAmount >= 1000) {
@@ -241,10 +278,20 @@ class _VehicleMetaRow extends StatelessWidget {
 
 /// Full-width horizontal card variant for the list screen
 class CarListTile extends StatelessWidget {
-  const CarListTile({super.key, required this.vehicle, this.onTap});
+  const CarListTile({
+    super.key,
+    required this.vehicle,
+    this.onTap,
+    this.isFavorite = false,
+    this.onFavoriteToggle,
+  });
 
   final Vehicle vehicle;
   final VoidCallback? onTap;
+
+  /// Có hiển thị nút tim hay không phụ thuộc [onFavoriteToggle] != null.
+  final bool isFavorite;
+  final VoidCallback? onFavoriteToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -277,6 +324,15 @@ class CarListTile extends StatelessWidget {
                 alignment: Alignment.center,
                 children: [
                   Text(vehicle.emoji, style: const TextStyle(fontSize: 48)),
+                  if (onFavoriteToggle != null)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: _FavoriteHeartButton(
+                        isFavorite: isFavorite,
+                        onTap: onFavoriteToggle!,
+                      ),
+                    ),
                   if (vehicle.isElectric)
                     Positioned(
                       bottom: 6,

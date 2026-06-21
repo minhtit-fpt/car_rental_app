@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
 import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
@@ -716,6 +717,7 @@ class _FeaturedCarsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<VehicleListCubit>().state;
+    final favorites = context.watch<FavoriteCubit>().state;
     final cars = switch (state) {
       VehicleListLoaded(:final vehicles) => vehicles.take(3).toList(),
       _ => const <Vehicle>[],
@@ -772,6 +774,19 @@ class _FeaturedCarsSection extends StatelessWidget {
                 final v = cars[index];
                 return CarListTile(
                   vehicle: v,
+                  isFavorite: favorites.isFavorite(v.id),
+                  onFavoriteToggle: () async {
+                    final ok = await context.read<FavoriteCubit>().toggle(v);
+                    if (!ok && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Không cập nhật được yêu thích, thử lại sau',
+                          ),
+                        ),
+                      );
+                    }
+                  },
                   onTap: () => context.push('/vehicles/${v.id}', extra: v),
                 );
               },

@@ -8,6 +8,7 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/chat/presentation/cubit/start_conversation_cubit.dart';
+import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
 import 'package:frontend/features/review/presentation/widgets/user_reviews_section.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
@@ -35,12 +36,24 @@ class VehicleDetailScreen extends StatefulWidget {
 }
 
 class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
-  bool _isFavorite = false;
   int _selectedImageIndex = 0;
+
+  /// Lưu/bỏ yêu thích qua [FavoriteCubit]; báo lỗi nếu rollback.
+  Future<void> _toggleFavorite() async {
+    final ok = await context.read<FavoriteCubit>().toggle(widget.vehicle);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không cập nhật được yêu thích, thử lại sau'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final v = widget.vehicle;
+    final isFavorite = context.watch<FavoriteCubit>().state.isFavorite(v.id);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
@@ -49,10 +62,9 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
           slivers: [
             _DetailAppBar(
               vehicle: v,
-              isFavorite: _isFavorite,
+              isFavorite: isFavorite,
               selectedIndex: _selectedImageIndex,
-              onFavoriteToggle: () =>
-                  setState(() => _isFavorite = !_isFavorite),
+              onFavoriteToggle: _toggleFavorite,
               onImageChanged: (i) => setState(() => _selectedImageIndex = i),
             ),
             SliverToBoxAdapter(

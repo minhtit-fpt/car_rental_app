@@ -110,6 +110,12 @@ import 'package:frontend/features/chat/domain/usecases/send_message_usecase.dart
 import 'package:frontend/features/chat/presentation/cubit/conversation_list_cubit.dart';
 import 'package:frontend/features/chat/presentation/cubit/chat_cubit.dart';
 import 'package:frontend/features/chat/presentation/cubit/start_conversation_cubit.dart';
+import 'package:frontend/features/favorite/data/datasources/favorite_remote_datasource.dart';
+import 'package:frontend/features/favorite/data/repositories/favorite_repository_impl.dart';
+import 'package:frontend/features/favorite/domain/repositories/favorite_repository.dart';
+import 'package:frontend/features/favorite/domain/usecases/list_favorites_usecase.dart';
+import 'package:frontend/features/favorite/domain/usecases/toggle_favorite_usecase.dart';
+import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
 
 /// Service locator toàn cục.
 final GetIt sl = GetIt.instance;
@@ -353,6 +359,21 @@ void setupCommunity() {
         listStories: ListStoriesUseCase(sl<CommunityRepository>()),
         createStory: CreateStoryUseCase(sl<CommunityRepository>()),
         likeStory: LikeStoryUseCase(sl<CommunityRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký data layer + cubit cho xe yêu thích. Gọi sau [setupAuth].
+/// [FavoriteCubit] là singleton — giữ trạng thái tim dùng chung toàn app.
+void setupFavorite() {
+  sl
+    ..registerSingleton<FavoriteRepository>(
+      FavoriteRepositoryImpl(FavoriteRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerSingleton<FavoriteCubit>(
+      FavoriteCubit(
+        listFavorites: ListFavoritesUseCase(sl<FavoriteRepository>()),
+        toggleFavorite: ToggleFavoriteUseCase(sl<FavoriteRepository>()),
       ),
     );
 }
