@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/booking/presentation/screens/my_trips_screen.dart';
@@ -122,6 +123,14 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
           ),
         ),
         actions: [
+          IconButton(
+            tooltip: 'Cài đặt',
+            icon: const Icon(
+              Icons.settings_outlined,
+              color: AppColors.darkText,
+            ),
+            onPressed: () => context.push('/settings'),
+          ),
           IconButton(
             tooltip: 'Đăng xuất',
             icon: const Icon(Icons.logout_rounded, color: AppColors.darkText),
