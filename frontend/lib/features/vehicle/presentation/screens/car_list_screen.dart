@@ -7,10 +7,11 @@ import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
 
-enum _QuickFilter { all, instant, auto, electric, five, seven }
+enum _QuickFilter { all, saved, instant, auto, electric, five, seven }
 
 const _filterLabels = {
   _QuickFilter.all: 'Tất cả',
+  _QuickFilter.saved: '❤️ Đã lưu',
   _QuickFilter.instant: '⚡ Đặt nhanh',
   _QuickFilter.auto: '⚙️ Số tự động',
   _QuickFilter.electric: '🔋 Xe điện',
@@ -50,9 +51,14 @@ class _CarListScreenState extends State<CarListScreen> {
             VehicleListLoaded(:final vehicles) => vehicles,
             _ => const <Vehicle>[],
           };
-          final vehicles = _applyFilter(all);
           // Theo dõi tập id đã lưu để icon tim cập nhật ngay khi đổi.
           final favorites = context.watch<FavoriteCubit>().state;
+          // Bộ lọc "Đã lưu" lấy thẳng danh sách từ FavoriteCubit; các bộ lọc
+          // khác lọc trên danh sách xe đã tải từ backend.
+          final isSavedFilter = _activeFilter == _QuickFilter.saved;
+          final vehicles = isSavedFilter
+              ? favorites.savedVehicles
+              : _applyFilter(all);
           return CustomScrollView(
             slivers: [
               // App bar
@@ -115,7 +121,7 @@ class _CarListScreenState extends State<CarListScreen> {
                   padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
                   child: _FilterChips(
                     active: _activeFilter,
-                    onSelected: (f) => setState(() => _activeFilter = f),
+                    onSelected: _onSelectFilter,
                   ),
                 ),
               ),
@@ -127,7 +133,7 @@ class _CarListScreenState extends State<CarListScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${vehicles.length} xe phù hợp',
+                        '${vehicles.length} xe ${isSavedFilter ? 'đã lưu' : 'phù hợp'}',
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -143,40 +149,83 @@ class _CarListScreenState extends State<CarListScreen> {
                   ),
                 ),
               ),
-              // Danh sách xe — phụ thuộc trạng thái tải từ backend.
-              switch (state) {
-                VehicleListLoading() => const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                VehicleListError(:final message) => SliverFillRemaining(
-                  child: _ErrorState(
-                    message: message,
-                    onRetry: () => context.read<VehicleListCubit>().load(),
-                  ),
-                ),
-                VehicleListLoaded() =>
-                  vehicles.isEmpty
-                      ? const SliverFillRemaining(child: _EmptyState())
-                      : SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                          sliver: SliverList.separated(
-                            itemCount: vehicles.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final v = vehicles[index];
-                              return CarListTile(
-                                vehicle: v,
-                                isFavorite: favorites.isFavorite(v.id),
-                                onFavoriteToggle: () => _toggleFavorite(v),
-                                onTap: () =>
-                                    context.push('/vehicles/${v.id}', extra: v),
-                              );
-                            },
-                          ),
-                        ),
-              },
+              // Danh sách xe — "Đã lưu" theo FavoriteCubit, còn lại theo
+              // VehicleListCubit.
+              _buildResultsSliver(
+                context,
+                isSaved: isSavedFilter,
+                vehicles: vehicles,
+                listState: state,
+                favorites: favorites,
+              ),
             ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _onSelectFilter(_QuickFilter f) {
+    setState(() => _activeFilter = f);
+    // Vào "Đã lưu" → làm mới danh sách yêu thích từ server.
+    if (f == _QuickFilter.saved) {
+      context.read<FavoriteCubit>().load();
+    }
+  }
+
+  /// Sliver kết quả: nguồn dữ liệu + trạng thái tải/lỗi/rỗng tuỳ bộ lọc.
+  Widget _buildResultsSliver(
+    BuildContext context, {
+    required bool isSaved,
+    required List<Vehicle> vehicles,
+    required VehicleListState listState,
+    required FavoriteState favorites,
+  }) {
+    final isLoading = isSaved
+        ? favorites.status == FavoriteStatus.loading && vehicles.isEmpty
+        : listState is VehicleListLoading;
+    if (isLoading) {
+      return const SliverFillRemaining(
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final errorMessage = isSaved
+        ? (favorites.status == FavoriteStatus.error && vehicles.isEmpty
+              ? (favorites.errorMessage ?? 'Đã xảy ra lỗi')
+              : null)
+        : (listState is VehicleListError ? listState.message : null);
+    if (errorMessage != null) {
+      return SliverFillRemaining(
+        child: _ErrorState(
+          message: errorMessage,
+          onRetry: () {
+            if (isSaved) {
+              context.read<FavoriteCubit>().load();
+            } else {
+              context.read<VehicleListCubit>().load();
+            }
+          },
+        ),
+      );
+    }
+
+    if (vehicles.isEmpty) {
+      return SliverFillRemaining(child: _EmptyState(saved: isSaved));
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      sliver: SliverList.separated(
+        itemCount: vehicles.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final v = vehicles[index];
+          return CarListTile(
+            vehicle: v,
+            isFavorite: favorites.isFavorite(v.id),
+            onFavoriteToggle: () => _toggleFavorite(v),
+            onTap: () => context.push('/vehicles/${v.id}', extra: v),
           );
         },
       ),
@@ -575,30 +624,42 @@ class _SortDropdown extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({this.saved = false});
+
+  /// True khi đang ở bộ lọc "Đã lưu" — đổi thông điệp cho phù hợp.
+  final bool saved;
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Text('🚗', style: TextStyle(fontSize: 56)),
-          SizedBox(height: 16),
-          Text(
-            'Không có xe phù hợp',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.darkText,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(saved ? '🤍' : '🚗', style: const TextStyle(fontSize: 56)),
+            const SizedBox(height: 16),
+            Text(
+              saved ? 'Chưa có xe nào được lưu' : 'Không có xe phù hợp',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.darkText,
+              ),
             ),
-          ),
-          SizedBox(height: 6),
-          Text(
-            'Thử thay đổi bộ lọc hoặc tìm kiếm khác',
-            style: TextStyle(fontSize: 13, color: AppColors.secondaryText),
-          ),
-        ],
+            const SizedBox(height: 6),
+            Text(
+              saved
+                  ? 'Bấm vào biểu tượng trái tim trên xe để lưu lại xem sau'
+                  : 'Thử thay đổi bộ lọc hoặc tìm kiếm khác',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.secondaryText,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
