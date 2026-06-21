@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/shared/utils/coming_soon.dart';
@@ -85,6 +86,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _SettingsSection(
+                      label: 'Hoạt động',
+                      rows: [
+                        _SettingsRow(
+                          icon: Icons.favorite_border_rounded,
+                          title: 'Xe đã lưu',
+                          subtitle: 'Danh sách xe yêu thích',
+                          onTap: () => context.push('/favorites'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     _SettingsSection(
                       label: 'Tuỳ chỉnh',
                       rows: [

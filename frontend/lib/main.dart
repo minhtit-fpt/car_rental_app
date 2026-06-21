@@ -8,6 +8,7 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/router/app_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Future<void> main() async {
@@ -25,6 +26,7 @@ Future<void> main() async {
   setupLoyalty(); // loyalty repository + LoyaltyCubit factory
   setupCommunity(); // community repository + CommunityCubit factory
   setupChat(); // chat repository + conversation/chat cubits
+  setupFavorite(); // favorite repository + FavoriteCubit singleton
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
@@ -47,16 +49,44 @@ class RideVNApp extends StatefulWidget {
 
 class _RideVNAppState extends State<RideVNApp> {
   late final GoRouter _router = createAppRouter(widget.authCubit);
+  final FavoriteCubit _favoriteCubit = sl<FavoriteCubit>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Phiên khôi phục sẵn (token còn hạn) → nạp danh sách yêu thích ngay.
+    if (widget.authCubit.state.status == AuthStatus.authenticated) {
+      _favoriteCubit.load();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AuthCubit>.value(
-      value: widget.authCubit,
-      child: MaterialApp.router(
-        title: 'RideVN',
-        debugShowCheckedModeBanner: false,
-        theme: _buildTheme(context),
-        routerConfig: _router,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>.value(value: widget.authCubit),
+        BlocProvider<FavoriteCubit>.value(value: _favoriteCubit),
+      ],
+      // Đồng bộ yêu thích theo phiên: đăng nhập → nạp, đăng xuất → xoá.
+      child: BlocListener<AuthCubit, AuthState>(
+        listenWhen: (prev, curr) => prev.status != curr.status,
+        listener: (context, state) {
+          switch (state.status) {
+            case AuthStatus.authenticated:
+              _favoriteCubit.load();
+            case AuthStatus.unauthenticated:
+              _favoriteCubit.clear();
+            case AuthStatus.unknown:
+            case AuthStatus.authenticating:
+              break;
+          }
+        },
+        child: MaterialApp.router(
+          title: 'RideVN',
+          debugShowCheckedModeBanner: false,
+          theme: _buildTheme(context),
+          routerConfig: _router,
+        ),
       ),
     );
   }

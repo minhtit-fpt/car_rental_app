@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
@@ -50,6 +51,8 @@ class _CarListScreenState extends State<CarListScreen> {
             _ => const <Vehicle>[],
           };
           final vehicles = _applyFilter(all);
+          // Theo dõi tập id đã lưu để icon tim cập nhật ngay khi đổi.
+          final favorites = context.watch<FavoriteCubit>().state;
           return CustomScrollView(
             slivers: [
               // App bar
@@ -164,6 +167,8 @@ class _CarListScreenState extends State<CarListScreen> {
                               final v = vehicles[index];
                               return CarListTile(
                                 vehicle: v,
+                                isFavorite: favorites.isFavorite(v.id),
+                                onFavoriteToggle: () => _toggleFavorite(v),
                                 onTap: () =>
                                     context.push('/vehicles/${v.id}', extra: v),
                               );
@@ -176,6 +181,18 @@ class _CarListScreenState extends State<CarListScreen> {
         },
       ),
     );
+  }
+
+  /// Lưu/bỏ yêu thích; báo lỗi nếu cubit đã rollback do API thất bại.
+  Future<void> _toggleFavorite(Vehicle v) async {
+    final ok = await context.read<FavoriteCubit>().toggle(v);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không cập nhật được yêu thích, thử lại sau'),
+        ),
+      );
+    }
   }
 
   void _showFilterSheet(BuildContext context) {
