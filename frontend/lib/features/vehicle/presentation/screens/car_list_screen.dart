@@ -6,17 +6,27 @@ import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dar
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
 enum _QuickFilter { all, saved, instant, auto, electric, five, seven }
 
-const _filterLabels = {
-  _QuickFilter.all: 'Tất cả',
-  _QuickFilter.saved: '❤️ Đã lưu',
-  _QuickFilter.instant: '⚡ Đặt nhanh',
-  _QuickFilter.auto: '⚙️ Số tự động',
-  _QuickFilter.electric: '🔋 Xe điện',
-  _QuickFilter.five: '5 chỗ',
-  _QuickFilter.seven: '7+ chỗ',
+String _filterLabel(_QuickFilter f, AppLocalizations l10n) => switch (f) {
+  _QuickFilter.all => l10n.vehicleFilterAll,
+  _QuickFilter.saved => l10n.vehicleFilterSaved,
+  _QuickFilter.instant => l10n.vehicleFilterInstant,
+  _QuickFilter.auto => l10n.vehicleFilterAuto,
+  _QuickFilter.electric => l10n.vehicleFilterElectric,
+  _QuickFilter.five => l10n.vehicleFilter5Seats,
+  _QuickFilter.seven => l10n.vehicleFilter7Seats,
+};
+
+enum _SortOption { popular, priceLow, ratingHigh, nearest }
+
+String _sortLabel(_SortOption o, AppLocalizations l10n) => switch (o) {
+  _SortOption.popular => l10n.vehicleSortPopular,
+  _SortOption.priceLow => l10n.vehicleSortPriceLow,
+  _SortOption.ratingHigh => l10n.vehicleSortRatingHigh,
+  _SortOption.nearest => l10n.vehicleSortNearest,
 };
 
 class CarListScreen extends StatefulWidget {
@@ -29,7 +39,7 @@ class CarListScreen extends StatefulWidget {
 class _CarListScreenState extends State<CarListScreen> {
   _QuickFilter _activeFilter = _QuickFilter.all;
   bool _showMap = false;
-  String _sortBy = 'Phổ biến nhất';
+  _SortOption _sortBy = _SortOption.popular;
 
   /// Lọc trên danh sách đã tải từ backend. Chỉ "Xe điện" có dữ liệu thật để
   /// lọc (isElectric); các chip còn lại chưa ánh xạ được sang trường backend
@@ -43,6 +53,7 @@ class _CarListScreenState extends State<CarListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: BlocBuilder<VehicleListCubit, VehicleListState>(
@@ -80,9 +91,9 @@ class _CarListScreenState extends State<CarListScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Text(
-                      'Tìm xe',
-                      style: TextStyle(
+                    Text(
+                      l10n.vehicleFindCars,
+                      style: const TextStyle(
                         color: AppColors.darkText,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
@@ -133,7 +144,9 @@ class _CarListScreenState extends State<CarListScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${vehicles.length} xe ${isSavedFilter ? 'đã lưu' : 'phù hợp'}',
+                        isSavedFilter
+                            ? l10n.vehicleCountSaved(vehicles.length)
+                            : l10n.vehicleCountMatched(vehicles.length),
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -192,7 +205,8 @@ class _CarListScreenState extends State<CarListScreen> {
 
     final errorMessage = isSaved
         ? (favorites.status == FavoriteStatus.error && vehicles.isEmpty
-              ? (favorites.errorMessage ?? 'Đã xảy ra lỗi')
+              ? (favorites.errorMessage ??
+                    AppLocalizations.of(context).commonError)
               : null)
         : (listState is VehicleListError ? listState.message : null);
     if (errorMessage != null) {
@@ -237,8 +251,8 @@ class _CarListScreenState extends State<CarListScreen> {
     final ok = await context.read<FavoriteCubit>().toggle(v);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Không cập nhật được yêu thích, thử lại sau'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).vehicleFavoriteError),
         ),
       );
     }
@@ -402,7 +416,9 @@ class _MapTogglePill extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              showMap ? 'Danh sách' : 'Xem bản đồ',
+              showMap
+                  ? AppLocalizations.of(context).vehicleListView
+                  : AppLocalizations.of(context).vehicleMapView,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,
@@ -423,6 +439,7 @@ class _MapTogglePill extends StatelessWidget {
 class _FrostedSearchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -443,20 +460,20 @@ class _FrostedSearchCard extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
               child: Row(
-                children: const [
-                  Icon(
+                children: [
+                  const Icon(
                     Icons.location_on_rounded,
                     color: AppColors.primary,
                     size: 16,
                   ),
-                  SizedBox(width: 6),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ĐỊA ĐIỂM',
-                          style: TextStyle(
+                          l10n.vehicleLocationLabel,
+                          style: const TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w600,
                             color: AppColors.mutedText,
@@ -464,8 +481,8 @@ class _FrostedSearchCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Quận 1, TP. HCM',
-                          style: TextStyle(
+                          l10n.vehicleLocationPlaceholder,
+                          style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: AppColors.darkText,
@@ -484,27 +501,27 @@ class _FrostedSearchCard extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(10, 12, 14, 12),
               child: Row(
-                children: const [
-                  Icon(
+                children: [
+                  const Icon(
                     Icons.calendar_today_outlined,
                     color: AppColors.primary,
                     size: 16,
                   ),
-                  SizedBox(width: 6),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'THỜI GIAN',
-                          style: TextStyle(
+                          l10n.vehicleTimeLabel,
+                          style: const TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w600,
                             color: AppColors.mutedText,
                             letterSpacing: 0.5,
                           ),
                         ),
-                        Text(
+                        const Text(
                           '15/06 → 17/06',
                           style: TextStyle(
                             fontSize: 13,
@@ -537,6 +554,7 @@ class _FilterChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       height: 34,
       child: ListView.separated(
@@ -561,7 +579,7 @@ class _FilterChips extends StatelessWidget {
               ),
               alignment: Alignment.center,
               child: Text(
-                _filterLabels[f]!,
+                _filterLabel(f, l10n),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -582,13 +600,14 @@ class _FilterChips extends StatelessWidget {
 
 class _SortDropdown extends StatelessWidget {
   const _SortDropdown({required this.value, required this.onChanged});
-  final String value;
-  final ValueChanged<String?> onChanged;
+  final _SortOption value;
+  final ValueChanged<_SortOption?> onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
+      child: DropdownButton<_SortOption>(
         value: value,
         onChanged: onChanged,
         isDense: true,
@@ -602,17 +621,12 @@ class _SortDropdown extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: AppColors.secondaryText,
         ),
-        items: const [
-          DropdownMenuItem(
-            value: 'Phổ biến nhất',
-            child: Text('Phổ biến nhất'),
-          ),
-          DropdownMenuItem(
-            value: 'Giá thấp nhất',
-            child: Text('Giá thấp nhất'),
-          ),
-          DropdownMenuItem(value: 'Đánh giá cao', child: Text('Đánh giá cao')),
-          DropdownMenuItem(value: 'Gần nhất', child: Text('Gần nhất')),
+        items: [
+          for (final option in _SortOption.values)
+            DropdownMenuItem(
+              value: option,
+              child: Text(_sortLabel(option, l10n)),
+            ),
         ],
       ),
     );
@@ -631,6 +645,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -640,7 +655,7 @@ class _EmptyState extends StatelessWidget {
             Text(saved ? '🤍' : '🚗', style: const TextStyle(fontSize: 56)),
             const SizedBox(height: 16),
             Text(
-              saved ? 'Chưa có xe nào được lưu' : 'Không có xe phù hợp',
+              saved ? l10n.vehicleEmptySavedTitle : l10n.vehicleEmptyTitle,
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -650,8 +665,8 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               saved
-                  ? 'Bấm vào biểu tượng trái tim trên xe để lưu lại xem sau'
-                  : 'Thử thay đổi bộ lọc hoặc tìm kiếm khác',
+                  ? l10n.vehicleEmptySavedSubtitle
+                  : l10n.vehicleEmptySubtitle,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 13,
@@ -677,6 +692,7 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -685,9 +701,9 @@ class _ErrorState extends StatelessWidget {
           children: [
             const Text('⚠️', style: TextStyle(fontSize: 48)),
             const SizedBox(height: 16),
-            const Text(
-              'Không tải được danh sách xe',
-              style: TextStyle(
+            Text(
+              l10n.vehicleListErrorTitle,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppColors.darkText,
@@ -712,7 +728,7 @@ class _ErrorState extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text('Thử lại'),
+              child: Text(l10n.commonRetry),
             ),
           ],
         ),
@@ -738,6 +754,7 @@ class _FilterSheetState extends State<_FilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
       child: Column(
@@ -759,9 +776,9 @@ class _FilterSheetState extends State<_FilterSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Bộ lọc',
-                style: TextStyle(
+              Text(
+                l10n.vehicleFilterTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: AppColors.darkText,
@@ -772,9 +789,9 @@ class _FilterSheetState extends State<_FilterSheet> {
                   _maxPrice = 1500;
                   _minRating = 4.0;
                 }),
-                child: const Text(
-                  'Đặt lại',
-                  style: TextStyle(color: AppColors.primary),
+                child: Text(
+                  l10n.commonReset,
+                  style: const TextStyle(color: AppColors.primary),
                 ),
               ),
             ],
@@ -784,9 +801,9 @@ class _FilterSheetState extends State<_FilterSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Giá tối đa / ngày',
-                style: TextStyle(
+              Text(
+                l10n.vehicleFilterMaxPrice,
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: AppColors.darkText,
@@ -816,9 +833,9 @@ class _FilterSheetState extends State<_FilterSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Đánh giá tối thiểu',
-                style: TextStyle(
+              Text(
+                l10n.vehicleFilterMinRating,
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: AppColors.darkText,
@@ -868,9 +885,12 @@ class _FilterSheetState extends State<_FilterSheet> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                'Áp dụng',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              child: Text(
+                l10n.commonApply,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
               ),
             ),
           ),

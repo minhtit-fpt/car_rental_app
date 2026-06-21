@@ -11,6 +11,8 @@ import 'package:frontend/features/chat/presentation/cubit/start_conversation_cub
 import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
 import 'package:frontend/features/review/presentation/widgets/user_reviews_section.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
@@ -43,8 +45,8 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     final ok = await context.read<FavoriteCubit>().toggle(widget.vehicle);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Không cập nhật được yêu thích, thử lại sau'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).vehicleFavoriteError),
         ),
       );
     }
@@ -182,7 +184,10 @@ class _DetailAppBar extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   _GlassCircleButton(
-                    onTap: () => showComingSoonSnack(context, 'Chia sẻ'),
+                    onTap: () => showComingSoonSnack(
+                      context,
+                      AppLocalizations.of(context).vehicleShare,
+                    ),
                     child: const Icon(
                       Icons.share_outlined,
                       color: AppColors.darkText,
@@ -273,6 +278,7 @@ class _BadgeStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       color: AppColors.surface,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -281,18 +287,18 @@ class _BadgeStrip extends StatelessWidget {
         runSpacing: 8,
         children: [
           _Badge(
-            label: '⚡ Đặt nhanh',
+            label: l10n.vehicleBadgeInstant,
             bg: AppColors.navySoft,
             textColor: AppColors.primary,
           ),
           if (vehicle.isElectric)
             _Badge(
-              label: '🔋 Xe điện',
+              label: l10n.vehicleBadgeElectric,
               bg: AppColors.tealSoft,
               textColor: AppColors.tealDark,
             ),
           _Badge(
-            label: '🏷 −15% cuối tuần',
+            label: l10n.vehicleBadgeWeekendDiscount,
             bg: AppColors.warningSoft,
             textColor: AppColors.warning,
           ),
@@ -342,6 +348,7 @@ class _TitleSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -374,9 +381,12 @@ class _TitleSection extends StatelessWidget {
                     height: 1,
                   ),
                 ),
-                const Text(
-                  '/ngày',
-                  style: TextStyle(fontSize: 12, color: AppColors.mutedText),
+                Text(
+                  l10n.vehiclePerDay,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.mutedText,
+                  ),
                 ),
               ],
             ),
@@ -384,9 +394,7 @@ class _TitleSection extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          vehicle.isElectric
-              ? 'Điện · ${vehicle.typeLabel}'
-              : vehicle.typeLabel,
+          vehicle.typeSummaryL10n(l10n),
           style: const TextStyle(fontSize: 13, color: AppColors.mutedText),
         ),
         const SizedBox(height: 10),
@@ -407,7 +415,9 @@ class _TitleSection extends StatelessWidget {
               const SizedBox(width: 10),
             ],
             StatusChip(
-              label: vehicle.isAvailable ? 'Còn xe' : 'Đã thuê',
+              label: vehicle.isAvailable
+                  ? l10n.vehicleInStock
+                  : l10n.vehicleRented,
               color: vehicle.isAvailable
                   ? AppColors.success
                   : AppColors.mutedText,
@@ -428,7 +438,7 @@ class _TitleSection extends StatelessWidget {
                 vehicle.city ??
                     (vehicle.location.isNotEmpty
                         ? vehicle.location
-                        : 'Chưa cập nhật vị trí'),
+                        : l10n.vehicleNoLocation),
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.mutedText,
@@ -453,18 +463,20 @@ class _SpecsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     // Chỉ hiển thị thông số có dữ liệu thật; nhiên liệu suy từ isElectric.
+    final transmissionLabel = vehicle.transmissionLabelL10n(l10n);
     final specs = <_SpecItem>[
       if (vehicle.seats != null)
-        _SpecItem(icon: '🪑', label: '${vehicle.seats} chỗ'),
-      if (vehicle.transmissionLabel != null)
-        _SpecItem(icon: '⚙️', label: vehicle.transmissionLabel!),
+        _SpecItem(icon: '🪑', label: l10n.vehicleSeats(vehicle.seats!)),
+      if (transmissionLabel != null)
+        _SpecItem(icon: '⚙️', label: transmissionLabel),
       _SpecItem(
         icon: vehicle.isElectric ? '⚡' : '⛽',
-        label: vehicle.isElectric ? 'Điện' : 'Xăng',
+        label: vehicle.isElectric ? l10n.vehicleElectric : l10n.vehicleFuelGas,
       ),
       if (vehicle.doors != null)
-        _SpecItem(icon: '🚪', label: '${vehicle.doors} cửa'),
+        _SpecItem(icon: '🚪', label: l10n.vehicleDoors(vehicle.doors!)),
     ];
 
     return Row(
@@ -528,6 +540,7 @@ class _OwnerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -585,7 +598,7 @@ class _OwnerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  vehicle.ownerName ?? 'Chủ xe',
+                  vehicle.ownerName ?? l10n.vehicleOwnerFallback,
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -593,9 +606,9 @@ class _OwnerCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                const Row(
+                Row(
                   children: [
-                    Text(
+                    const Text(
                       '⭐ 4.9',
                       style: TextStyle(
                         fontSize: 12,
@@ -604,8 +617,8 @@ class _OwnerCard extends StatelessWidget {
                     ),
                     Flexible(
                       child: Text(
-                        ' · 36 chuyến · Phản hồi nhanh',
-                        style: TextStyle(
+                        l10n.vehicleOwnerMetaSample,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.mutedText,
                         ),
@@ -653,13 +666,14 @@ class _MessageOwnerButtonView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocConsumer<StartConversationCubit, StartConversationState>(
       listener: (context, state) {
         switch (state) {
           case StartConversationReady(:final conversationId):
             context.push(
               '/chat/$conversationId',
-              extra: vehicle.ownerName ?? 'Chủ xe',
+              extra: vehicle.ownerName ?? l10n.vehicleOwnerFallback,
             );
           case StartConversationError(:final message):
             ScaffoldMessenger.of(
@@ -695,9 +709,9 @@ class _MessageOwnerButtonView extends StatelessWidget {
                     color: AppColors.primary,
                   ),
                 )
-              : const Text(
-                  'Nhắn tin',
-                  style: TextStyle(
+              : Text(
+                  l10n.vehicleMessage,
+                  style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
@@ -716,15 +730,15 @@ class _MessageOwnerButtonView extends StatelessWidget {
 class _TripRulesCard extends StatelessWidget {
   const _TripRulesCard();
 
-  static const _rules = [
-    'Không hút thuốc trong xe',
-    'Không chở hàng hoá cồng kềnh',
-    'Trả xe đúng giờ, đúng địa điểm',
-    'Vệ sinh xe trước khi trả',
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final rules = [
+      l10n.vehicleRuleNoSmoking,
+      l10n.vehicleRuleNoBulkyGoods,
+      l10n.vehicleRuleReturnOnTime,
+      l10n.vehicleRuleCleanBeforeReturn,
+    ];
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -742,9 +756,9 @@ class _TripRulesCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Quy định chuyến đi'),
+          SectionHeader(title: l10n.vehicleTripRulesTitle),
           const SizedBox(height: 12),
-          ..._rules.map((r) => _RuleItem(rule: r)),
+          ...rules.map((r) => _RuleItem(rule: r)),
         ],
       ),
     );
@@ -803,10 +817,11 @@ class _PickupMapBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(title: 'Địa điểm nhận xe'),
+        SectionHeader(title: l10n.vehiclePickupLocationTitle),
         const SizedBox(height: 10),
         Container(
           height: 120,
@@ -847,7 +862,7 @@ class _PickupMapBlock extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            city ?? 'Chưa cập nhật',
+                            city ?? l10n.vehicleNotUpdated,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -898,6 +913,7 @@ class _BottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final bottomPad = MediaQuery.of(context).padding.bottom;
     return ClipRect(
       child: BackdropFilter(
@@ -924,9 +940,12 @@ class _BottomBar extends StatelessWidget {
                       height: 1,
                     ),
                   ),
-                  const Text(
-                    '/ngày',
-                    style: TextStyle(fontSize: 12, color: AppColors.mutedText),
+                  Text(
+                    l10n.vehiclePerDay,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.mutedText,
+                    ),
                   ),
                 ],
               ),
@@ -946,9 +965,9 @@ class _BottomBar extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Đặt xe ngay',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.vehicleBookNow,
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),

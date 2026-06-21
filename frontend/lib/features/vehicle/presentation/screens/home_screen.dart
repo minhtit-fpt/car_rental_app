@@ -10,6 +10,7 @@ import 'package:frontend/features/notification/presentation/cubit/notification_c
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/widgets/car_card.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.onCarsTap});
@@ -306,24 +307,25 @@ class _UnreadBadge extends StatelessWidget {
 class _GreetingHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       color: AppColors.surface,
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           Text(
-            'Xin chào, bạn',
-            style: TextStyle(
+            l10n.homeGreeting,
+            style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
               color: AppColors.mutedText,
             ),
           ),
-          SizedBox(height: 2),
+          const SizedBox(height: 2),
           Text(
-            'Hôm nay bạn đi đâu?',
-            style: TextStyle(
+            l10n.homeGreetingQuestion,
+            style: const TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w800,
               color: AppColors.darkText,
@@ -360,6 +362,7 @@ class _SearchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -397,9 +400,9 @@ class _SearchCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'ĐIỂM NHẬN',
-                            style: TextStyle(
+                          Text(
+                            l10n.homeLocationLabel,
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                               color: AppColors.mutedText,
@@ -433,9 +436,9 @@ class _SearchCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _DateField(
-                    label: 'NHẬN XE',
+                    label: l10n.homePickupDateLabel,
                     value: startDate == null
-                        ? 'Chọn ngày'
+                        ? l10n.homeSelectDate
                         : _fmtSearchDate(startDate!),
                     borderRight: true,
                     onTap: onTapDates,
@@ -443,9 +446,9 @@ class _SearchCard extends StatelessWidget {
                 ),
                 Expanded(
                   child: _DateField(
-                    label: 'TRẢ XE',
+                    label: l10n.homeReturnDateLabel,
                     value: endDate == null
-                        ? 'Chọn ngày'
+                        ? l10n.homeSelectDate
                         : _fmtSearchDate(endDate!),
                     borderRight: false,
                     onTap: onTapDates,
@@ -462,7 +465,7 @@ class _SearchCard extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: onSearch,
                   icon: const Icon(Icons.search_rounded, size: 18),
-                  label: const Text('Tìm xe'),
+                  label: Text(l10n.vehicleFindCars),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     foregroundColor: Colors.white,
@@ -588,9 +591,9 @@ class _CityPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Chọn điểm nhận xe',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context).homeCityPickerTitle,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppColors.darkText,
@@ -652,11 +655,11 @@ class _CityChips extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            'Khám phá theo thành phố',
-            style: TextStyle(
+            AppLocalizations.of(context).homeExploreByCity,
+            style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
               color: AppColors.darkText,
@@ -716,6 +719,7 @@ class _FeaturedCarsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final state = context.watch<VehicleListCubit>().state;
     final favorites = context.watch<FavoriteCubit>().state;
     final cars = switch (state) {
@@ -730,9 +734,9 @@ class _FeaturedCarsSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Xe nổi bật gần bạn',
-                style: TextStyle(
+              Text(
+                l10n.homeFeaturedTitle,
+                style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: AppColors.darkText,
@@ -740,9 +744,9 @@ class _FeaturedCarsSection extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: onSeeAllTap,
-                child: const Text(
-                  'Xem tất cả',
-                  style: TextStyle(
+                child: Text(
+                  l10n.homeSeeAll,
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primary,
@@ -758,11 +762,14 @@ class _FeaturedCarsSection extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(child: CircularProgressIndicator()),
             ),
-            VehicleListError() => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
+            VehicleListError() => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                'Không tải được xe nổi bật',
-                style: TextStyle(fontSize: 13, color: AppColors.secondaryText),
+                l10n.homeFeaturedError,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.secondaryText,
+                ),
               ),
             ),
             VehicleListLoaded() => ListView.separated(
@@ -779,11 +786,7 @@ class _FeaturedCarsSection extends StatelessWidget {
                     final ok = await context.read<FavoriteCubit>().toggle(v);
                     if (!ok && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Không cập nhật được yêu thích, thử lại sau',
-                          ),
-                        ),
+                        SnackBar(content: Text(l10n.vehicleFavoriteError)),
                       );
                     }
                   },
@@ -807,6 +810,7 @@ class _TrustBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -832,22 +836,22 @@ class _TrustBanner extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Mỗi chuyến đều có bảo hiểm',
-                    style: TextStyle(
+                    l10n.homeTrustTitle,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Đền bù tối đa 200 triệu cho mọi hư hỏng phát sinh.',
-                    style: TextStyle(
+                    l10n.homeTrustSubtitle,
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 12,
                       height: 1.4,

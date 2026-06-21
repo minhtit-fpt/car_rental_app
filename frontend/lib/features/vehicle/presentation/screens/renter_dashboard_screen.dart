@@ -9,6 +9,7 @@ import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/booking/domain/entities/booking.dart';
 import 'package:frontend/features/booking/presentation/cubit/my_trips_cubit.dart';
 import 'package:frontend/features/loyalty/presentation/cubit/loyalty_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/info_row.dart';
 
 // ─────────────────────────────────────────────
@@ -80,6 +81,7 @@ class _RenterDashboardView extends StatelessWidget {
 class _RenterSliverAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SliverAppBar(
       pinned: true,
       expandedHeight: 150,
@@ -118,9 +120,9 @@ class _RenterSliverAppBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Text(
-                    'Hồ sơ của tôi',
-                    style: TextStyle(
+                  Text(
+                    l10n.dashboardMyProfile,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
@@ -128,7 +130,7 @@ class _RenterSliverAppBar extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Tài khoản & điểm thưởng',
+                    l10n.dashboardRenterSubtitle,
                     style: TextStyle(
                       color: Colors.white.withAlpha(191),
                       fontSize: 13,
@@ -153,6 +155,7 @@ class _StatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocBuilder<MyTripsCubit, MyTripsState>(
       builder: (context, tripsState) {
         final bookings = tripsState is MyTripsLoaded
@@ -170,8 +173,8 @@ class _StatsRow extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 value: '$active',
-                unit: 'xe',
-                label: 'Đang Thuê',
+                unit: l10n.unitVehicles,
+                label: l10n.dashboardActiveRenting,
                 color: AppColors.primary,
               ),
             ),
@@ -179,8 +182,8 @@ class _StatsRow extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 value: '$upcoming',
-                unit: 'chuyến',
-                label: 'Sắp Tới',
+                unit: l10n.unitTrips,
+                label: l10n.dashboardUpcoming,
                 color: AppColors.primary,
               ),
             ),
@@ -188,8 +191,8 @@ class _StatsRow extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 value: '${bookings.length}',
-                unit: 'chuyến',
-                label: 'Tổng Chuyến',
+                unit: l10n.unitTrips,
+                label: l10n.dashboardTotalTrips,
                 color: AppColors.accent,
               ),
             ),
@@ -203,7 +206,7 @@ class _StatsRow extends StatelessWidget {
                   return _StatCard(
                     value: '$points',
                     unit: 'pts',
-                    label: 'Điểm thưởng',
+                    label: l10n.dashboardLoyaltyPoints,
                     color: AppColors.success,
                   );
                 },
@@ -292,6 +295,7 @@ class _ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final user = context.watch<AuthCubit>().state.user;
 
     return Container(
@@ -328,7 +332,7 @@ class _ProfileCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            _displayName(user),
+            _displayName(user, l10n),
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -342,10 +346,7 @@ class _ProfileCard extends StatelessWidget {
             InfoRow(icon: Icons.email_outlined, text: user!.email!),
             const SizedBox(height: 6),
           ],
-          InfoRow(
-            icon: Icons.phone_outlined,
-            text: user?.phone ?? '—',
-          ),
+          InfoRow(icon: Icons.phone_outlined, text: user?.phone ?? '—'),
           const SizedBox(height: 6),
           _KycBadge(status: user?.kycStatus),
           const SizedBox(height: 16),
@@ -360,9 +361,9 @@ class _ProfileCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                'Chỉnh sửa hồ sơ',
-                style: TextStyle(
+              child: Text(
+                l10n.profileEdit,
+                style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -376,8 +377,8 @@ class _ProfileCard extends StatelessWidget {
   }
 
   /// Backend chưa có trường tên — ưu tiên email, fallback số điện thoại.
-  String _displayName(AuthUser? user) {
-    if (user == null) return 'Người dùng';
+  String _displayName(AuthUser? user, AppLocalizations l10n) {
+    if (user == null) return l10n.commonUser;
     final email = user.email;
     if (email != null && email.contains('@')) return email.split('@').first;
     return user.phone;
@@ -391,9 +392,10 @@ class _RoleBadges extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final labels = <String>[
-      if (user?.isRenter ?? true) 'Người thuê',
-      if (user?.isOwner ?? false) 'Chủ xe',
+      if (user?.isRenter ?? true) l10n.roleRenter,
+      if (user?.isOwner ?? false) l10n.roleOwner,
     ];
 
     return Wrap(
@@ -429,7 +431,7 @@ class _KycBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final info = _kycInfo(status);
+    final info = _kycInfo(status, AppLocalizations.of(context));
 
     return Row(
       children: [
@@ -458,29 +460,32 @@ class _KycBadge extends StatelessWidget {
     );
   }
 
-  ({String label, Color bg, Color fg}) _kycInfo(String? status) {
+  ({String label, Color bg, Color fg}) _kycInfo(
+    String? status,
+    AppLocalizations l10n,
+  ) {
     switch (status?.toUpperCase()) {
       case 'VERIFIED':
         return (
-          label: '✓ KYC Đã xác minh',
+          label: l10n.kycVerified,
           bg: AppColors.successSoft,
           fg: AppColors.success,
         );
       case 'PENDING':
         return (
-          label: '⏳ KYC Đang duyệt',
+          label: l10n.kycPending,
           bg: AppColors.warningSoft,
           fg: AppColors.warning,
         );
       case 'REJECTED':
         return (
-          label: '✕ KYC Bị từ chối',
+          label: l10n.kycRejected,
           bg: AppColors.dangerSoft,
           fg: AppColors.danger,
         );
       default:
         return (
-          label: '! KYC Chưa xác minh',
+          label: l10n.kycUnverified,
           bg: AppColors.surfaceSunken,
           fg: AppColors.mutedText,
         );

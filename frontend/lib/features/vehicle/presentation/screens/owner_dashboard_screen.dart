@@ -8,6 +8,8 @@ import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/owner/presentation/cubit/my_vehicles_cubit.dart';
 import 'package:frontend/features/owner/presentation/cubit/owner_revenue_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/info_row.dart';
 
 String _fmtVnd(num v) {
@@ -80,6 +82,7 @@ class _DashboardView extends StatelessWidget {
 class _OwnerSliverAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SliverAppBar(
       pinned: true,
       expandedHeight: 150,
@@ -112,14 +115,14 @@ class _OwnerSliverAppBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: const Color(0xFFFCD34D).withAlpha(102)),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('🏆', style: TextStyle(fontSize: 12)),
-                SizedBox(width: 4),
+                const Text('🏆', style: TextStyle(fontSize: 12)),
+                const SizedBox(width: 4),
                 Text(
-                  'Chủ xe',
-                  style: TextStyle(
+                  l10n.roleOwner,
+                  style: const TextStyle(
                     color: Color(0xFFFCD34D),
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -142,9 +145,9 @@ class _OwnerSliverAppBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Text(
-                    'Trang chủ Chủ xe',
-                    style: TextStyle(
+                  Text(
+                    l10n.ownerDashboardTitle,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
@@ -152,7 +155,7 @@ class _OwnerSliverAppBar extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Quản lý xe cho thuê và chuyến đi của bạn',
+                    l10n.ownerDashboardSubtitle,
                     style: TextStyle(
                       color: Colors.white.withAlpha(191),
                       fontSize: 12,
@@ -171,6 +174,7 @@ class _OwnerSliverAppBar extends StatelessWidget {
 class _OwnerStatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Row(
       children: [
         Expanded(
@@ -183,7 +187,7 @@ class _OwnerStatsRow extends StatelessWidget {
                 icon: '💰',
                 value: revenue,
                 unit: 'đ',
-                label: 'Doanh thu tháng',
+                label: l10n.ownerRevenueMonth,
                 color: AppColors.warning,
               );
             },
@@ -193,13 +197,14 @@ class _OwnerStatsRow extends StatelessWidget {
         Expanded(
           child: BlocBuilder<MyVehiclesCubit, MyVehiclesState>(
             builder: (context, state) {
-              final count =
-                  state is MyVehiclesLoaded ? '${state.vehicles.length}' : '—';
+              final count = state is MyVehiclesLoaded
+                  ? '${state.vehicles.length}'
+                  : '—';
               return _OwnerStatCard(
                 icon: '🚗',
                 value: count,
-                unit: 'xe',
-                label: 'Xe của bạn',
+                unit: l10n.unitVehicles,
+                label: l10n.ownerYourCars,
                 color: AppColors.primary,
               );
             },
@@ -209,13 +214,14 @@ class _OwnerStatsRow extends StatelessWidget {
         Expanded(
           child: BlocBuilder<OwnerRevenueCubit, OwnerRevenueState>(
             builder: (context, state) {
-              final trips =
-                  state is OwnerRevenueLoaded ? '${state.revenue.totalTrips}' : '—';
+              final trips = state is OwnerRevenueLoaded
+                  ? '${state.revenue.totalTrips}'
+                  : '—';
               return _OwnerStatCard(
                 icon: '📋',
                 value: trips,
-                unit: 'chuyến',
-                label: 'Chuyến tháng này',
+                unit: l10n.unitTrips,
+                label: l10n.ownerTripsThisMonth,
                 color: AppColors.success,
               );
             },
@@ -302,8 +308,9 @@ class _OwnerStatCard extends StatelessWidget {
 class _OwnerProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final user = sl<AuthCubit>().state.user;
-    final displayName = user?.email ?? user?.phone ?? 'Chủ xe';
+    final displayName = user?.email ?? user?.phone ?? l10n.roleOwner;
     final verified = user?.kycStatus.toUpperCase() == 'VERIFIED';
 
     return Container(
@@ -369,10 +376,7 @@ class _OwnerProfileCard extends StatelessWidget {
           if (user?.email != null)
             InfoRow(icon: Icons.email_outlined, text: user!.email!),
           if (user?.email != null) const SizedBox(height: 6),
-          InfoRow(
-            icon: Icons.phone_outlined,
-            text: user?.phone ?? '—',
-          ),
+          InfoRow(icon: Icons.phone_outlined, text: user?.phone ?? '—'),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -391,7 +395,7 @@ class _OwnerProfileCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  verified ? '✓ KYC Đã xác minh' : 'KYC chưa xác minh',
+                  verified ? l10n.kycVerified : l10n.kycUnverifiedShort,
                   style: TextStyle(
                     fontSize: 11,
                     color: verified ? AppColors.success : AppColors.mutedText,
@@ -413,9 +417,9 @@ class _OwnerProfileCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                'Chỉnh sửa hồ sơ',
-                style: TextStyle(
+              child: Text(
+                l10n.profileEdit,
+                style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -432,6 +436,7 @@ class _OwnerProfileCard extends StatelessWidget {
 class _MyCarsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -453,33 +458,40 @@ class _MyCarsCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Xe Của Tôi',
-                      style: TextStyle(
+                      l10n.ownerMyCarsTitle,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkText,
                       ),
                     ),
                     Text(
-                      'Xe bạn đang cho thuê',
-                      style: TextStyle(fontSize: 12, color: AppColors.mutedText),
+                      l10n.ownerMyCarsSubtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.mutedText,
+                      ),
                     ),
                   ],
                 ),
                 ElevatedButton.icon(
                   onPressed: () => context.push('/owner/vehicle/add'),
                   icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Thêm xe mới',
-                      style: TextStyle(fontSize: 12)),
+                  label: Text(
+                    l10n.ownerAddCar,
+                    style: const TextStyle(fontSize: 12),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -503,24 +515,26 @@ class _MyCarsCard extends StatelessWidget {
                   style: const TextStyle(color: AppColors.danger),
                 ),
               ),
-              MyVehiclesLoaded(:final vehicles) => vehicles.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Center(
-                        child: Text(
-                          'Bạn chưa đăng xe nào',
-                          style: TextStyle(color: AppColors.mutedText),
+              MyVehiclesLoaded(:final vehicles) =>
+                vehicles.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Center(
+                          child: Text(
+                            l10n.ownerNoCars,
+                            style: const TextStyle(color: AppColors.mutedText),
+                          ),
                         ),
+                      )
+                    : ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: vehicles.length,
+                        separatorBuilder: (_, _) =>
+                            const Divider(height: 1, color: AppColors.border),
+                        itemBuilder: (_, i) =>
+                            _OwnedCarRow(vehicle: vehicles[i]),
                       ),
-                    )
-                  : ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: vehicles.length,
-                      separatorBuilder: (_, _) =>
-                          const Divider(height: 1, color: AppColors.border),
-                      itemBuilder: (_, i) => _OwnedCarRow(vehicle: vehicles[i]),
-                    ),
             },
           ),
         ],
@@ -535,6 +549,7 @@ class _OwnedCarRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final available = vehicle.isAvailable;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -566,7 +581,7 @@ class _OwnedCarRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  vehicle.typeLabel,
+                  vehicle.typeLabelL10n(l10n),
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.mutedText,
@@ -574,7 +589,7 @@ class _OwnedCarRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${_fmtVnd(vehicle.pricePerHour)}đ/giờ',
+                  l10n.ownerPricePerHour(_fmtVnd(vehicle.pricePerHour)),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -602,7 +617,7 @@ class _OwnedCarRow extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  available ? 'Sẵn sàng' : 'Tạm ẩn',
+                  available ? l10n.ownerStatusReady : l10n.ownerStatusHidden,
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
@@ -615,13 +630,13 @@ class _OwnedCarRow extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _ActionChip(
-                    label: 'Sửa',
+                    label: l10n.commonEdit,
                     color: AppColors.secondaryText,
                     onTap: () => _onEdit(context),
                   ),
                   const SizedBox(width: 6),
                   _ActionChip(
-                    label: 'Xoá',
+                    label: l10n.commonDelete,
                     color: AppColors.danger,
                     onTap: () => _confirmDelete(context),
                   ),
@@ -645,20 +660,21 @@ class _OwnedCarRow extends StatelessWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Xoá xe?'),
-        content: Text('Bạn chắc chắn muốn gỡ "${vehicle.title}"?'),
+        title: Text(l10n.ownerDeleteTitle),
+        content: Text(l10n.ownerDeleteConfirm(vehicle.title)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Huỷ'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: const Text('Xoá'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),
@@ -667,7 +683,7 @@ class _OwnedCarRow extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     final error = await context.read<MyVehiclesCubit>().delete(vehicle.id);
     messenger.showSnackBar(
-      SnackBar(content: Text(error ?? 'Đã xoá xe')),
+      SnackBar(content: Text(error ?? l10n.ownerDeleteSuccess)),
     );
   }
 }

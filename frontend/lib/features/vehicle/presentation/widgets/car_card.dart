@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
 /// Nút tim tròn nền trắng đặt trên ảnh xe (card / list tile). Bấm để lưu/bỏ.
 class _FavoriteHeartButton extends StatelessWidget {
@@ -28,9 +30,7 @@ class _FavoriteHeartButton extends StatelessWidget {
           ],
         ),
         child: Icon(
-          isFavorite
-              ? Icons.favorite_rounded
-              : Icons.favorite_border_rounded,
+          isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
           size: 17,
           color: isFavorite ? AppColors.danger : AppColors.secondaryText,
         ),
@@ -136,6 +136,7 @@ class _CardDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       child: Column(
@@ -154,9 +155,7 @@ class _CardDetails extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            vehicle.isElectric
-                ? 'Điện · ${vehicle.typeLabel}'
-                : vehicle.typeLabel,
+            vehicle.typeSummaryL10n(l10n),
             style: const TextStyle(fontSize: 12, color: AppColors.mutedText),
           ),
           const SizedBox(height: 8),
@@ -173,11 +172,14 @@ class _CardDetails extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 3),
-              const Padding(
-                padding: EdgeInsets.only(bottom: 1),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 1),
                 child: Text(
-                  '/ngày',
-                  style: TextStyle(fontSize: 11, color: AppColors.mutedText),
+                  l10n.vehiclePerDay,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.mutedText,
+                  ),
                 ),
               ),
             ],
@@ -199,6 +201,7 @@ class _VehicleMetaRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (vehicle.hasRating) {
       return Row(
         children: [
@@ -247,7 +250,7 @@ class _VehicleMetaRow extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Text(
-          vehicle.isAvailable ? 'Còn trống' : 'Đã thuê',
+          vehicle.isAvailable ? l10n.vehicleAvailable : l10n.vehicleRented,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
@@ -262,9 +265,9 @@ class _VehicleMetaRow extends StatelessWidget {
             color: AppColors.primary,
           ),
           const SizedBox(width: 3),
-          const Text(
-            'Giao tận nơi',
-            style: TextStyle(
+          Text(
+            l10n.vehicleDelivery,
+            style: const TextStyle(
               fontSize: 11,
               color: AppColors.primary,
               fontWeight: FontWeight.w500,
@@ -295,6 +298,7 @@ class CarListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -387,9 +391,7 @@ class CarListTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      vehicle.isElectric
-                          ? 'Điện · ${vehicle.typeLabel}'
-                          : vehicle.typeLabel,
+                      vehicle.typeSummaryL10n(l10n),
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.mutedText,
@@ -422,11 +424,11 @@ class CarListTile extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 2),
-                            const Padding(
-                              padding: EdgeInsets.only(bottom: 1),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 1),
                               child: Text(
-                                '/ngày',
-                                style: TextStyle(
+                                l10n.vehiclePerDay,
+                                style: const TextStyle(
                                   fontSize: 11,
                                   color: AppColors.mutedText,
                                 ),
@@ -457,16 +459,16 @@ class CarListTile extends StatelessWidget {
                           )
                         else if (vehicle.deliveryAvailable)
                           Row(
-                            children: const [
-                              Icon(
+                            children: [
+                              const Icon(
                                 Icons.local_shipping_outlined,
                                 size: 13,
                                 color: AppColors.primary,
                               ),
-                              SizedBox(width: 3),
+                              const SizedBox(width: 3),
                               Text(
-                                'Giao tận nơi',
-                                style: TextStyle(
+                                l10n.vehicleDelivery,
+                                style: const TextStyle(
                                   fontSize: 11,
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w500,

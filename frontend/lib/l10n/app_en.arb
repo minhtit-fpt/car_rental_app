@@ -76,5 +76,171 @@
   },
   "authOtpResend": "Resend OTP code",
   "authOtpDemoHint": "Use code 123456 to test in the demo environment.",
-  "authOtpInvalid": "Invalid OTP code. Please try again."
+  "authOtpInvalid": "Invalid OTP code. Please try again.",
+
+  "commonError": "An error occurred",
+  "commonRetry": "Retry",
+  "commonReset": "Reset",
+  "commonApply": "Apply",
+  "commonCancel": "Cancel",
+  "commonEdit": "Edit",
+  "commonDelete": "Delete",
+  "commonUser": "User",
+
+  "roleRenter": "Renter",
+  "roleOwner": "Owner",
+  "profileEdit": "Edit profile",
+
+  "kycVerified": "✓ KYC Verified",
+  "kycPending": "⏳ KYC Under review",
+  "kycRejected": "✕ KYC Rejected",
+  "kycUnverified": "! KYC Not verified",
+  "kycUnverifiedShort": "KYC not verified",
+
+  "vehicleTypeCar": "Car",
+  "vehicleTypeMotorbike": "Motorbike",
+  "vehicleTypeBicycle": "Bicycle",
+  "vehicleTransmissionAutomatic": "Automatic",
+  "vehicleTransmissionManual": "Manual",
+  "vehicleElectric": "Electric",
+  "vehicleFuelGas": "Petrol",
+  "vehiclePerDay": "/day",
+  "vehicleAvailable": "Available",
+  "vehicleInStock": "Available",
+  "vehicleRented": "Rented",
+  "vehicleDelivery": "Delivery",
+  "vehicleFindCars": "Find a car",
+  "vehicleFavoriteError": "Couldn't update favorites, please try again later",
+  "vehicleSeats": "{count} seats",
+  "@vehicleSeats": {
+    "description": "Seat count spec on a vehicle",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vehicleDoors": "{count} doors",
+  "@vehicleDoors": {
+    "description": "Door count spec on a vehicle",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vehicleNoLocation": "Location not updated",
+  "vehicleNotUpdated": "Not updated",
+  "vehicleOwnerFallback": "Owner",
+  "vehicleMessage": "Message",
+  "vehicleShare": "Share",
+  "vehicleBookNow": "Book now",
+  "vehicleOwnerMetaSample": " · 36 trips · Fast response",
+  "vehicleBadgeInstant": "⚡ Instant book",
+  "vehicleBadgeElectric": "🔋 Electric",
+  "vehicleBadgeWeekendDiscount": "🏷 −15% weekends",
+  "vehicleTripRulesTitle": "Trip rules",
+  "vehicleRuleNoSmoking": "No smoking in the car",
+  "vehicleRuleNoBulkyGoods": "No bulky cargo",
+  "vehicleRuleReturnOnTime": "Return on time, at the right place",
+  "vehicleRuleCleanBeforeReturn": "Clean the car before returning",
+  "vehiclePickupLocationTitle": "Pick-up location",
+
+  "vehicleFilterAll": "All",
+  "vehicleFilterSaved": "❤️ Saved",
+  "vehicleFilterInstant": "⚡ Instant book",
+  "vehicleFilterAuto": "⚙️ Automatic",
+  "vehicleFilterElectric": "🔋 Electric",
+  "vehicleFilter5Seats": "5 seats",
+  "vehicleFilter7Seats": "7+ seats",
+  "vehicleSortPopular": "Most popular",
+  "vehicleSortPriceLow": "Lowest price",
+  "vehicleSortRatingHigh": "Highest rated",
+  "vehicleSortNearest": "Nearest",
+  "vehicleCountMatched": "{count} matching cars",
+  "@vehicleCountMatched": {
+    "description": "Number of vehicles matching the filters",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vehicleCountSaved": "{count} saved cars",
+  "@vehicleCountSaved": {
+    "description": "Number of saved vehicles",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vehicleListView": "List",
+  "vehicleMapView": "View map",
+  "vehicleLocationLabel": "LOCATION",
+  "vehicleLocationPlaceholder": "District 1, HCMC",
+  "vehicleTimeLabel": "TIME",
+  "vehicleEmptyTitle": "No matching cars",
+  "vehicleEmptySubtitle": "Try changing the filters or another search",
+  "vehicleEmptySavedTitle": "No saved cars yet",
+  "vehicleEmptySavedSubtitle": "Tap the heart icon on a car to save it for later",
+  "vehicleListErrorTitle": "Couldn't load the car list",
+  "vehicleFilterTitle": "Filters",
+  "vehicleFilterMaxPrice": "Max price / day",
+  "vehicleFilterMinRating": "Minimum rating",
+
+  "homeGreeting": "Hello there",
+  "homeGreetingQuestion": "Where are you going today?",
+  "homeLocationLabel": "PICK-UP POINT",
+  "homePickupDateLabel": "PICK-UP",
+  "homeReturnDateLabel": "RETURN",
+  "homeSelectDate": "Select date",
+  "homeCityPickerTitle": "Select pick-up location",
+  "homeExploreByCity": "Explore by city",
+  "homeFeaturedTitle": "Featured cars near you",
+  "homeSeeAll": "See all",
+  "homeFeaturedError": "Couldn't load featured cars",
+  "homeTrustTitle": "Every trip is insured",
+  "homeTrustSubtitle": "Up to 200 million VND coverage for any damage.",
+
+  "dashboardMyProfile": "My profile",
+  "dashboardRenterSubtitle": "Account & loyalty points",
+  "dashboardActiveRenting": "Renting",
+  "dashboardUpcoming": "Upcoming",
+  "dashboardTotalTrips": "Total trips",
+  "dashboardLoyaltyPoints": "Loyalty points",
+  "unitVehicles": "cars",
+  "unitTrips": "trips",
+
+  "ownerDashboardTitle": "Owner home",
+  "ownerDashboardSubtitle": "Manage your rental cars and trips",
+  "ownerRevenueMonth": "Monthly revenue",
+  "ownerYourCars": "Your cars",
+  "ownerTripsThisMonth": "Trips this month",
+  "ownerMyCarsTitle": "My Cars",
+  "ownerMyCarsSubtitle": "Cars you're renting out",
+  "ownerAddCar": "Add a car",
+  "ownerNoCars": "You haven't listed any cars yet",
+  "ownerPricePerHour": "{price}đ/hour",
+  "@ownerPricePerHour": {
+    "description": "Owner's car price per hour (price already formatted)",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "ownerStatusReady": "Available",
+  "ownerStatusHidden": "Hidden",
+  "ownerDeleteTitle": "Delete car?",
+  "ownerDeleteConfirm": "Are you sure you want to remove \"{title}\"?",
+  "@ownerDeleteConfirm": {
+    "description": "Delete vehicle confirmation dialog body",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "ownerDeleteSuccess": "Vehicle deleted"
 }
