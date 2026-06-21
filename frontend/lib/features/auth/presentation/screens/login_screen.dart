@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 
 /// Đăng nhập bằng SĐT + mật khẩu (khớp backend `/api/auth/login`).
@@ -39,6 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocListener<AuthCubit, AuthState>(
       listenWhen: (prev, curr) => prev.status != curr.status,
       listener: (context, state) {
@@ -72,18 +74,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 40),
                     _Logo(),
                     const SizedBox(height: 40),
-                    const Text(
-                      'Đăng nhập',
-                      style: TextStyle(
+                    Text(
+                      l10n.authLoginTitle,
+                      style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
                         color: AppColors.darkText,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'Nhập số điện thoại và mật khẩu để tiếp tục',
-                      style: TextStyle(
+                    Text(
+                      l10n.authLoginSubtitle,
+                      style: const TextStyle(
                         fontSize: 14,
                         color: AppColors.mutedText,
                       ),
@@ -101,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 24),
                     BlocBuilder<AuthCubit, AuthState>(
                       builder: (context, state) => PrimaryButton(
-                        label: 'Đăng nhập',
+                        label: l10n.authLoginTitle,
                         onPressed: _submit,
                         isLoading: state.isBusy,
                       ),
@@ -110,15 +112,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          'Chưa có tài khoản? ',
-                          style: TextStyle(color: AppColors.mutedText),
+                        Text(
+                          l10n.authNoAccount,
+                          style: const TextStyle(color: AppColors.mutedText),
                         ),
                         GestureDetector(
                           onTap: () => context.push('/register'),
-                          child: const Text(
-                            'Đăng ký ngay',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.authRegisterNow,
+                            style: const TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
@@ -171,12 +173,13 @@ class _PhoneField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Số điện thoại',
-          style: TextStyle(
+        Text(
+          l10n.phoneLabel,
+          style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.darkText,
@@ -214,8 +217,8 @@ class _PhoneField extends StatelessWidget {
             errorBorder: _border(AppColors.danger),
           ),
           validator: (v) {
-            if (v == null || v.isEmpty) return 'Vui lòng nhập số điện thoại';
-            if (v.length < 9) return 'Số điện thoại không hợp lệ';
+            if (v == null || v.isEmpty) return l10n.phoneRequired;
+            if (v.length < 9) return l10n.phoneInvalid;
             return null;
           },
         ),
@@ -239,12 +242,13 @@ class _PasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Mật khẩu',
-          style: TextStyle(
+        Text(
+          l10n.passwordLabel,
+          style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.darkText,
@@ -278,7 +282,7 @@ class _PasswordField extends StatelessWidget {
             errorBorder: _border(AppColors.danger),
           ),
           validator: (v) {
-            if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu';
+            if (v == null || v.isEmpty) return l10n.passwordRequired;
             return null;
           },
         ),

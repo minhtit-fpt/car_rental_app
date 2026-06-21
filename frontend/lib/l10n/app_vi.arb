@@ -4,5 +4,42 @@
   "settingsLanguage": "Ngôn ngữ",
   "languagePickerTitle": "Chọn ngôn ngữ",
   "languageVietnamese": "Tiếng Việt",
-  "languageEnglish": "English"
+  "languageEnglish": "English",
+
+  "phoneLabel": "Số điện thoại",
+  "phoneRequired": "Vui lòng nhập số điện thoại",
+  "phoneInvalid": "Số điện thoại không hợp lệ",
+  "passwordLabel": "Mật khẩu",
+  "passwordRequired": "Vui lòng nhập mật khẩu",
+
+  "authLoginTitle": "Đăng nhập",
+  "authLoginSubtitle": "Nhập số điện thoại và mật khẩu để tiếp tục",
+  "authNoAccount": "Chưa có tài khoản? ",
+  "authRegisterNow": "Đăng ký ngay",
+
+  "authRegisterTitle": "Tạo tài khoản",
+  "authRegisterSectionAccount": "Thông tin tài khoản",
+  "authEmailOptionalLabel": "Email (tuỳ chọn)",
+  "authEmailInvalid": "Email không hợp lệ",
+  "authPasswordHintMin": "Tối thiểu 8 ký tự",
+  "authPasswordMinLength": "Mật khẩu phải tối thiểu 8 ký tự",
+  "authConfirmPasswordLabel": "Xác nhận mật khẩu",
+  "authConfirmPasswordHint": "Nhập lại mật khẩu",
+  "authPasswordMismatch": "Mật khẩu nhập lại không khớp",
+  "authAlreadyHaveAccount": "Đã có tài khoản? ",
+  "authAgreeTermsRequired": "Vui lòng đồng ý với điều khoản sử dụng",
+  "authTermsPrefix": "Tôi đồng ý với ",
+  "authTermsOfUse": "Điều khoản sử dụng",
+  "authTermsAnd": " và ",
+  "authPrivacyPolicy": "Chính sách bảo mật",
+  "authTermsSuffix": " của RideVN",
+
+  "authOtpTitle": "Xác thực OTP",
+  "authOtpSentToPrefix": "Nhập mã 6 số đã gửi tới ",
+  "authOtpConfirm": "Xác nhận",
+  "authOtpResendInPrefix": "Gửi lại sau ",
+  "authOtpSeconds": "{seconds} giây",
+  "authOtpResend": "Gửi lại mã OTP",
+  "authOtpDemoHint": "Dùng mã 123456 để test trong môi trường demo.",
+  "authOtpInvalid": "Mã OTP không đúng. Vui lòng thử lại."
 }

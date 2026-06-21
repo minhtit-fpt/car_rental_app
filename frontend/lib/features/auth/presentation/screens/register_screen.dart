@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 
 /// Đăng ký bằng SĐT + mật khẩu (+ email tuỳ chọn), khớp backend
@@ -38,7 +39,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!_agreedToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng đồng ý với điều khoản sử dụng')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).authAgreeTermsRequired),
+        ),
       );
       return;
     }
@@ -53,6 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocListener<AuthCubit, AuthState>(
       listenWhen: (prev, curr) => prev.status != curr.status,
       listener: (context, state) {
@@ -85,9 +89,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               onPressed: () => context.pop(),
             ),
-            title: const Text(
-              'Tạo tài khoản',
-              style: TextStyle(
+            title: Text(
+              l10n.authRegisterTitle,
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.darkText,
               ),
@@ -101,9 +105,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Thông tin tài khoản',
-                      style: TextStyle(
+                    Text(
+                      l10n.authRegisterSectionAccount,
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mutedText,
@@ -111,60 +115,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
                     _LabeledField(
-                      label: 'Số điện thoại',
+                      label: l10n.phoneLabel,
                       controller: _phoneController,
                       hint: '0912 345 678',
                       keyboardType: TextInputType.phone,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (v) {
                         if (v == null || v.isEmpty) {
-                          return 'Vui lòng nhập số điện thoại';
+                          return l10n.phoneRequired;
                         }
-                        if (v.length < 9) return 'Số điện thoại không hợp lệ';
+                        if (v.length < 9) return l10n.phoneInvalid;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     _LabeledField(
-                      label: 'Email (tuỳ chọn)',
+                      label: l10n.authEmailOptionalLabel,
                       controller: _emailController,
                       hint: 'example@email.com',
                       keyboardType: TextInputType.emailAddress,
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) return null;
-                        if (!v.contains('@')) return 'Email không hợp lệ';
+                        if (!v.contains('@')) return l10n.authEmailInvalid;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     _LabeledField(
-                      label: 'Mật khẩu',
+                      label: l10n.passwordLabel,
                       controller: _passwordController,
-                      hint: 'Tối thiểu 8 ký tự',
+                      hint: l10n.authPasswordHintMin,
                       obscure: _obscurePassword,
                       onToggleObscure: () =>
                           setState(() => _obscurePassword = !_obscurePassword),
                       validator: (v) {
                         if (v == null || v.isEmpty) {
-                          return 'Vui lòng nhập mật khẩu';
+                          return l10n.passwordRequired;
                         }
                         if (v.length < 8) {
-                          return 'Mật khẩu phải tối thiểu 8 ký tự';
+                          return l10n.authPasswordMinLength;
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     _LabeledField(
-                      label: 'Xác nhận mật khẩu',
+                      label: l10n.authConfirmPasswordLabel,
                       controller: _confirmController,
-                      hint: 'Nhập lại mật khẩu',
+                      hint: l10n.authConfirmPasswordHint,
                       obscure: _obscureConfirm,
                       onToggleObscure: () =>
                           setState(() => _obscureConfirm = !_obscureConfirm),
                       validator: (v) {
                         if (v != _passwordController.text) {
-                          return 'Mật khẩu nhập lại không khớp';
+                          return l10n.authPasswordMismatch;
                         }
                         return null;
                       },
@@ -178,7 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 24),
                     BlocBuilder<AuthCubit, AuthState>(
                       builder: (context, state) => PrimaryButton(
-                        label: 'Tạo tài khoản',
+                        label: l10n.authRegisterTitle,
                         onPressed: _submit,
                         isLoading: state.isBusy,
                       ),
@@ -187,15 +191,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          'Đã có tài khoản? ',
-                          style: TextStyle(color: AppColors.mutedText),
+                        Text(
+                          l10n.authAlreadyHaveAccount,
+                          style: const TextStyle(color: AppColors.mutedText),
                         ),
                         GestureDetector(
                           onTap: () => context.pop(),
-                          child: const Text(
-                            'Đăng nhập',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.authLoginTitle,
+                            style: const TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
@@ -293,6 +297,11 @@ class _TermsCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    const linkStyle = TextStyle(
+      color: AppColors.primary,
+      fontWeight: FontWeight.w600,
+    );
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -311,26 +320,17 @@ class _TermsCheckbox extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: RichText(
-            text: const TextSpan(
-              style: TextStyle(fontSize: 13, color: AppColors.secondaryText),
+            text: TextSpan(
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.secondaryText,
+              ),
               children: [
-                TextSpan(text: 'Tôi đồng ý với '),
-                TextSpan(
-                  text: 'Điều khoản sử dụng',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                TextSpan(text: ' và '),
-                TextSpan(
-                  text: 'Chính sách bảo mật',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                TextSpan(text: ' của RideVN'),
+                TextSpan(text: l10n.authTermsPrefix),
+                TextSpan(text: l10n.authTermsOfUse, style: linkStyle),
+                TextSpan(text: l10n.authTermsAnd),
+                TextSpan(text: l10n.authPrivacyPolicy, style: linkStyle),
+                TextSpan(text: l10n.authTermsSuffix),
               ],
             ),
           ),

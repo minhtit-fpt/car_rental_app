@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/otp_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/otp_input_field.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 
@@ -76,6 +77,7 @@ class _OtpViewState extends State<_OtpView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocListener<OtpCubit, OtpState>(
       listener: (context, state) {
         if (state is OtpVerified) {
@@ -84,7 +86,7 @@ class _OtpViewState extends State<_OtpView> {
         if (state is OtpFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(l10n.authOtpInvalid),
               backgroundColor: AppColors.danger,
             ),
           );
@@ -112,9 +114,9 @@ class _OtpViewState extends State<_OtpView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  const Text(
-                    'Xác thực OTP',
-                    style: TextStyle(
+                  Text(
+                    l10n.authOtpTitle,
+                    style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: AppColors.darkText,
@@ -128,7 +130,7 @@ class _OtpViewState extends State<_OtpView> {
                         color: AppColors.mutedText,
                       ),
                       children: [
-                        const TextSpan(text: 'Nhập mã 6 số đã gửi tới '),
+                        TextSpan(text: l10n.authOtpSentToPrefix),
                         TextSpan(
                           text: '+84 ${widget.phone}',
                           style: const TextStyle(
@@ -148,7 +150,7 @@ class _OtpViewState extends State<_OtpView> {
                   const SizedBox(height: 32),
                   BlocBuilder<OtpCubit, OtpState>(
                     builder: (context, state) => PrimaryButton(
-                      label: 'Xác nhận',
+                      label: l10n.authOtpConfirm,
                       onPressed: _otp.length == 6 ? _verify : null,
                       isLoading: state is OtpVerifying,
                     ),
@@ -163,9 +165,9 @@ class _OtpViewState extends State<_OtpView> {
                                 color: AppColors.mutedText,
                               ),
                               children: [
-                                const TextSpan(text: 'Gửi lại sau '),
+                                TextSpan(text: l10n.authOtpResendInPrefix),
                                 TextSpan(
-                                  text: '$_secondsLeft giây',
+                                  text: l10n.authOtpSeconds(_secondsLeft),
                                   style: const TextStyle(
                                     color: AppColors.primary,
                                     fontWeight: FontWeight.w600,
@@ -176,9 +178,9 @@ class _OtpViewState extends State<_OtpView> {
                           )
                         : GestureDetector(
                             onTap: _resend,
-                            child: const Text(
-                              'Gửi lại mã OTP',
-                              style: TextStyle(
+                            child: Text(
+                              l10n.authOtpResend,
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w600,
@@ -196,18 +198,18 @@ class _OtpViewState extends State<_OtpView> {
                         color: AppColors.primary.withAlpha(40),
                       ),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.info_outline_rounded,
                           size: 16,
                           color: AppColors.primary,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Dùng mã 123456 để test trong môi trường demo.',
-                            style: TextStyle(
+                            l10n.authOtpDemoHint,
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.primary,
                             ),

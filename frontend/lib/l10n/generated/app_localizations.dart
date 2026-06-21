@@ -127,6 +127,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'English'**
   String get languageEnglish;
+
+  /// Label for phone number input fields
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get phoneLabel;
+
+  /// No description provided for @phoneRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your phone number'**
+  String get phoneRequired;
+
+  /// No description provided for @phoneInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid phone number'**
+  String get phoneInvalid;
+
+  /// Label for password input fields
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get passwordLabel;
+
+  /// No description provided for @passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password'**
+  String get passwordRequired;
+
+  /// Login screen heading and submit button
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get authLoginTitle;
+
+  /// No description provided for @authLoginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone number and password to continue'**
+  String get authLoginSubtitle;
+
+  /// No description provided for @authNoAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account? '**
+  String get authNoAccount;
+
+  /// No description provided for @authRegisterNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Register now'**
+  String get authRegisterNow;
+
+  /// Register screen app bar title and submit button
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get authRegisterTitle;
+
+  /// No description provided for @authRegisterSectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account information'**
+  String get authRegisterSectionAccount;
+
+  /// No description provided for @authEmailOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email (optional)'**
+  String get authEmailOptionalLabel;
+
+  /// No description provided for @authEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email'**
+  String get authEmailInvalid;
+
+  /// No description provided for @authPasswordHintMin.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters'**
+  String get authPasswordHintMin;
+
+  /// No description provided for @authPasswordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters'**
+  String get authPasswordMinLength;
+
+  /// No description provided for @authConfirmPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get authConfirmPasswordLabel;
+
+  /// No description provided for @authConfirmPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter your password'**
+  String get authConfirmPasswordHint;
+
+  /// No description provided for @authPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get authPasswordMismatch;
+
+  /// No description provided for @authAlreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? '**
+  String get authAlreadyHaveAccount;
+
+  /// No description provided for @authAgreeTermsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please agree to the terms of use'**
+  String get authAgreeTermsRequired;
+
+  /// No description provided for @authTermsPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the '**
+  String get authTermsPrefix;
+
+  /// No description provided for @authTermsOfUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Use'**
+  String get authTermsOfUse;
+
+  /// No description provided for @authTermsAnd.
+  ///
+  /// In en, this message translates to:
+  /// **' and '**
+  String get authTermsAnd;
+
+  /// No description provided for @authPrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get authPrivacyPolicy;
+
+  /// No description provided for @authTermsSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **' of RideVN'**
+  String get authTermsSuffix;
+
+  /// No description provided for @authOtpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP Verification'**
+  String get authOtpTitle;
+
+  /// No description provided for @authOtpSentToPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code sent to '**
+  String get authOtpSentToPrefix;
+
+  /// No description provided for @authOtpConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get authOtpConfirm;
+
+  /// No description provided for @authOtpResendInPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in '**
+  String get authOtpResendInPrefix;
+
+  /// Resend countdown remaining seconds
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s'**
+  String authOtpSeconds(int seconds);
+
+  /// No description provided for @authOtpResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend OTP code'**
+  String get authOtpResend;
+
+  /// No description provided for @authOtpDemoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use code 123456 to test in the demo environment.'**
+  String get authOtpDemoHint;
+
+  /// No description provided for @authOtpInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid OTP code. Please try again.'**
+  String get authOtpInvalid;
 }
 
 class _AppLocalizationsDelegate

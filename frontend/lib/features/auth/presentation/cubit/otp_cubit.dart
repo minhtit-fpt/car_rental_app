@@ -28,8 +28,7 @@ final class OtpVerified extends OtpState {
 }
 
 final class OtpFailure extends OtpState {
-  const OtpFailure(this.message);
-  final String message;
+  const OtpFailure();
 }
 
 class OtpCubit extends Cubit<OtpState> {
@@ -50,7 +49,7 @@ class OtpCubit extends Cubit<OtpState> {
     if (code == _demoCode) {
       emit(const OtpVerified());
     } else {
-      emit(const OtpFailure('Mã OTP không đúng. Vui lòng thử lại.'));
+      emit(const OtpFailure());
     }
   }
 }

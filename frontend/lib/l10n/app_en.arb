@@ -19,5 +19,62 @@
   "languageEnglish": "English",
   "@languageEnglish": {
     "description": "Display name for the English language option (shown in its own language)"
-  }
+  },
+
+  "phoneLabel": "Phone number",
+  "@phoneLabel": {
+    "description": "Label for phone number input fields"
+  },
+  "phoneRequired": "Please enter your phone number",
+  "phoneInvalid": "Invalid phone number",
+  "passwordLabel": "Password",
+  "@passwordLabel": {
+    "description": "Label for password input fields"
+  },
+  "passwordRequired": "Please enter your password",
+
+  "authLoginTitle": "Log in",
+  "@authLoginTitle": {
+    "description": "Login screen heading and submit button"
+  },
+  "authLoginSubtitle": "Enter your phone number and password to continue",
+  "authNoAccount": "Don't have an account? ",
+  "authRegisterNow": "Register now",
+
+  "authRegisterTitle": "Create account",
+  "@authRegisterTitle": {
+    "description": "Register screen app bar title and submit button"
+  },
+  "authRegisterSectionAccount": "Account information",
+  "authEmailOptionalLabel": "Email (optional)",
+  "authEmailInvalid": "Invalid email",
+  "authPasswordHintMin": "At least 8 characters",
+  "authPasswordMinLength": "Password must be at least 8 characters",
+  "authConfirmPasswordLabel": "Confirm password",
+  "authConfirmPasswordHint": "Re-enter your password",
+  "authPasswordMismatch": "Passwords do not match",
+  "authAlreadyHaveAccount": "Already have an account? ",
+  "authAgreeTermsRequired": "Please agree to the terms of use",
+  "authTermsPrefix": "I agree to the ",
+  "authTermsOfUse": "Terms of Use",
+  "authTermsAnd": " and ",
+  "authPrivacyPolicy": "Privacy Policy",
+  "authTermsSuffix": " of RideVN",
+
+  "authOtpTitle": "OTP Verification",
+  "authOtpSentToPrefix": "Enter the 6-digit code sent to ",
+  "authOtpConfirm": "Confirm",
+  "authOtpResendInPrefix": "Resend in ",
+  "authOtpSeconds": "{seconds}s",
+  "@authOtpSeconds": {
+    "description": "Resend countdown remaining seconds",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "authOtpResend": "Resend OTP code",
+  "authOtpDemoHint": "Use code 123456 to test in the demo environment.",
+  "authOtpInvalid": "Invalid OTP code. Please try again."
 }
