@@ -17,6 +17,7 @@ export interface PublicUser {
   id: string;
   phone: string;
   email: string | null;
+  name: string | null;
   roles: UserRole[];
   kycStatus: KycStatus;
 }
@@ -36,6 +37,7 @@ function toPublicUser(user: User): PublicUser {
     id: user.id,
     phone: user.phone,
     email: user.email,
+    name: user.name,
     roles: user.roles,
     kycStatus: user.kycStatus,
   };
@@ -71,6 +73,7 @@ export const authService = {
     const user = await userRepository.create({
       phone: input.phone,
       email: input.email,
+      name: input.name,
       passwordHash,
     });
 

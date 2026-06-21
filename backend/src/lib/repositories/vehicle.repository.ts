@@ -58,6 +58,7 @@ export interface NearbyParams {
 export interface NearbyRow {
   id: string;
   ownerId: string;
+  ownerName: string | null;
   type: VehicleType;
   title: string;
   pricePerHour: number;
@@ -74,6 +75,10 @@ export interface NearbyRow {
   lng: number;
   distanceMeters: number;
 }
+
+// Vehicle kèm tên chủ xe (cho list/getById). `owner` chỉ select trường hiển thị.
+const ownerNameInclude = { owner: { select: { name: true } } } as const;
+export type VehicleWithOwner = Vehicle & { owner: { name: string | null } };
 
 function buildWhere(f: VehicleListFilters): Prisma.VehicleWhereInput {
   return {
@@ -93,7 +98,7 @@ function buildWhere(f: VehicleListFilters): Prisma.VehicleWhereInput {
 export const vehicleRepository = {
   async findMany(
     f: VehicleListFilters,
-  ): Promise<{ items: Vehicle[]; total: number }> {
+  ): Promise<{ items: VehicleWithOwner[]; total: number }> {
     const where = buildWhere(f);
     const [items, total] = await Promise.all([
       prisma.vehicle.findMany({
@@ -101,6 +106,7 @@ export const vehicleRepository = {
         orderBy: { createdAt: "desc" },
         skip: (f.page - 1) * f.limit,
         take: f.limit,
+        include: ownerNameInclude,
       }),
       prisma.vehicle.count({ where }),
     ]);
@@ -109,6 +115,13 @@ export const vehicleRepository = {
 
   findById(id: string): Promise<Vehicle | null> {
     return prisma.vehicle.findUnique({ where: { id } });
+  },
+
+  findByIdWithOwner(id: string): Promise<VehicleWithOwner | null> {
+    return prisma.vehicle.findUnique({
+      where: { id },
+      include: ownerNameInclude,
+    });
   },
 
   async create(data: CreateVehicleData): Promise<Vehicle> {
@@ -180,21 +193,22 @@ export const vehicleRepository = {
   findNearby(p: NearbyParams): Promise<NearbyRow[]> {
     return prisma.$queryRaw<NearbyRow[]>(Prisma.sql`
       SELECT
-        "id", "ownerId", "type", "title",
-        "pricePerHour"::float8 AS "pricePerHour",
-        "isElectric", "isAvailable", "deliveryAvailable",
-        "seats", "doors", "transmission", "city",
-        "createdAt", "updatedAt",
-        ST_Y("location"::geometry) AS "lat",
-        ST_X("location"::geometry) AS "lng",
+        v."id", v."ownerId", u."name" AS "ownerName", v."type", v."title",
+        v."pricePerHour"::float8 AS "pricePerHour",
+        v."isElectric", v."isAvailable", v."deliveryAvailable",
+        v."seats", v."doors", v."transmission", v."city",
+        v."createdAt", v."updatedAt",
+        ST_Y(v."location"::geometry) AS "lat",
+        ST_X(v."location"::geometry) AS "lng",
         ST_Distance(
-          "location",
+          v."location",
           ST_SetSRID(ST_MakePoint(${p.lng}, ${p.lat}), 4326)::geography
         ) AS "distanceMeters"
-      FROM "Vehicle"
-      WHERE "isAvailable" = true
+      FROM "Vehicle" v
+      JOIN "User" u ON u."id" = v."ownerId"
+      WHERE v."isAvailable" = true
         AND ST_DWithin(
-          "location",
+          v."location",
           ST_SetSRID(ST_MakePoint(${p.lng}, ${p.lat}), 4326)::geography,
           ${p.radius}
         )

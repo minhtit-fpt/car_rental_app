@@ -7,6 +7,7 @@ export interface PublicUser {
   id: string;
   phone: string;
   email: string | null;
+  name: string | null;
   roles: UserRole[];
   kycStatus: KycStatus;
 }
@@ -16,6 +17,7 @@ function toPublicUser(user: User): PublicUser {
     id: user.id,
     phone: user.phone,
     email: user.email,
+    name: user.name,
     roles: user.roles,
     kycStatus: user.kycStatus,
   };
@@ -28,7 +30,8 @@ export const userService = {
   ): Promise<PublicUser> {
     try {
       const updated = await userRepository.updateProfile(userId, {
-        email: input.email,
+        ...(input.email !== undefined && { email: input.email }),
+        ...(input.name !== undefined && { name: input.name }),
       });
       return toPublicUser(updated);
     } catch (error) {

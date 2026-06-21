@@ -19,6 +19,9 @@ class UserReviewsCubit extends Cubit<UserReviewsState> {
       emit(UserReviewsLoaded(await _listUserReviews(userId)));
     } on ApiException catch (e) {
       emit(UserReviewsError(e.message));
+    } catch (e) {
+      // Bắt mọi lỗi còn lại (vd lỗi parse) để KHÔNG kẹt ở Loading âm thầm.
+      emit(UserReviewsError('Lỗi tải đánh giá: $e'));
     }
   }
 }

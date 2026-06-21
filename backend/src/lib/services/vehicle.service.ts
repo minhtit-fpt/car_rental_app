@@ -14,6 +14,7 @@ import type {
 export interface PublicVehicle {
   id: string;
   ownerId: string;
+  ownerName: string | null;
   type: VehicleType;
   title: string;
   pricePerHour: number;
@@ -61,10 +62,14 @@ const OCCUPYING_STATUSES: BookingStatus[] = [
 ];
 
 // Decimal của Prisma → number cho JSON response.
-function toPublicVehicle(v: Vehicle): PublicVehicle {
+function toPublicVehicle(
+  v: Vehicle,
+  ownerName: string | null,
+): PublicVehicle {
   return {
     id: v.id,
     ownerId: v.ownerId,
+    ownerName,
     type: v.type,
     title: v.title,
     pricePerHour: Number(v.pricePerHour),
@@ -84,6 +89,7 @@ function toNearbyVehicle(row: NearbyRow): NearbyVehicle {
   return {
     id: row.id,
     ownerId: row.ownerId,
+    ownerName: row.ownerName,
     type: row.type,
     title: row.title,
     pricePerHour: Number(row.pricePerHour),
@@ -117,7 +123,7 @@ export const vehicleService = {
   async list(filters: VehicleListFilters): Promise<VehicleListResult> {
     const { items, total } = await vehicleRepository.findMany(filters);
     return {
-      items: items.map(toPublicVehicle),
+      items: items.map((v) => toPublicVehicle(v, v.owner.name)),
       total,
       page: filters.page,
       limit: filters.limit,
@@ -125,11 +131,11 @@ export const vehicleService = {
   },
 
   async getById(id: string): Promise<PublicVehicle> {
-    const v = await vehicleRepository.findById(id);
+    const v = await vehicleRepository.findByIdWithOwner(id);
     if (!v) {
       throw new AppError(404, "VEHICLE_NOT_FOUND", "Không tìm thấy xe");
     }
-    return toPublicVehicle(v);
+    return toPublicVehicle(v, v.owner.name);
   },
 
   // Lịch bận của một xe suy ra từ các đơn đặt (chờ xác nhận/đang thuê) từ `from`.
@@ -173,7 +179,8 @@ export const vehicleService = {
     input: CreateVehicleInput,
   ): Promise<PublicVehicle> {
     const v = await vehicleRepository.create({ ownerId, ...input });
-    return toPublicVehicle(v);
+    const withOwner = await vehicleRepository.findByIdWithOwner(v.id);
+    return toPublicVehicle(v, withOwner?.owner.name ?? null);
   },
 
   async update(
@@ -183,7 +190,8 @@ export const vehicleService = {
   ): Promise<PublicVehicle> {
     await loadOwned(id, userId);
     const v = await vehicleRepository.update(id, input);
-    return toPublicVehicle(v);
+    const withOwner = await vehicleRepository.findByIdWithOwner(id);
+    return toPublicVehicle(v, withOwner?.owner.name ?? null);
   },
 
   async remove(userId: string, id: string): Promise<void> {

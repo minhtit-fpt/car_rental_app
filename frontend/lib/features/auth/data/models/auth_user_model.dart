@@ -7,6 +7,7 @@ abstract final class AuthUserModel {
     id: json['id'] as String,
     phone: json['phone'] as String,
     email: json['email'] as String?,
+    name: json['name'] as String?,
     roles: (json['roles'] as List<dynamic>)
         .map((e) => UserRole.fromApi(e as String))
         .toList(growable: false),

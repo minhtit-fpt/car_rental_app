@@ -8,11 +8,13 @@ class AuthUser {
     required this.roles,
     required this.kycStatus,
     this.email,
+    this.name,
   });
 
   final String id;
   final String phone;
   final String? email;
+  final String? name;
   final List<UserRole> roles;
 
   /// Giữ dạng chuỗi (UNVERIFIED|PENDING|VERIFIED|REJECTED…) — UI chỉ hiển thị.

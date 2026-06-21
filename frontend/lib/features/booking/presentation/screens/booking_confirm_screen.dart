@@ -104,8 +104,6 @@ class _BookingConfirmView extends StatelessWidget {
                           const SizedBox(height: 16),
                           _TripDetailsCard(state: state),
                           const SizedBox(height: 16),
-                          _PaymentMethodCard(),
-                          const SizedBox(height: 16),
                           _TotalCard(
                             vehicle: vehicle,
                             state: state,
@@ -367,79 +365,6 @@ class _DetailRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _PaymentMethodCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.cardShadowColor,
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // VISA card visual
-          Container(
-            width: 52,
-            height: 34,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1A1F71), Color(0xFF2563EB)],
-              ),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Center(
-              child: Text(
-                'VISA',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Thẻ tín dụng',
-                  style: TextStyle(fontSize: 12, color: AppColors.mutedText),
-                ),
-                Text(
-                  '**** **** **** 4242',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Icon(
-            Icons.chevron_right_rounded,
-            size: 20,
-            color: AppColors.mutedText,
-          ),
-        ],
-      ),
     );
   }
 }

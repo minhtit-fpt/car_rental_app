@@ -47,6 +47,7 @@ function makeUser(overrides: Partial<User> = {}): User {
     id: "user-1",
     phone: "+84901234567",
     email: null,
+    name: null,
     passwordHash: "hashed-password",
     roles: [UserRole.RENTER],
     kycStatus: KycStatus.UNVERIFIED,
