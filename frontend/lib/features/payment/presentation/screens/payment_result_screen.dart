@@ -5,6 +5,18 @@ import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 
+/// Định dạng VND đầy đủ với dấu phân cách nghìn (vd: 1536000 → "1.536.000").
+/// `amount` là tổng tiền thật của đơn (VND đầy đủ), không phải đơn vị nghìn (K).
+String _fmtVnd(num v) {
+  final s = v.round().abs().toString();
+  final buf = StringBuffer();
+  for (var i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
+    buf.write(s[i]);
+  }
+  return '${v < 0 ? '-' : ''}$buf';
+}
+
 class PaymentResultScreen extends StatelessWidget {
   const PaymentResultScreen({
     super.key,
@@ -136,7 +148,7 @@ class _SuccessDetails extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _DetailRow(label: 'Số tiền', value: '${amount.toInt()}K VNĐ'),
+          _DetailRow(label: 'Số tiền', value: '${_fmtVnd(amount)} VNĐ'),
           const SizedBox(height: 10),
           _DetailRow(label: 'Mã giao dịch', value: 'TXN${now.millisecondsSinceEpoch ~/ 1000}'),
           const SizedBox(height: 10),

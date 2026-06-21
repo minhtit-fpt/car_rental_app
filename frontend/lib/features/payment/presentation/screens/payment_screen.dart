@@ -11,6 +11,18 @@ import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
 enum _PayMethod { vnpay, momo, zalopay, card }
 
+/// Định dạng VND đầy đủ với dấu phân cách nghìn (vd: 1536000 → "1.536.000").
+/// `amount` là tổng tiền thật của đơn (VND đầy đủ), không phải đơn vị nghìn (K).
+String _fmtVnd(num v) {
+  final s = v.round().abs().toString();
+  final buf = StringBuffer();
+  for (var i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
+    buf.write(s[i]);
+  }
+  return '${v < 0 ? '-' : ''}$buf';
+}
+
 class PaymentScreen extends StatelessWidget {
   const PaymentScreen({
     super.key,
@@ -132,7 +144,7 @@ class _PaymentViewState extends State<_PaymentView> {
                         builder: (context, state) {
                           final isProcessing = state is PaymentProcessing;
                           return PrimaryButton(
-                            label: 'Thanh toán ${widget.amount.toInt()}K VNĐ',
+                            label: 'Thanh toán ${_fmtVnd(widget.amount)} VNĐ',
                             onPressed: isProcessing
                                 ? null
                                 : () => context
@@ -177,7 +189,7 @@ class _AmountCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${amount.toInt()}K VNĐ',
+            '${_fmtVnd(amount)} VNĐ',
             style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
