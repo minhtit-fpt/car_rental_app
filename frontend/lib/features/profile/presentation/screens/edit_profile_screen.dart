@@ -7,6 +7,7 @@ import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
+import 'package:frontend/shared/utils/coming_soon.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -135,7 +136,7 @@ class _AvatarSection extends StatelessWidget {
             bottom: 0,
             right: 0,
             child: GestureDetector(
-              onTap: () {},
+              onTap: () => showComingSoonSnack(context, 'Đổi ảnh đại diện'),
               child: Container(
                 width: 30,
                 height: 30,
