@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/locale/locale_cubit.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:frontend/shared/utils/coming_soon.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
 /// Phiên bản hiển thị ở mục "Về ứng dụng". Đồng bộ thủ công với `pubspec.yaml`
 /// (chưa thêm package_info_plus để tránh dependency mới ở plan này).
@@ -70,8 +71,65 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  /// Bottom sheet chọn ngôn ngữ. Đổi qua [LocaleCubit] (persist + rebuild app).
+  Future<void> _showLanguagePicker() async {
+    final l10n = AppLocalizations.of(context);
+    final localeCubit = context.read<LocaleCubit>();
+    final current = localeCubit.state.languageCode;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Text(
+                l10n.languagePickerTitle,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkText,
+                ),
+              ),
+            ),
+            _LanguageOption(
+              label: l10n.languageVietnamese,
+              selected: current == 'vi',
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                localeCubit.setLocale(const Locale('vi'));
+              },
+            ),
+            _LanguageOption(
+              label: l10n.languageEnglish,
+              selected: current == 'en',
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                localeCubit.setLocale(const Locale('en'));
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    // Hiển thị autonym của ngôn ngữ đang chọn; rebuild khi LocaleCubit đổi.
+    final currentLanguageLabel =
+        context.watch<LocaleCubit>().state.languageCode == 'en'
+        ? l10n.languageEnglish
+        : l10n.languageVietnamese;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
@@ -90,11 +148,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       rows: [
                         _SettingsRow(
                           icon: Icons.language_outlined,
-                          title: 'Ngôn ngữ',
-                          subtitle: 'Tiếng Việt',
-                          trailing: const _ComingSoonChip(),
-                          onTap: () =>
-                              showComingSoonSnack(context, 'Đổi ngôn ngữ'),
+                          title: l10n.settingsLanguage,
+                          subtitle: currentLanguageLabel,
+                          onTap: _showLanguagePicker,
                         ),
                         _SettingsRow(
                           icon: Icons.notifications_outlined,
@@ -345,6 +401,49 @@ class _SettingsRow extends StatelessWidget {
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Một lựa chọn ngôn ngữ trong bottom sheet (có dấu check khi đang chọn).
+class _LanguageOption extends StatelessWidget {
+  const _LanguageOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  color: selected ? AppColors.primary : AppColors.darkText,
+                ),
+              ),
+            ),
+            if (selected)
+              const Icon(
+                Icons.check_rounded,
+                size: 20,
+                color: AppColors.primary,
+              ),
+          ],
         ),
       ),
     );

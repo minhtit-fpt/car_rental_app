@@ -10,6 +10,11 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Localization (i18n) — gen-l10n + ARB
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+
   # Navigation
   go_router: ^14.0.0
 
@@ -63,3 +68,4 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
+  generate: true

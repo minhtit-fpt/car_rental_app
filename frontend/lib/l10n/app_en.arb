@@ -1,0 +1,23 @@
+{
+  "@@locale": "en",
+  "appTitle": "RideVN",
+  "@appTitle": {
+    "description": "Application name shown in headers"
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Settings row label for the language picker"
+  },
+  "languagePickerTitle": "Select language",
+  "@languagePickerTitle": {
+    "description": "Title of the language selection bottom sheet"
+  },
+  "languageVietnamese": "Tiếng Việt",
+  "@languageVietnamese": {
+    "description": "Display name for the Vietnamese language option (shown in its own language)"
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "Display name for the English language option (shown in its own language)"
+  }
+}

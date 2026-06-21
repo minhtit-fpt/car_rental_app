@@ -5,10 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
+import 'package:frontend/core/locale/locale_cubit.dart';
 import 'package:frontend/core/router/app_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Future<void> main() async {
@@ -50,6 +52,7 @@ class RideVNApp extends StatefulWidget {
 class _RideVNAppState extends State<RideVNApp> {
   late final GoRouter _router = createAppRouter(widget.authCubit);
   final FavoriteCubit _favoriteCubit = sl<FavoriteCubit>();
+  final LocaleCubit _localeCubit = sl<LocaleCubit>();
 
   @override
   void initState() {
@@ -66,6 +69,7 @@ class _RideVNAppState extends State<RideVNApp> {
       providers: [
         BlocProvider<AuthCubit>.value(value: widget.authCubit),
         BlocProvider<FavoriteCubit>.value(value: _favoriteCubit),
+        BlocProvider<LocaleCubit>.value(value: _localeCubit),
       ],
       // Đồng bộ yêu thích theo phiên: đăng nhập → nạp, đăng xuất → xoá.
       child: BlocListener<AuthCubit, AuthState>(
@@ -81,11 +85,17 @@ class _RideVNAppState extends State<RideVNApp> {
               break;
           }
         },
-        child: MaterialApp.router(
-          title: 'RideVN',
-          debugShowCheckedModeBanner: false,
-          theme: _buildTheme(context),
-          routerConfig: _router,
+        child: BlocBuilder<LocaleCubit, Locale>(
+          bloc: _localeCubit,
+          builder: (context, locale) => MaterialApp.router(
+            title: 'RideVN',
+            debugShowCheckedModeBanner: false,
+            theme: _buildTheme(context),
+            locale: locale,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: _router,
+          ),
         ),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:frontend/core/db/app_database.dart';
+import 'package:frontend/core/locale/locale_cubit.dart';
 import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/storage/kv_storage.dart';
@@ -129,7 +130,8 @@ Future<void> setupStorage() async {
     ..registerSingleton<SecureStorage>(
       const SecureStorage(FlutterSecureStorage()),
     )
-    ..registerSingleton<KvStorage>(KvStorage(prefs));
+    ..registerSingleton<KvStorage>(KvStorage(prefs))
+    ..registerSingleton<LocaleCubit>(LocaleCubit(sl<KvStorage>()));
 }
 
 /// Đăng ký network + auth (data → domain → presentation). Gọi sau [setupStorage].
