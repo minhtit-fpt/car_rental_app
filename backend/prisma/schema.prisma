@@ -129,6 +129,11 @@ model Vehicle {
   isElectric        Boolean     @default(false)
   isAvailable       Boolean     @default(true)
   deliveryAvailable Boolean     @default(false)
+  // Thông số kỹ thuật (nullable — chỉ áp dụng cho một số loại xe).
+  seats             Int?
+  doors             Int?
+  transmission      String? // 'AUTOMATIC' | 'MANUAL'
+  city              String?
   // PostGIS — Prisma không hỗ trợ native, dùng Unsupported.
   // GIST index thêm thủ công trong migration.
   location          Unsupported("geography(Point, 4326)")

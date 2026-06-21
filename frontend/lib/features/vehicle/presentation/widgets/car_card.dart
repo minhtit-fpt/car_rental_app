@@ -339,10 +339,10 @@ class CarListTile extends StatelessWidget {
                         color: AppColors.mutedText,
                       ),
                     ),
-                    if (vehicle.location.isNotEmpty) ...[
+                    if (vehicle.city != null) ...[
                       const SizedBox(height: 2),
                       Text(
-                        '📍 ${vehicle.location}',
+                        '📍 ${vehicle.city}',
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.mutedText,

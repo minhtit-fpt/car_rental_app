@@ -141,7 +141,7 @@ Route handler chỉ parse request + gọi service, không chứa logic.
 ## Database — Models chính (Prisma)
 
 ```
-User              → id, phone, email, role (RENTER|OWNER|ADMIN), kycStatus
+User              → id, phone, email, roles[] (RENTER|OWNER|ADMIN), kycStatus, createdAt
 Vehicle           → id, ownerId, type, pricePerHour, isElectric, isAvailable, location
 Booking           → id, vehicleId, renterId, status, startTime, endTime, totalPrice
 Payment           → id, bookingId, method, status, amount, gatewayRef
@@ -178,6 +178,22 @@ Review            → id, bookingId, reviewerId, targetId, rating, comment
 | `ADMIN` | Duyệt KYC, xử lý tranh chấp, quản lý người dùng |
 
 > Một tài khoản có thể đồng thời là `RENTER` và `OWNER`.
+
+### Tab "Tôi" (Tài khoản) — `core/shell/app_shell.dart`
+
+- Bộ chuyển **👤 Người thuê / 🚗 Chủ xe** chỉ hiện khi `user.isOwner == true`.
+  RENTER thuần tuý chỉ thấy `RenterDashboardScreen`, không thấy toggle Chủ xe.
+  ADMIN có khu vực riêng ở `/admin`, không nằm trong toggle này.
+- `RenterDashboardScreen` (tab "Tôi") **chỉ hiển thị hồ sơ + chỉ số nhanh**.
+  Danh sách chuyến nằm hẳn ở tab **"Chuyến"** (`MyTripsScreen`) — không lặp lại
+  danh sách booking trong màn hồ sơ.
+- Nguồn dữ liệu màn hồ sơ (đã nối BE):
+  - Hồ sơ (email, SĐT, KYC, vai trò) ← `AuthCubit` (`GET /api/auth/me`)
+  - Stats Đang thuê / Sắp tới / Tổng chuyến ← `MyTripsCubit` (`GET /api/bookings`)
+  - Điểm thưởng ← `LoyaltyCubit` (`GET /api/loyalty`)
+- `PublicUser` của BE **không có** trường tên/rating/ngày tham gia
+  (chỉ `id, phone, email, roles, kycStatus`). Display name fallback:
+  email → số điện thoại. Không hardcode tên/rating giả.
 
 ---
 

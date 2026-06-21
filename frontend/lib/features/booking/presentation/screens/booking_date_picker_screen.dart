@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
+import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
@@ -35,7 +36,15 @@ class BookingDatePickerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<BookingCubit>(),
+      create: (_) {
+        final cubit = sl<BookingCubit>();
+        // Prefill theo ngày đã chọn ở thanh tìm kiếm màn chính (nếu có).
+        final search = sl<SearchSession>();
+        if (search.hasDates) {
+          cubit.setDates(search.startDate!, search.endDate!);
+        }
+        return cubit;
+      },
       child: _BookingDatePickerView(vehicle: vehicle),
     );
   }
@@ -192,6 +201,15 @@ class _DateRangePicker extends StatefulWidget {
 class _DateRangePickerState extends State<_DateRangePicker> {
   DateTime? _start;
   DateTime? _end;
+
+  @override
+  void initState() {
+    super.initState();
+    // Hiển thị ngày cubit đã được seed sẵn (từ thanh tìm kiếm màn chính).
+    final state = context.read<BookingCubit>().state;
+    _start = state.startDate;
+    _end = state.endDate;
+  }
 
   Future<void> _pickDates() async {
     final cubit = context.read<BookingCubit>();

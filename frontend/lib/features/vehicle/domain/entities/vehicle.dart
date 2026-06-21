@@ -14,6 +14,10 @@ class Vehicle {
     required this.isElectric,
     required this.isAvailable,
     required this.deliveryAvailable,
+    this.seats,
+    this.doors,
+    this.transmission,
+    this.city,
     this.rating,
     this.reviewCount,
     this.ownerName,
@@ -33,6 +37,16 @@ class Vehicle {
   final bool isElectric;
   final bool isAvailable;
   final bool deliveryAvailable;
+
+  // ── Thông số kỹ thuật (nullable — backend trả null nếu chưa nhập) ─────────
+  final int? seats;
+  final int? doors;
+
+  /// `'AUTOMATIC'` | `'MANUAL'` | null.
+  final String? transmission;
+
+  /// Thành phố hiển thị (text thật từ backend), null nếu chưa nhập.
+  final String? city;
 
   /// Chỉ có khi gọi `/api/vehicles/nearby` (mét). Null ở list/detail thường.
   final int? distanceMeters;
@@ -54,6 +68,13 @@ class Vehicle {
 
   /// Có dữ liệu đánh giá thật để hiển thị hay không.
   bool get hasRating => rating != null && (reviewCount ?? 0) > 0;
+
+  /// Nhãn hộp số tiếng Việt, null nếu chưa có dữ liệu.
+  String? get transmissionLabel => switch (transmission) {
+    'AUTOMATIC' => 'Tự động',
+    'MANUAL' => 'Số sàn',
+    _ => null,
+  };
 
   String get emoji => switch (type) {
     'MOTORBIKE' => '🏍️',

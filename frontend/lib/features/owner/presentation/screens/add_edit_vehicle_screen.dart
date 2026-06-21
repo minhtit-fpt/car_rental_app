@@ -4,14 +4,18 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/owner/presentation/cubit/vehicle_form_cubit.dart';
+import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 
 class AddEditVehicleScreen extends StatefulWidget {
-  const AddEditVehicleScreen({super.key, this.isEdit = false});
+  const AddEditVehicleScreen({super.key, this.isEdit = false, this.vehicle});
 
   final bool isEdit;
+
+  /// Xe cần sửa (chỉ có khi [isEdit] = true). Dùng để prefill form.
+  final Vehicle? vehicle;
 
   @override
   State<AddEditVehicleScreen> createState() => _AddEditVehicleScreenState();
@@ -21,13 +25,24 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   final _nameController = TextEditingController(text: '');
   final _priceController = TextEditingController(text: '');
   final _descController = TextEditingController(text: '');
+  final _seatsController = TextEditingController(text: '');
+  final _doorsController = TextEditingController(text: '');
+  final _cityController = TextEditingController(text: '');
   // Vị trí mặc định: trung tâm Hà Nội (chưa có map picker — sẽ thay sau).
   final _latController = TextEditingController(text: '21.0278');
   final _lngController = TextEditingController(text: '105.8342');
   String _selectedType = 'CAR';
+  String? _transmission; // 'AUTOMATIC' | 'MANUAL' | null
   bool _isElectric = false;
   bool _deliveryAvailable = false;
   bool _isSubmitting = false;
+
+  // Hộp số: value gửi server → nhãn hiển thị. Mục đầu = không áp dụng (null).
+  static const _transmissions = {
+    '': 'Không áp dụng',
+    'AUTOMATIC': 'Tự động',
+    'MANUAL': 'Số sàn',
+  };
 
   // Khớp enum VehicleType của backend: value gửi server → nhãn hiển thị.
   static const _types = {
@@ -37,10 +52,32 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   };
 
   @override
+  void initState() {
+    super.initState();
+    // Prefill khi sửa. Vehicle entity không có lat/lng nên giữ nguyên vị trí cũ
+    // (card vị trí được ẩn ở chế độ sửa, không gửi toạ độ lên backend).
+    final v = widget.vehicle;
+    if (v != null) {
+      _nameController.text = v.title;
+      _priceController.text = v.pricePerHour.toStringAsFixed(0);
+      _selectedType = v.type;
+      _isElectric = v.isElectric;
+      _deliveryAvailable = v.deliveryAvailable;
+      _seatsController.text = v.seats?.toString() ?? '';
+      _doorsController.text = v.doors?.toString() ?? '';
+      _cityController.text = v.city ?? '';
+      _transmission = v.transmission;
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _priceController.dispose();
     _descController.dispose();
+    _seatsController.dispose();
+    _doorsController.dispose();
+    _cityController.dispose();
     _latController.dispose();
     _lngController.dispose();
     super.dispose();
@@ -51,35 +88,60 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   }
 
   Future<void> _submit() async {
-    if (widget.isEdit) {
-      _snack('Tính năng chỉnh sửa xe đang hoàn thiện');
-      return;
-    }
     final title = _nameController.text.trim();
     final price = double.tryParse(_priceController.text.trim());
-    final lat = double.tryParse(_latController.text.trim());
-    final lng = double.tryParse(_lngController.text.trim());
     if (title.isEmpty) return _snack('Vui lòng nhập tên xe');
     if (price == null || price <= 0) return _snack('Giá thuê phải lớn hơn 0');
-    if (lat == null || lng == null) return _snack('Toạ độ không hợp lệ');
 
-    setState(() => _isSubmitting = true);
+    final seats = int.tryParse(_seatsController.text.trim());
+    final doors = int.tryParse(_doorsController.text.trim());
+    final cityText = _cityController.text.trim();
+    final city = cityText.isEmpty ? null : cityText;
+
     final cubit = sl<VehicleFormCubit>();
-    await cubit.create(
-      type: _selectedType,
-      title: title,
-      pricePerHour: price,
-      isElectric: _isElectric,
-      deliveryAvailable: _deliveryAvailable,
-      lat: lat,
-      lng: lng,
-    );
+    setState(() => _isSubmitting = true);
+
+    if (widget.isEdit) {
+      // Sửa: không gửi toạ độ (giữ nguyên vị trí cũ); type không đổi được.
+      await cubit.update(
+        widget.vehicle!.id,
+        title: title,
+        pricePerHour: price,
+        isElectric: _isElectric,
+        deliveryAvailable: _deliveryAvailable,
+        seats: seats,
+        doors: doors,
+        transmission: _transmission,
+        city: city,
+      );
+    } else {
+      final lat = double.tryParse(_latController.text.trim());
+      final lng = double.tryParse(_lngController.text.trim());
+      if (lat == null || lng == null) {
+        setState(() => _isSubmitting = false);
+        return _snack('Toạ độ không hợp lệ');
+      }
+      await cubit.create(
+        type: _selectedType,
+        title: title,
+        pricePerHour: price,
+        isElectric: _isElectric,
+        deliveryAvailable: _deliveryAvailable,
+        lat: lat,
+        lng: lng,
+        seats: seats,
+        doors: doors,
+        transmission: _transmission,
+        city: city,
+      );
+    }
+
     if (!mounted) return;
     setState(() => _isSubmitting = false);
     switch (cubit.state) {
       case VehicleFormSuccess():
-        _snack('Đăng xe thành công');
-        context.pop();
+        _snack(widget.isEdit ? 'Cập nhật xe thành công' : 'Đăng xe thành công');
+        context.pop(true);
       case VehicleFormError(:final message):
         _snack(message);
       case VehicleFormIdle():
@@ -120,12 +182,26 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                           setState(() => _selectedType = t),
                     ),
                     const SizedBox(height: 16),
-                    _DescriptionCard(controller: _descController),
-                    const SizedBox(height: 16),
-                    _LocationCard(
-                      latController: _latController,
-                      lngController: _lngController,
+                    _SpecsCard(
+                      seatsController: _seatsController,
+                      doorsController: _doorsController,
+                      cityController: _cityController,
+                      transmission: _transmission,
+                      transmissions: _transmissions,
+                      onTransmissionChanged: (t) =>
+                          setState(() => _transmission = t.isEmpty ? null : t),
                     ),
+                    const SizedBox(height: 16),
+                    _DescriptionCard(controller: _descController),
+                    // Vị trí chỉ đặt khi đăng xe mới — sửa xe giữ nguyên toạ độ
+                    // cũ (Vehicle entity chưa expose lat/lng để prefill).
+                    if (!widget.isEdit) ...[
+                      const SizedBox(height: 16),
+                      _LocationCard(
+                        latController: _latController,
+                        lngController: _lngController,
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     _OptionsCard(
                       isElectric: _isElectric,
@@ -504,6 +580,153 @@ class _LocationCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SpecsCard extends StatelessWidget {
+  const _SpecsCard({
+    required this.seatsController,
+    required this.doorsController,
+    required this.cityController,
+    required this.transmission,
+    required this.transmissions,
+    required this.onTransmissionChanged,
+  });
+
+  final TextEditingController seatsController;
+  final TextEditingController doorsController;
+  final TextEditingController cityController;
+  final String? transmission;
+  final Map<String, String> transmissions;
+  final ValueChanged<String> onTransmissionChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.cardShadowColor,
+            blurRadius: 12,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(title: 'Thông số kỹ thuật'),
+          const SizedBox(height: 4),
+          const Text(
+            'Có thể bỏ trống nếu không áp dụng (vd: xe máy, xe đạp).',
+            style: TextStyle(fontSize: 11, color: AppColors.mutedText),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _FormField(
+                  label: 'Số chỗ',
+                  hint: 'VD: 5',
+                  controller: seatsController,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _FormField(
+                  label: 'Số cửa',
+                  hint: 'VD: 4',
+                  controller: doorsController,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _LabeledDropdown(
+            label: 'Hộp số',
+            value: transmission ?? '',
+            items: transmissions,
+            onChanged: onTransmissionChanged,
+          ),
+          const SizedBox(height: 12),
+          _FormField(
+            label: 'Thành phố',
+            hint: 'VD: TP. HCM',
+            controller: cityController,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Dropdown có nhãn dùng chung (loại xe, hộp số…).
+class _LabeledDropdown extends StatelessWidget {
+  const _LabeledDropdown({
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String value;
+  final Map<String, String> items;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.secondaryText,
+          ),
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          initialValue: value,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.background,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
+            ),
+            isDense: true,
+          ),
+          style: const TextStyle(fontSize: 13, color: AppColors.darkText),
+          items: items.entries
+              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+              .toList(),
+          onChanged: (v) {
+            if (v != null) onChanged(v);
+          },
+        ),
+      ],
     );
   }
 }

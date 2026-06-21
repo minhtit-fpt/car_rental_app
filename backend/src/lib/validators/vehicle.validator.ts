@@ -36,6 +36,8 @@ export const nearbyQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
 });
 
+const transmissionSchema = z.enum(["AUTOMATIC", "MANUAL"]);
+
 export const createVehicleSchema = z.object({
   type: vehicleTypeSchema,
   title: z.string().trim().min(1, "Tiêu đề là bắt buộc").max(120),
@@ -43,6 +45,10 @@ export const createVehicleSchema = z.object({
   isElectric: z.boolean().default(false),
   deliveryAvailable: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
+  seats: z.number().int().positive().max(64).optional(),
+  doors: z.number().int().positive().max(10).optional(),
+  transmission: transmissionSchema.optional(),
+  city: z.string().trim().min(1).max(100).optional(),
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
 });
@@ -54,6 +60,10 @@ export const updateVehicleSchema = z
     isElectric: z.boolean().optional(),
     deliveryAvailable: z.boolean().optional(),
     isAvailable: z.boolean().optional(),
+    seats: z.number().int().positive().max(64).optional(),
+    doors: z.number().int().positive().max(10).optional(),
+    transmission: transmissionSchema.optional(),
+    city: z.string().trim().min(1).max(100).optional(),
     lat: z.number().min(-90).max(90).optional(),
     lng: z.number().min(-180).max(180).optional(),
   })

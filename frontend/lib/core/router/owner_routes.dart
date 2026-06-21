@@ -4,6 +4,7 @@ import 'package:frontend/features/owner/presentation/screens/add_edit_vehicle_sc
 import 'package:frontend/features/owner/presentation/screens/booking_request_detail_screen.dart';
 import 'package:frontend/features/owner/presentation/screens/revenue_report_screen.dart';
 import 'package:frontend/features/owner/presentation/screens/vehicle_calendar_screen.dart';
+import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 
 final ownerRoutes = [
   GoRoute(
@@ -12,7 +13,10 @@ final ownerRoutes = [
   ),
   GoRoute(
     path: '/owner/vehicle/edit',
-    builder: (context, state) => const AddEditVehicleScreen(isEdit: true),
+    builder: (context, state) => AddEditVehicleScreen(
+      isEdit: true,
+      vehicle: state.extra is Vehicle ? state.extra as Vehicle : null,
+    ),
   ),
   GoRoute(
     path: '/owner/calendar',

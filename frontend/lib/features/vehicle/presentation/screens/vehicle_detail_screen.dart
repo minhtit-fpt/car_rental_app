@@ -70,7 +70,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                         UserReviewsSection(userId: v.ownerId),
                         const _TripRulesCard(),
                         const SizedBox(height: 20),
-                        const _PickupMapBlock(),
+                        _PickupMapBlock(city: v.city),
                         const SizedBox(height: 20),
                         _ReviewsSection(vehicle: v),
                         const SizedBox(height: 100),
@@ -407,7 +407,10 @@ class _TitleSection extends StatelessWidget {
             const SizedBox(width: 4),
             Expanded(
               child: Text(
-                vehicle.location.isNotEmpty ? vehicle.location : 'TP. HCM',
+                vehicle.city ??
+                    (vehicle.location.isNotEmpty
+                        ? vehicle.location
+                        : 'Chưa cập nhật vị trí'),
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.mutedText,
@@ -432,14 +435,18 @@ class _SpecsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final specs = [
-      _SpecItem(icon: '🪑', label: '5 chỗ'),
-      _SpecItem(icon: '⚙️', label: 'Tự động'),
+    // Chỉ hiển thị thông số có dữ liệu thật; nhiên liệu suy từ isElectric.
+    final specs = <_SpecItem>[
+      if (vehicle.seats != null)
+        _SpecItem(icon: '🪑', label: '${vehicle.seats} chỗ'),
+      if (vehicle.transmissionLabel != null)
+        _SpecItem(icon: '⚙️', label: vehicle.transmissionLabel!),
       _SpecItem(
         icon: vehicle.isElectric ? '⚡' : '⛽',
         label: vehicle.isElectric ? 'Điện' : 'Xăng',
       ),
-      _SpecItem(icon: '🚪', label: '4 cửa'),
+      if (vehicle.doors != null)
+        _SpecItem(icon: '🚪', label: '${vehicle.doors} cửa'),
     ];
 
     return Row(
@@ -707,7 +714,9 @@ class _RuleItem extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _PickupMapBlock extends StatelessWidget {
-  const _PickupMapBlock();
+  const _PickupMapBlock({this.city});
+
+  final String? city;
 
   @override
   Widget build(BuildContext context) {
@@ -745,18 +754,18 @@ class _PickupMapBlock extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: AppColors.brandShadow,
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.location_on_rounded,
                             color: Colors.white,
                             size: 14,
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
-                            'Quận 1, TP. HCM',
-                            style: TextStyle(
+                            city ?? 'Chưa cập nhật',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
