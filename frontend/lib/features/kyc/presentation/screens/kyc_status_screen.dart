@@ -8,6 +8,7 @@ import 'package:frontend/features/kyc/presentation/cubit/kyc_status_cubit.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
+import 'package:frontend/shared/utils/coming_soon.dart';
 
 enum KycStatus { unverified, pending, approved, rejected }
 
@@ -469,7 +470,7 @@ class _ActionButtons extends StatelessWidget {
           const SizedBox(height: 12),
           SecondaryButton(
             label: 'Liên hệ hỗ trợ',
-            onPressed: () {},
+            onPressed: () => showComingSoonSnack(context, 'Liên hệ hỗ trợ'),
             icon: Icons.headset_mic_outlined,
           ),
         ],

@@ -8,6 +8,7 @@ import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
+import 'package:frontend/shared/utils/coming_soon.dart';
 
 class AddEditVehicleScreen extends StatefulWidget {
   const AddEditVehicleScreen({super.key, this.isEdit = false, this.vehicle});
@@ -84,7 +85,9 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _submit() async {
@@ -178,8 +181,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                       priceController: _priceController,
                       selectedType: _selectedType,
                       types: _types,
-                      onTypeChanged: (t) =>
-                          setState(() => _selectedType = t),
+                      onTypeChanged: (t) => setState(() => _selectedType = t),
                     ),
                     const SizedBox(height: 16),
                     _SpecsCard(
@@ -206,8 +208,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                     _OptionsCard(
                       isElectric: _isElectric,
                       deliveryAvailable: _deliveryAvailable,
-                      onElectricChanged: (v) =>
-                          setState(() => _isElectric = v),
+                      onElectricChanged: (v) => setState(() => _isElectric = v),
                       onDeliveryChanged: (v) =>
                           setState(() => _deliveryAvailable = v),
                     ),
@@ -296,7 +297,7 @@ class _AddPhotoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () => showComingSoonSnack(context, 'Thêm ảnh'),
       child: Container(
         width: 100,
         height: 100,
@@ -311,15 +312,19 @@ class _AddPhotoTile extends StatelessWidget {
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_photo_alternate_outlined,
-                color: AppColors.primary, size: 28),
+            Icon(
+              Icons.add_photo_alternate_outlined,
+              color: AppColors.primary,
+              size: 28,
+            ),
             SizedBox(height: 4),
             Text(
               'Thêm ảnh',
               style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w500),
+                fontSize: 11,
+                color: AppColors.primary,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -429,7 +434,9 @@ class _FormField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(
-                fontSize: 13, color: AppColors.mutedText),
+              fontSize: 13,
+              color: AppColors.mutedText,
+            ),
             filled: true,
             fillColor: AppColors.background,
             border: OutlineInputBorder(
@@ -445,11 +452,12 @@ class _FormField extends StatelessWidget {
               borderSide: const BorderSide(color: AppColors.primary),
             ),
             contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12, vertical: 10),
+              horizontal: 12,
+              vertical: 10,
+            ),
             isDense: true,
           ),
-          style: const TextStyle(
-              fontSize: 13, color: AppColors.darkText),
+          style: const TextStyle(fontSize: 13, color: AppColors.darkText),
         ),
       ],
     );
@@ -499,11 +507,12 @@ class _TypeDropdown extends StatelessWidget {
               borderSide: const BorderSide(color: AppColors.primary),
             ),
             contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12, vertical: 10),
+              horizontal: 12,
+              vertical: 10,
+            ),
             isDense: true,
           ),
-          style: const TextStyle(
-              fontSize: 13, color: AppColors.darkText),
+          style: const TextStyle(fontSize: 13, color: AppColors.darkText),
           items: items.entries
               .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
               .toList(),
@@ -763,7 +772,9 @@ class _DescriptionCard extends StatelessWidget {
             decoration: InputDecoration(
               hintText: 'Mô tả tình trạng, tiện ích nổi bật của xe...',
               hintStyle: const TextStyle(
-                  fontSize: 13, color: AppColors.mutedText),
+                fontSize: 13,
+                color: AppColors.mutedText,
+              ),
               filled: true,
               fillColor: AppColors.background,
               border: OutlineInputBorder(
@@ -780,8 +791,7 @@ class _DescriptionCard extends StatelessWidget {
               ),
               contentPadding: const EdgeInsets.all(12),
             ),
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.darkText),
+            style: const TextStyle(fontSize: 13, color: AppColors.darkText),
           ),
         ],
       ),
@@ -869,15 +879,21 @@ class _ToggleRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.darkText,
-                  )),
-              Text(subtitle,
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.mutedText)),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.darkText,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.mutedText,
+                ),
+              ),
             ],
           ),
         ),

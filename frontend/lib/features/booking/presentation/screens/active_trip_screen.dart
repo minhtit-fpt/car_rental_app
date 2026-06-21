@@ -8,6 +8,7 @@ import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
+import 'package:frontend/shared/utils/coming_soon.dart';
 
 const _months = [
   'Th1',
@@ -72,7 +73,8 @@ class ActiveTripScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     SecondaryButton(
                       label: 'Hỗ trợ khẩn cấp',
-                      onPressed: () {},
+                      onPressed: () =>
+                          showComingSoonSnack(context, 'Hỗ trợ khẩn cấp'),
                       icon: Icons.emergency_rounded,
                     ),
                     const SizedBox(height: 24),
@@ -426,7 +428,7 @@ class _VehicleInfoCard extends StatelessWidget {
                 ),
               ),
               OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: () => showComingSoonSnack(context, 'Gọi chủ xe'),
                 icon: const Icon(
                   Icons.phone_outlined,
                   size: 14,
@@ -507,7 +509,13 @@ class _QuickActionsRow extends StatelessWidget {
           .map(
             (a) => Expanded(
               child: GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  if (a.label == 'Nhắn tin') {
+                    context.push('/conversations');
+                  } else {
+                    showComingSoonSnack(context, a.label);
+                  }
+                },
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   padding: const EdgeInsets.symmetric(vertical: 12),
