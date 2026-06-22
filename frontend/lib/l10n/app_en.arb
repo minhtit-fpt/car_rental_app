@@ -547,5 +547,66 @@
   "profileEmail": "Email",
   "profilePhoneReadonly": "Phone number can't be changed",
   "profileBio": "About you",
-  "profileBioHint": "Share a little about yourself..."
+  "profileBioHint": "Share a little about yourself...",
+
+  "commonComingSoonSnack": "{feature} coming soon",
+  "@commonComingSoonSnack": {
+    "description": "Snackbar shown when tapping a not-yet-available feature",
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+
+  "navFindCar": "Find a car",
+  "navVehicles": "Cars",
+  "navTrips": "Trips",
+  "navMap": "Map",
+  "navMe": "Me",
+  "shellAccountTitle": "Account",
+
+  "notifMarkAllRead": "Mark all read",
+  "notifEmpty": "No notifications yet",
+
+  "loyaltySubtitle": "Earn points for every trip",
+  "loyaltyPointsUnit": "reward points",
+  "loyaltyTier": "Tier",
+  "loyaltyPointsToNext": "{points} more points to {tier}",
+  "@loyaltyPointsToNext": {
+    "description": "Points remaining to reach the next loyalty tier",
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "loyaltyHistory": "Points history",
+  "loyaltyNoHistory": "No points history yet",
+  "loyaltyPointsShort": "{points} pts",
+  "@loyaltyPointsShort": {
+    "description": "Compact points amount in the history list",
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+
+  "communityTitle": "Community",
+  "communityLatestStories": "Latest stories",
+  "communityEmpty": "No stories yet",
+  "communityShareTrip": "Share a trip",
+  "communityComposerHint": "Tell us about your trip...",
+  "communityPost": "Post",
+  "communityBannerPrompt": "Share your trip...",
+
+  "chatTitle": "Messages",
+  "chatEmpty": "No conversations yet",
+  "chatStartConversation": "Start a conversation",
+  "chatNoMessages": "No messages yet",
+  "chatInputHint": "Type a message..."
 }

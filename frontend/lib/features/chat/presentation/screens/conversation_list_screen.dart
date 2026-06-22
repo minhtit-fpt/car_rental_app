@@ -6,6 +6,7 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/chat/domain/entities/conversation.dart';
 import 'package:frontend/features/chat/presentation/cubit/conversation_list_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
 class ConversationListScreen extends StatelessWidget {
   const ConversationListScreen({super.key});
@@ -43,9 +44,9 @@ class _ConversationListView extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Tin nhắn',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).chatTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.darkText,
@@ -60,41 +61,46 @@ class _ConversationListView extends StatelessWidget {
         ),
         body: BlocBuilder<ConversationListCubit, ConversationListState>(
           builder: (context, state) => switch (state) {
-            ConversationListLoading() =>
-              const Center(child: CircularProgressIndicator()),
+            ConversationListLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
             ConversationListError(:final message) => _ErrorView(
-                message: message,
-                onRetry: () => context.read<ConversationListCubit>().load(),
-              ),
-            ConversationListLoaded(:final conversations) => conversations.isEmpty
-                ? const _EmptyView()
-                : RefreshIndicator(
-                    onRefresh: () =>
-                        context.read<ConversationListCubit>().load(),
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: conversations.length,
-                      separatorBuilder: (_, _) => const Divider(
-                          color: AppColors.border, height: 1, indent: 70),
-                      itemBuilder: (context, index) {
-                        final conv = conversations[index];
-                        return _ConversationTile(
-                          conversation: conv,
-                          onTap: () async {
-                            await context.push(
-                              '/chat/${conv.id}',
-                              extra: conv.partnerName,
-                            );
-                            if (context.mounted) {
-                              await context
-                                  .read<ConversationListCubit>()
-                                  .load();
-                            }
-                          },
-                        );
-                      },
+              message: message,
+              onRetry: () => context.read<ConversationListCubit>().load(),
+            ),
+            ConversationListLoaded(:final conversations) =>
+              conversations.isEmpty
+                  ? const _EmptyView()
+                  : RefreshIndicator(
+                      onRefresh: () =>
+                          context.read<ConversationListCubit>().load(),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: conversations.length,
+                        separatorBuilder: (_, _) => const Divider(
+                          color: AppColors.border,
+                          height: 1,
+                          indent: 70,
+                        ),
+                        itemBuilder: (context, index) {
+                          final conv = conversations[index];
+                          return _ConversationTile(
+                            conversation: conv,
+                            onTap: () async {
+                              await context.push(
+                                '/chat/${conv.id}',
+                                extra: conv.partnerName,
+                              );
+                              if (context.mounted) {
+                                await context
+                                    .read<ConversationListCubit>()
+                                    .load();
+                              }
+                            },
+                          );
+                        },
+                      ),
                     ),
-                  ),
           },
         ),
       ),
@@ -107,14 +113,16 @@ class _EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('💬', style: TextStyle(fontSize: 40)),
-          SizedBox(height: 12),
-          Text('Chưa có cuộc trò chuyện nào',
-              style: TextStyle(fontSize: 14, color: AppColors.mutedText)),
+          const Text('💬', style: TextStyle(fontSize: 40)),
+          const SizedBox(height: 12),
+          Text(
+            AppLocalizations.of(context).chatEmpty,
+            style: const TextStyle(fontSize: 14, color: AppColors.mutedText),
+          ),
         ],
       ),
     );
@@ -134,13 +142,20 @@ class _ErrorView extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 14, color: AppColors.secondaryText)),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.secondaryText,
+              ),
+            ),
           ),
           const SizedBox(height: 12),
-          ElevatedButton(onPressed: onRetry, child: const Text('Thử lại')),
+          ElevatedButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context).commonRetry),
+          ),
         ],
       ),
     );
@@ -213,8 +228,9 @@ class _ConversationTile extends StatelessWidget {
                         conversation.partnerName,
                         style: TextStyle(
                           fontSize: 15,
-                          fontWeight:
-                              hasUnread ? FontWeight.bold : FontWeight.w500,
+                          fontWeight: hasUnread
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                           color: AppColors.darkText,
                         ),
                       ),
@@ -235,7 +251,8 @@ class _ConversationTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    conversation.lastMessage ?? 'Bắt đầu trò chuyện',
+                    conversation.lastMessage ??
+                        AppLocalizations.of(context).chatStartConversation,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -243,8 +260,9 @@ class _ConversationTile extends StatelessWidget {
                       color: hasUnread
                           ? AppColors.darkText
                           : AppColors.mutedText,
-                      fontWeight:
-                          hasUnread ? FontWeight.w500 : FontWeight.normal,
+                      fontWeight: hasUnread
+                          ? FontWeight.w500
+                          : FontWeight.normal,
                     ),
                   ),
                 ],

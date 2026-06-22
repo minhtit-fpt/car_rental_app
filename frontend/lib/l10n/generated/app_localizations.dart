@@ -2095,6 +2095,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share a little about yourself...'**
   String get profileBioHint;
+
+  /// Snackbar shown when tapping a not-yet-available feature
+  ///
+  /// In en, this message translates to:
+  /// **'{feature} coming soon'**
+  String commonComingSoonSnack(String feature);
+
+  /// No description provided for @navFindCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a car'**
+  String get navFindCar;
+
+  /// No description provided for @navVehicles.
+  ///
+  /// In en, this message translates to:
+  /// **'Cars'**
+  String get navVehicles;
+
+  /// No description provided for @navTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get navTrips;
+
+  /// No description provided for @navMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get navMap;
+
+  /// No description provided for @navMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get navMe;
+
+  /// No description provided for @shellAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get shellAccountTitle;
+
+  /// No description provided for @notifMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get notifMarkAllRead;
+
+  /// No description provided for @notifEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get notifEmpty;
+
+  /// No description provided for @loyaltySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn points for every trip'**
+  String get loyaltySubtitle;
+
+  /// No description provided for @loyaltyPointsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'reward points'**
+  String get loyaltyPointsUnit;
+
+  /// No description provided for @loyaltyTier.
+  ///
+  /// In en, this message translates to:
+  /// **'Tier'**
+  String get loyaltyTier;
+
+  /// Points remaining to reach the next loyalty tier
+  ///
+  /// In en, this message translates to:
+  /// **'{points} more points to {tier}'**
+  String loyaltyPointsToNext(int points, String tier);
+
+  /// No description provided for @loyaltyHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Points history'**
+  String get loyaltyHistory;
+
+  /// No description provided for @loyaltyNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No points history yet'**
+  String get loyaltyNoHistory;
+
+  /// Compact points amount in the history list
+  ///
+  /// In en, this message translates to:
+  /// **'{points} pts'**
+  String loyaltyPointsShort(int points);
+
+  /// No description provided for @communityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get communityTitle;
+
+  /// No description provided for @communityLatestStories.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest stories'**
+  String get communityLatestStories;
+
+  /// No description provided for @communityEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No stories yet'**
+  String get communityEmpty;
+
+  /// No description provided for @communityShareTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a trip'**
+  String get communityShareTrip;
+
+  /// No description provided for @communityComposerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us about your trip...'**
+  String get communityComposerHint;
+
+  /// No description provided for @communityPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get communityPost;
+
+  /// No description provided for @communityBannerPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your trip...'**
+  String get communityBannerPrompt;
+
+  /// No description provided for @chatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get chatTitle;
+
+  /// No description provided for @chatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations yet'**
+  String get chatEmpty;
+
+  /// No description provided for @chatStartConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a conversation'**
+  String get chatStartConversation;
+
+  /// No description provided for @chatNoMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet'**
+  String get chatNoMessages;
+
+  /// No description provided for @chatInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message...'**
+  String get chatInputHint;
 }
 
 class _AppLocalizationsDelegate

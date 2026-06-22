@@ -359,5 +359,39 @@
   "profileEmail": "Email",
   "profilePhoneReadonly": "Không thể thay đổi số điện thoại",
   "profileBio": "Giới thiệu bản thân",
-  "profileBioHint": "Chia sẻ một chút về bản thân..."
+  "profileBioHint": "Chia sẻ một chút về bản thân...",
+
+  "commonComingSoonSnack": "{feature} sắp có",
+
+  "navFindCar": "Tìm xe",
+  "navVehicles": "Xe",
+  "navTrips": "Chuyến",
+  "navMap": "Bản đồ",
+  "navMe": "Tôi",
+  "shellAccountTitle": "Tài khoản",
+
+  "notifMarkAllRead": "Đọc tất cả",
+  "notifEmpty": "Chưa có thông báo nào",
+
+  "loyaltySubtitle": "Tích lũy điểm cho mỗi chuyến đi",
+  "loyaltyPointsUnit": "điểm thưởng",
+  "loyaltyTier": "Hạng",
+  "loyaltyPointsToNext": "{points} điểm nữa lên {tier}",
+  "loyaltyHistory": "Lịch sử điểm",
+  "loyaltyNoHistory": "Chưa có lịch sử điểm",
+  "loyaltyPointsShort": "{points} điểm",
+
+  "communityTitle": "Cộng đồng",
+  "communityLatestStories": "Câu chuyện mới nhất",
+  "communityEmpty": "Chưa có câu chuyện nào",
+  "communityShareTrip": "Chia sẻ chuyến đi",
+  "communityComposerHint": "Kể về chuyến đi của bạn...",
+  "communityPost": "Đăng",
+  "communityBannerPrompt": "Chia sẻ chuyến đi của bạn...",
+
+  "chatTitle": "Tin nhắn",
+  "chatEmpty": "Chưa có cuộc trò chuyện nào",
+  "chatStartConversation": "Bắt đầu trò chuyện",
+  "chatNoMessages": "Chưa có tin nhắn nào",
+  "chatInputHint": "Nhắn tin..."
 }

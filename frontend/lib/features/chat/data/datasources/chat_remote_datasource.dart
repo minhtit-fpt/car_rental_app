@@ -19,10 +19,7 @@ class ChatRemoteDataSource {
   }) async {
     final data = await _client.post(
       '/api/conversations',
-      data: {
-        'participantId': ?participantId,
-        'bookingId': ?bookingId,
-      },
+      data: {'participantId': ?participantId, 'bookingId': ?bookingId},
     );
     return data as Map<String, dynamic>;
   }

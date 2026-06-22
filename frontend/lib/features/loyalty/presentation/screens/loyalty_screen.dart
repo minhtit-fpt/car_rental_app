@@ -5,6 +5,7 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/loyalty/domain/entities/loyalty.dart';
 import 'package:frontend/features/loyalty/presentation/cubit/loyalty_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 
@@ -25,45 +26,46 @@ class _LoyaltyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: CustomScrollView(
           slivers: [
-            const RvSliverAppBar(
-              title: 'Điểm thưởng',
-              subtitle: 'Tích lũy điểm cho mỗi chuyến đi',
+            RvSliverAppBar(
+              title: l10n.dashboardLoyaltyPoints,
+              subtitle: l10n.loyaltySubtitle,
               role: RvRole.renter,
             ),
             SliverToBoxAdapter(
               child: BlocBuilder<LoyaltyCubit, LoyaltyState>(
                 builder: (context, state) => switch (state) {
                   LoyaltyLoading() => const Padding(
-                      padding: EdgeInsets.only(top: 80),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
+                    padding: EdgeInsets.only(top: 80),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
                   LoyaltyError(:final message) => Padding(
-                      padding: const EdgeInsets.only(top: 80),
-                      child: _ErrorView(
-                        message: message,
-                        onRetry: () => context.read<LoyaltyCubit>().load(),
-                      ),
+                    padding: const EdgeInsets.only(top: 80),
+                    child: _ErrorView(
+                      message: message,
+                      onRetry: () => context.read<LoyaltyCubit>().load(),
                     ),
+                  ),
                   LoyaltyLoaded(:final summary) => Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 8),
-                          _PointsCard(summary: summary),
-                          const SizedBox(height: 20),
-                          _TierCard(summary: summary),
-                          const SizedBox(height: 20),
-                          _HistorySection(history: summary.history),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 8),
+                        _PointsCard(summary: summary),
+                        const SizedBox(height: 20),
+                        _TierCard(summary: summary),
+                        const SizedBox(height: 20),
+                        _HistorySection(history: summary.history),
+                        const SizedBox(height: 24),
+                      ],
                     ),
+                  ),
                 },
               ),
             ),
@@ -87,13 +89,20 @@ class _ErrorView extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 14, color: AppColors.secondaryText)),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.secondaryText,
+              ),
+            ),
           ),
           const SizedBox(height: 12),
-          ElevatedButton(onPressed: onRetry, child: const Text('Thử lại')),
+          ElevatedButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context).commonRetry),
+          ),
         ],
       ),
     );
@@ -106,6 +115,7 @@ class _PointsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -125,9 +135,9 @@ class _PointsCard extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          const Text(
-            'điểm thưởng',
-            style: TextStyle(fontSize: 14, color: Colors.white70),
+          Text(
+            l10n.loyaltyPointsUnit,
+            style: const TextStyle(fontSize: 14, color: Colors.white70),
           ),
           const SizedBox(height: 16),
           Container(
@@ -139,7 +149,7 @@ class _PointsCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _MiniStat(value: summary.tier.label, label: 'Hạng'),
+                _MiniStat(value: summary.tier.label, label: l10n.loyaltyTier),
               ],
             ),
           ),
@@ -158,14 +168,19 @@ class _MiniStat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value,
-            style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white)),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         const SizedBox(height: 2),
-        Text(label,
-            style: const TextStyle(fontSize: 11, color: Colors.white60)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: Colors.white60),
+        ),
       ],
     );
   }
@@ -177,6 +192,7 @@ class _TierCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final nextThreshold = summary.totalPoints + summary.pointsToNextTier;
     final progress = summary.nextTier == null || nextThreshold == 0
         ? 1.0
@@ -202,13 +218,14 @@ class _TierCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.warningSoft,
                   borderRadius: BorderRadius.circular(20),
-                  border:
-                      Border.all(color: AppColors.warning.withAlpha(80)),
+                  border: Border.all(color: AppColors.warning.withAlpha(80)),
                 ),
                 child: Text(
                   '🥇 ${summary.tier.label}',
@@ -222,9 +239,14 @@ class _TierCard extends StatelessWidget {
               const Spacer(),
               if (summary.nextTier != null)
                 Text(
-                  '${summary.pointsToNextTier} điểm nữa lên ${summary.nextTier!.label}',
+                  l10n.loyaltyPointsToNext(
+                    summary.pointsToNextTier,
+                    summary.nextTier!.label,
+                  ),
                   style: const TextStyle(
-                      fontSize: 12, color: AppColors.mutedText),
+                    fontSize: 12,
+                    color: AppColors.mutedText,
+                  ),
                 ),
             ],
           ),
@@ -235,23 +257,31 @@ class _TierCard extends StatelessWidget {
               value: progress,
               minHeight: 8,
               backgroundColor: AppColors.border,
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.warning),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.warning,
+              ),
             ),
           ),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${summary.totalPoints} / $nextThreshold',
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.mutedText)),
+              Text(
+                '${summary.totalPoints} / $nextThreshold',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.mutedText,
+                ),
+              ),
               if (summary.nextTier != null)
-                Text('${summary.nextTier!.label} 🏆',
-                    style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600)),
+                Text(
+                  '${summary.nextTier!.label} 🏆',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
             ],
           ),
         ],
@@ -266,10 +296,11 @@ class _HistorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(title: 'Lịch sử điểm'),
+        SectionHeader(title: l10n.loyaltyHistory),
         const SizedBox(height: 12),
         if (history.isEmpty)
           Container(
@@ -280,10 +311,14 @@ class _HistorySection extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.border),
             ),
-            child: const Center(
-              child: Text('Chưa có lịch sử điểm',
-                  style:
-                      TextStyle(fontSize: 13, color: AppColors.mutedText)),
+            child: Center(
+              child: Text(
+                l10n.loyaltyNoHistory,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.mutedText,
+                ),
+              ),
             ),
           )
         else
@@ -308,7 +343,9 @@ class _HistorySection extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       child: Row(
                         children: [
                           Container(
@@ -337,21 +374,27 @@ class _HistorySection extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(h.action,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.darkText,
-                                    )),
-                                Text(_shortDate(h.createdAt),
-                                    style: const TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.mutedText)),
+                                Text(
+                                  h.action,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.darkText,
+                                  ),
+                                ),
+                                Text(
+                                  _shortDate(h.createdAt),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.mutedText,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           Text(
-                            '${h.isEarn ? '+' : ''}${h.points} điểm',
+                            '${h.isEarn ? '+' : ''}'
+                            '${l10n.loyaltyPointsShort(h.points)}',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -365,7 +408,10 @@ class _HistorySection extends StatelessWidget {
                     ),
                     if (!isLast)
                       const Divider(
-                          color: AppColors.border, height: 1, indent: 64),
+                        color: AppColors.border,
+                        height: 1,
+                        indent: 64,
+                      ),
                   ],
                 );
               }).toList(),

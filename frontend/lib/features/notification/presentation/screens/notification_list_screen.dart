@@ -5,6 +5,7 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/notification/domain/entities/notification.dart';
 import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
 class NotificationListScreen extends StatelessWidget {
   const NotificationListScreen({super.key});
@@ -33,8 +34,9 @@ class _NotificationView extends StatelessWidget {
           surfaceTintColor: Colors.transparent,
           title: BlocBuilder<NotificationCubit, NotificationState>(
             builder: (context, state) {
-              final unread =
-                  state is NotificationLoaded ? state.data.unreadCount : 0;
+              final unread = state is NotificationLoaded
+                  ? state.data.unreadCount
+                  : 0;
               return Row(
                 children: [
                   Container(
@@ -46,9 +48,9 @@ class _NotificationView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Thông báo',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context).settingsNotifications,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.darkText,
@@ -57,8 +59,10 @@ class _NotificationView extends StatelessWidget {
                   if (unread > 0) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(10),
@@ -80,12 +84,13 @@ class _NotificationView extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => context.read<NotificationCubit>().markAllRead(),
-              child: const Text(
-                'Đọc tất cả',
-                style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600),
+              child: Text(
+                AppLocalizations.of(context).notifMarkAllRead,
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -96,29 +101,34 @@ class _NotificationView extends StatelessWidget {
         ),
         body: BlocBuilder<NotificationCubit, NotificationState>(
           builder: (context, state) => switch (state) {
-            NotificationLoading() =>
-              const Center(child: CircularProgressIndicator()),
+            NotificationLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
             NotificationError(:final message) => _ErrorView(
-                message: message,
-                onRetry: () => context.read<NotificationCubit>().load(),
-              ),
-            NotificationLoaded(:final data) => data.items.isEmpty
-                ? const _EmptyView()
-                : RefreshIndicator(
-                    onRefresh: () => context.read<NotificationCubit>().load(),
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: data.items.length,
-                      separatorBuilder: (_, _) => const Divider(
-                          color: AppColors.border, height: 1, indent: 68),
-                      itemBuilder: (context, index) => _NotifTile(
-                        notif: data.items[index],
-                        onTap: () => context
-                            .read<NotificationCubit>()
-                            .markRead(data.items[index].id),
+              message: message,
+              onRetry: () => context.read<NotificationCubit>().load(),
+            ),
+            NotificationLoaded(:final data) =>
+              data.items.isEmpty
+                  ? const _EmptyView()
+                  : RefreshIndicator(
+                      onRefresh: () => context.read<NotificationCubit>().load(),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: data.items.length,
+                        separatorBuilder: (_, _) => const Divider(
+                          color: AppColors.border,
+                          height: 1,
+                          indent: 68,
+                        ),
+                        itemBuilder: (context, index) => _NotifTile(
+                          notif: data.items[index],
+                          onTap: () => context
+                              .read<NotificationCubit>()
+                              .markRead(data.items[index].id),
+                        ),
                       ),
                     ),
-                  ),
           },
         ),
       ),
@@ -131,15 +141,15 @@ class _EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('🔔', style: TextStyle(fontSize: 40)),
-          SizedBox(height: 12),
+          const Text('🔔', style: TextStyle(fontSize: 40)),
+          const SizedBox(height: 12),
           Text(
-            'Chưa có thông báo nào',
-            style: TextStyle(fontSize: 14, color: AppColors.mutedText),
+            AppLocalizations.of(context).notifEmpty,
+            style: const TextStyle(fontSize: 14, color: AppColors.mutedText),
           ),
         ],
       ),
@@ -160,13 +170,20 @@ class _ErrorView extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 14, color: AppColors.secondaryText)),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.secondaryText,
+              ),
+            ),
           ),
           const SizedBox(height: 12),
-          ElevatedButton(onPressed: onRetry, child: const Text('Thử lại')),
+          ElevatedButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context).commonRetry),
+          ),
         ],
       ),
     );
@@ -225,7 +242,9 @@ class _NotifTile extends StatelessWidget {
                       Text(
                         _relativeTime(notif.createdAt),
                         style: const TextStyle(
-                            fontSize: 11, color: AppColors.mutedText),
+                          fontSize: 11,
+                          color: AppColors.mutedText,
+                        ),
                       ),
                     ],
                   ),

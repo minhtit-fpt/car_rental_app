@@ -1067,4 +1067,94 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileBioHint => 'Share a little about yourself...';
+
+  @override
+  String commonComingSoonSnack(String feature) {
+    return '$feature coming soon';
+  }
+
+  @override
+  String get navFindCar => 'Find a car';
+
+  @override
+  String get navVehicles => 'Cars';
+
+  @override
+  String get navTrips => 'Trips';
+
+  @override
+  String get navMap => 'Map';
+
+  @override
+  String get navMe => 'Me';
+
+  @override
+  String get shellAccountTitle => 'Account';
+
+  @override
+  String get notifMarkAllRead => 'Mark all read';
+
+  @override
+  String get notifEmpty => 'No notifications yet';
+
+  @override
+  String get loyaltySubtitle => 'Earn points for every trip';
+
+  @override
+  String get loyaltyPointsUnit => 'reward points';
+
+  @override
+  String get loyaltyTier => 'Tier';
+
+  @override
+  String loyaltyPointsToNext(int points, String tier) {
+    return '$points more points to $tier';
+  }
+
+  @override
+  String get loyaltyHistory => 'Points history';
+
+  @override
+  String get loyaltyNoHistory => 'No points history yet';
+
+  @override
+  String loyaltyPointsShort(int points) {
+    return '$points pts';
+  }
+
+  @override
+  String get communityTitle => 'Community';
+
+  @override
+  String get communityLatestStories => 'Latest stories';
+
+  @override
+  String get communityEmpty => 'No stories yet';
+
+  @override
+  String get communityShareTrip => 'Share a trip';
+
+  @override
+  String get communityComposerHint => 'Tell us about your trip...';
+
+  @override
+  String get communityPost => 'Post';
+
+  @override
+  String get communityBannerPrompt => 'Share your trip...';
+
+  @override
+  String get chatTitle => 'Messages';
+
+  @override
+  String get chatEmpty => 'No conversations yet';
+
+  @override
+  String get chatStartConversation => 'Start a conversation';
+
+  @override
+  String get chatNoMessages => 'No messages yet';
+
+  @override
+  String get chatInputHint => 'Type a message...';
 }

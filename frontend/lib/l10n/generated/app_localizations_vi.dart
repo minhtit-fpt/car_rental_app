@@ -1062,4 +1062,94 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get profileBioHint => 'Chia sẻ một chút về bản thân...';
+
+  @override
+  String commonComingSoonSnack(String feature) {
+    return '$feature sắp có';
+  }
+
+  @override
+  String get navFindCar => 'Tìm xe';
+
+  @override
+  String get navVehicles => 'Xe';
+
+  @override
+  String get navTrips => 'Chuyến';
+
+  @override
+  String get navMap => 'Bản đồ';
+
+  @override
+  String get navMe => 'Tôi';
+
+  @override
+  String get shellAccountTitle => 'Tài khoản';
+
+  @override
+  String get notifMarkAllRead => 'Đọc tất cả';
+
+  @override
+  String get notifEmpty => 'Chưa có thông báo nào';
+
+  @override
+  String get loyaltySubtitle => 'Tích lũy điểm cho mỗi chuyến đi';
+
+  @override
+  String get loyaltyPointsUnit => 'điểm thưởng';
+
+  @override
+  String get loyaltyTier => 'Hạng';
+
+  @override
+  String loyaltyPointsToNext(int points, String tier) {
+    return '$points điểm nữa lên $tier';
+  }
+
+  @override
+  String get loyaltyHistory => 'Lịch sử điểm';
+
+  @override
+  String get loyaltyNoHistory => 'Chưa có lịch sử điểm';
+
+  @override
+  String loyaltyPointsShort(int points) {
+    return '$points điểm';
+  }
+
+  @override
+  String get communityTitle => 'Cộng đồng';
+
+  @override
+  String get communityLatestStories => 'Câu chuyện mới nhất';
+
+  @override
+  String get communityEmpty => 'Chưa có câu chuyện nào';
+
+  @override
+  String get communityShareTrip => 'Chia sẻ chuyến đi';
+
+  @override
+  String get communityComposerHint => 'Kể về chuyến đi của bạn...';
+
+  @override
+  String get communityPost => 'Đăng';
+
+  @override
+  String get communityBannerPrompt => 'Chia sẻ chuyến đi của bạn...';
+
+  @override
+  String get chatTitle => 'Tin nhắn';
+
+  @override
+  String get chatEmpty => 'Chưa có cuộc trò chuyện nào';
+
+  @override
+  String get chatStartConversation => 'Bắt đầu trò chuyện';
+
+  @override
+  String get chatNoMessages => 'Chưa có tin nhắn nào';
+
+  @override
+  String get chatInputHint => 'Nhắn tin...';
 }

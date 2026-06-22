@@ -8,6 +8,7 @@ import 'package:frontend/features/vehicle/presentation/screens/car_list_screen.d
 import 'package:frontend/features/vehicle/presentation/screens/home_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/owner_dashboard_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/renter_dashboard_screen.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -52,6 +53,7 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
@@ -62,31 +64,31 @@ class _BottomNav extends StatelessWidget {
         onTap: onTap,
         backgroundColor: Colors.transparent,
         type: BottomNavigationBarType.fixed,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.search_outlined),
-            activeIcon: Icon(Icons.search_rounded),
-            label: 'Tìm xe',
+            icon: const Icon(Icons.search_outlined),
+            activeIcon: const Icon(Icons.search_rounded),
+            label: l10n.navFindCar,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.directions_car_outlined),
-            activeIcon: Icon(Icons.directions_car_rounded),
-            label: 'Xe',
+            icon: const Icon(Icons.directions_car_outlined),
+            activeIcon: const Icon(Icons.directions_car_rounded),
+            label: l10n.navVehicles,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long_outlined),
-            activeIcon: Icon(Icons.receipt_long_rounded),
-            label: 'Chuyến',
+            icon: const Icon(Icons.receipt_long_outlined),
+            activeIcon: const Icon(Icons.receipt_long_rounded),
+            label: l10n.navTrips,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.map_outlined),
-            activeIcon: Icon(Icons.map_rounded),
-            label: 'Bản đồ',
+            icon: const Icon(Icons.map_outlined),
+            activeIcon: const Icon(Icons.map_rounded),
+            label: l10n.navMap,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded),
-            activeIcon: Icon(Icons.person_rounded),
-            label: 'Tôi',
+            icon: const Icon(Icons.person_outline_rounded),
+            activeIcon: const Icon(Icons.person_rounded),
+            label: l10n.navMe,
           ),
         ],
       ),
@@ -110,21 +112,22 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
     // Chỉ tài khoản có vai OWNER mới thấy bộ chuyển Người thuê / Chủ xe.
     // Người thuê thuần tuý chỉ thấy dashboard Người thuê.
     final isOwner = context.watch<AuthCubit>().state.user?.isOwner ?? false;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.surface,
-        title: const Text(
-          'Tài khoản',
-          style: TextStyle(
+        title: Text(
+          l10n.shellAccountTitle,
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: AppColors.darkText,
           ),
         ),
         actions: [
           IconButton(
-            tooltip: 'Cài đặt',
+            tooltip: l10n.settingsTitle,
             icon: const Icon(
               Icons.settings_outlined,
               color: AppColors.darkText,
@@ -132,7 +135,7 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
             onPressed: () => context.push('/settings'),
           ),
           IconButton(
-            tooltip: 'Đăng xuất',
+            tooltip: l10n.settingsLogout,
             icon: const Icon(Icons.logout_rounded, color: AppColors.darkText),
             onPressed: () => context.read<AuthCubit>().logout(),
           ),
@@ -146,13 +149,13 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
                   child: Row(
                     children: [
                       _RoleChip(
-                        label: '👤 Người thuê',
+                        label: '👤 ${l10n.roleRenter}',
                         isActive: _role == 0,
                         onTap: () => setState(() => _role = 0),
                       ),
                       const SizedBox(width: 8),
                       _RoleChip(
-                        label: '🚗 Chủ xe',
+                        label: '🚗 ${l10n.roleOwner}',
                         isActive: _role == 1,
                         onTap: () => setState(() => _role = 1),
                       ),

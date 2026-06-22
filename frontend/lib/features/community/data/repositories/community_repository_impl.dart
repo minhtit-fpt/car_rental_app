@@ -16,10 +16,9 @@ class CommunityRepositoryImpl implements CommunityRepository {
   Future<TripStory> create({
     required String content,
     List<String> images = const [],
-  }) async =>
-      TripStoryModel.fromJson(
-        await _remote.create(content: content, images: images),
-      );
+  }) async => TripStoryModel.fromJson(
+    await _remote.create(content: content, images: images),
+  );
 
   @override
   Future<TripStory> like(String id) async =>
