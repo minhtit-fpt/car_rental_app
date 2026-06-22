@@ -29,6 +29,31 @@ String _sortLabel(_SortOption o, AppLocalizations l10n) => switch (o) {
   _SortOption.nearest => l10n.vehicleSortNearest,
 };
 
+/// Giá trị bộ lọc nâng cao mà bottom sheet trả về khi người dùng bấm "Áp dụng".
+typedef FilterResult = ({double maxPrice, double minRating});
+
+/// Lọc danh sách xe theo chip nhanh "Xe điện" + bộ lọc nâng cao (giá/đánh giá).
+///
+/// Thuần hàm, không phụ thuộc widget → dễ kiểm thử đơn vị.
+/// - [maxPrice]: ngưỡng giá/ngày tối đa (đơn vị K VNĐ, khớp [Vehicle.pricePerDay]);
+///   `null` nghĩa là chưa áp dụng lọc giá.
+/// - [minRating]: đánh giá tối thiểu; `null` nghĩa là chưa áp dụng. Xe chưa có
+///   dữ liệu đánh giá (backend chưa trả) vẫn được giữ lại, không loại bỏ.
+@visibleForTesting
+List<Vehicle> applyVehicleFilters(
+  List<Vehicle> vehicles, {
+  bool electricOnly = false,
+  double? maxPrice,
+  double? minRating,
+}) {
+  return vehicles.where((v) {
+    if (electricOnly && !v.isElectric) return false;
+    if (maxPrice != null && v.pricePerDay > maxPrice) return false;
+    if (minRating != null && v.hasRating && v.rating! < minRating) return false;
+    return true;
+  }).toList();
+}
+
 class CarListScreen extends StatefulWidget {
   const CarListScreen({super.key});
 
@@ -41,14 +66,21 @@ class _CarListScreenState extends State<CarListScreen> {
   bool _showMap = false;
   _SortOption _sortBy = _SortOption.popular;
 
+  /// Bộ lọc nâng cao từ bottom sheet — `null` khi người dùng chưa "Áp dụng".
+  double? _maxPrice;
+  double? _minRating;
+
   /// Lọc trên danh sách đã tải từ backend. Chỉ "Xe điện" có dữ liệu thật để
   /// lọc (isElectric); các chip còn lại chưa ánh xạ được sang trường backend
-  /// nên tạm hiển thị tất cả.
+  /// nên tạm hiển thị tất cả. Giá/đánh giá đến từ bottom sheet (xem
+  /// [applyVehicleFilters]).
   List<Vehicle> _applyFilter(List<Vehicle> all) {
-    return switch (_activeFilter) {
-      _QuickFilter.electric => all.where((v) => v.isElectric).toList(),
-      _ => all,
-    };
+    return applyVehicleFilters(
+      all,
+      electricOnly: _activeFilter == _QuickFilter.electric,
+      maxPrice: _maxPrice,
+      minRating: _minRating,
+    );
   }
 
   @override
@@ -258,14 +290,22 @@ class _CarListScreenState extends State<CarListScreen> {
     }
   }
 
-  void _showFilterSheet(BuildContext context) {
-    showModalBottomSheet<void>(
+  Future<void> _showFilterSheet(BuildContext context) async {
+    final result = await showModalBottomSheet<FilterResult>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => const _FilterSheet(),
+      builder: (_) => _FilterSheet(
+        initialMaxPrice: _maxPrice ?? _kDefaultMaxPrice,
+        initialMinRating: _minRating ?? _kDefaultMinRating,
+      ),
     );
+    if (result == null || !mounted) return;
+    setState(() {
+      _maxPrice = result.maxPrice;
+      _minRating = result.minRating;
+    });
   }
 }
 
@@ -741,16 +781,30 @@ class _ErrorState extends StatelessWidget {
 // Filter bottom sheet
 // ─────────────────────────────────────────────
 
+// Ngưỡng mặc định + dải trượt cho bộ lọc nâng cao (giá theo K VNĐ).
+const double _kDefaultMaxPrice = 1500;
+const double _kMinPrice = 300;
+const double _kMaxPrice = 2000;
+const double _kDefaultMinRating = 4.0;
+const double _kMinRating = 3.0;
+const double _kMaxRating = 5.0;
+
 class _FilterSheet extends StatefulWidget {
-  const _FilterSheet();
+  const _FilterSheet({
+    required this.initialMaxPrice,
+    required this.initialMinRating,
+  });
+
+  final double initialMaxPrice;
+  final double initialMinRating;
 
   @override
   State<_FilterSheet> createState() => _FilterSheetState();
 }
 
 class _FilterSheetState extends State<_FilterSheet> {
-  double _maxPrice = 1500;
-  double _minRating = 4.0;
+  late double _maxPrice = widget.initialMaxPrice;
+  late double _minRating = widget.initialMinRating;
 
   @override
   Widget build(BuildContext context) {
@@ -786,8 +840,8 @@ class _FilterSheetState extends State<_FilterSheet> {
               ),
               TextButton(
                 onPressed: () => setState(() {
-                  _maxPrice = 1500;
-                  _minRating = 4.0;
+                  _maxPrice = _kDefaultMaxPrice;
+                  _minRating = _kDefaultMinRating;
                 }),
                 child: Text(
                   l10n.commonReset,
@@ -821,8 +875,8 @@ class _FilterSheetState extends State<_FilterSheet> {
           ),
           Slider(
             value: _maxPrice,
-            min: 300,
-            max: 2000,
+            min: _kMinPrice,
+            max: _kMaxPrice,
             divisions: 17,
             activeColor: AppColors.accent,
             inactiveColor: AppColors.border,
@@ -864,8 +918,8 @@ class _FilterSheetState extends State<_FilterSheet> {
           ),
           Slider(
             value: _minRating,
-            min: 3.0,
-            max: 5.0,
+            min: _kMinRating,
+            max: _kMaxRating,
             divisions: 20,
             activeColor: AppColors.starYellow,
             inactiveColor: AppColors.border,
@@ -876,7 +930,10 @@ class _FilterSheetState extends State<_FilterSheet> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(context, (
+                maxPrice: _maxPrice,
+                minRating: _minRating,
+              )),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
