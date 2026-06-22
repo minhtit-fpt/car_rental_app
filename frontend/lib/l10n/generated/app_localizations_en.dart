@@ -471,4 +471,267 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ownerDeleteSuccess => 'Vehicle deleted';
+
+  @override
+  String get commonNo => 'No';
+
+  @override
+  String get commonContinue => 'Continue';
+
+  @override
+  String get commonBack => 'Back';
+
+  @override
+  String get commonConfirm => 'Confirm';
+
+  @override
+  String get bookingStatusPendingPayment => 'Pending payment';
+
+  @override
+  String get bookingStatusConfirmed => 'Confirmed';
+
+  @override
+  String get bookingStatusInProgress => 'Renting';
+
+  @override
+  String get bookingStatusCompleted => 'Completed';
+
+  @override
+  String get bookingStatusCancelled => 'Cancelled';
+
+  @override
+  String get tripsTitle => 'My trips';
+
+  @override
+  String get tripsSubtitle => 'Manage your bookings';
+
+  @override
+  String get tripsEmpty => 'You don\'t have any trips yet.';
+
+  @override
+  String tripsOrderNumber(String id) {
+    return 'Order #$id';
+  }
+
+  @override
+  String get tripsCancelling => 'Cancelling...';
+
+  @override
+  String get tripsCancel => 'Cancel booking';
+
+  @override
+  String get tripsCancelTitle => 'Cancel this booking?';
+
+  @override
+  String get tripsCancelConfirm =>
+      'Are you sure you want to cancel this booking?';
+
+  @override
+  String get bookingPickDatesTitle => 'Select rental dates';
+
+  @override
+  String get bookingPickDatesSubtitle => 'Choose the start and end times';
+
+  @override
+  String get bookingRentalPeriod => 'Rental period';
+
+  @override
+  String get bookingPickupDateLabel => 'Pick-up date';
+
+  @override
+  String get bookingReturnDateLabel => 'Return date';
+
+  @override
+  String get bookingChangeDate => 'Change dates';
+
+  @override
+  String bookingDays(int count) {
+    return '$count days';
+  }
+
+  @override
+  String get bookingDelivery => 'Door-to-door delivery';
+
+  @override
+  String get bookingDeliveryAddressHint => 'Enter the delivery address...';
+
+  @override
+  String get bookingEstimatedCost => 'Estimated cost';
+
+  @override
+  String bookingRentalLine(String price, int days) {
+    return '${price}K × $days days';
+  }
+
+  @override
+  String get bookingDeliveryFeeLabel => 'Delivery fee';
+
+  @override
+  String get bookingInsuranceLabel => 'Insurance (5%)';
+
+  @override
+  String get bookingTotal => 'Total';
+
+  @override
+  String get bookingConfirmTitle => 'Confirm booking';
+
+  @override
+  String get bookingConfirmSubtitle => 'Review the details before booking';
+
+  @override
+  String get bookingFailed => 'Booking failed';
+
+  @override
+  String get bookingConfirmAndPay => 'Confirm & Pay';
+
+  @override
+  String get bookingTermsNote =>
+      'By continuing, you agree to RideVN\'s Terms of Service and Privacy Policy.';
+
+  @override
+  String get bookingTripDetails => 'Trip details';
+
+  @override
+  String get bookingPickup => 'Pick-up';
+
+  @override
+  String get bookingReturn => 'Return';
+
+  @override
+  String get bookingDuration => 'Duration';
+
+  @override
+  String get bookingDeliveryTo => 'Deliver to';
+
+  @override
+  String get bookingDeliveryAddressFallback => 'Delivery address';
+
+  @override
+  String bookingRentalCarLine(String price, int days) {
+    return 'Car rental (${price}K × $days days)';
+  }
+
+  @override
+  String get bookingDeliveryShort => 'Delivery';
+
+  @override
+  String get bookingServiceFee => 'Service fee (3%)';
+
+  @override
+  String get bookingTotalPayment => 'Total payment';
+
+  @override
+  String get bookingDepositTitle => 'Deposit & Cancellation';
+
+  @override
+  String get bookingDepositBody =>
+      '30% deposit on confirmation. Full refund if cancelled at least 24h before pick-up.';
+
+  @override
+  String get contractTitle => 'Electronic contract';
+
+  @override
+  String get contractSubtitle => 'Read carefully and sign';
+
+  @override
+  String get contractHeading => 'Rental contract';
+
+  @override
+  String contractCode(String code) {
+    return 'Contract no.: $code';
+  }
+
+  @override
+  String get contractPartiesTitle => 'I. PARTIES INVOLVED';
+
+  @override
+  String get contractPartiesBody =>
+      '• Party A (Owner): Verified through the RideVN KYC system\n• Party B (Renter): Completed identity verification';
+
+  @override
+  String get contractVehicleTitle => 'II. VEHICLE INFORMATION';
+
+  @override
+  String get contractVehicleBody =>
+      'The vehicle is delivered in the described condition. The renter is responsible for inspecting the vehicle before pick-up and confirming in the app.';
+
+  @override
+  String get contractTermsTitle => 'III. TERMS OF USE';
+
+  @override
+  String get contractTermsBody =>
+      '• Do not use the vehicle for unlawful purposes\n• Do not let others drive without the owner\'s consent\n• Return the vehicle on time, at the agreed location\n• Take good care of the vehicle, no unauthorized repairs';
+
+  @override
+  String get contractCompensationTitle => 'IV. DAMAGE COMPENSATION';
+
+  @override
+  String get contractCompensationBody =>
+      'Any damage outside the insurance coverage will be the responsibility of Party B, compensated according to the valuation of an appointed third party.';
+
+  @override
+  String get contractAgree =>
+      'I have read carefully and agree to all the terms in this rental contract.';
+
+  @override
+  String get contractSign => 'Sign contract';
+
+  @override
+  String get activeTripTitle => 'Trip in progress';
+
+  @override
+  String get activeTripSubtitle => 'Manage your trip';
+
+  @override
+  String get activeTripReturn => 'Return car';
+
+  @override
+  String get activeTripEmergency => 'Emergency support';
+
+  @override
+  String get activeTripReturnTitle => 'Confirm car return?';
+
+  @override
+  String get activeTripReturnBody =>
+      'Do you confirm that you\'ve returned the car and ended this trip?';
+
+  @override
+  String get activeTripNotYet => 'Not yet';
+
+  @override
+  String get activeTripRunning => '🟢 Running';
+
+  @override
+  String get activeTripRemaining => 'Remaining';
+
+  @override
+  String get activeTripProgress => 'Trip progress';
+
+  @override
+  String activeTripDaysProgress(int elapsed, int total) {
+    return '$elapsed/$total days';
+  }
+
+  @override
+  String get activeTripVehicleInfo => 'Vehicle info';
+
+  @override
+  String activeTripLicensePlate(String plate) {
+    return 'Plate: $plate';
+  }
+
+  @override
+  String get activeTripCall => 'Call';
+
+  @override
+  String get activeTripCallOwner => 'Call owner';
+
+  @override
+  String get activeTripMap => 'Map';
+
+  @override
+  String get activeTripPhoto => 'Take photo';
+
+  @override
+  String get activeTripReport => 'Report issue';
 }

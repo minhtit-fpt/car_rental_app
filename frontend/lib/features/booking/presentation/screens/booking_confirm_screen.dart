@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
@@ -51,6 +53,7 @@ class _BookingConfirmView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return MultiBlocListener(
       listeners: [
         BlocListener<BookingCubit, BookingFormState>(
@@ -68,7 +71,7 @@ class _BookingConfirmView extends StatelessWidget {
               ..hideCurrentSnackBar()
               ..showSnackBar(
                 SnackBar(
-                  content: Text(state.errorMessage ?? 'Đặt xe thất bại'),
+                  content: Text(state.errorMessage ?? l10n.bookingFailed),
                   backgroundColor: AppColors.accent,
                 ),
               );
@@ -81,9 +84,9 @@ class _BookingConfirmView extends StatelessWidget {
           backgroundColor: AppColors.background,
           body: CustomScrollView(
             slivers: [
-              const RvSliverAppBar(
-                title: 'Xác nhận đặt xe',
-                subtitle: 'Kiểm tra thông tin trước khi đặt',
+              RvSliverAppBar(
+                title: l10n.bookingConfirmTitle,
+                subtitle: l10n.bookingConfirmSubtitle,
                 role: RvRole.renter,
               ),
               SliverToBoxAdapter(
@@ -114,7 +117,7 @@ class _BookingConfirmView extends StatelessWidget {
                           const SizedBox(height: 20),
                           BlocBuilder<BookingCubit, BookingFormState>(
                             builder: (context, s) => PrimaryButton(
-                              label: 'Xác nhận & Thanh toán',
+                              label: l10n.bookingConfirmAndPay,
                               onPressed: s.isSubmitting
                                   ? null
                                   : () => context
@@ -126,10 +129,10 @@ class _BookingConfirmView extends StatelessWidget {
                           ),
                           const SizedBox(height: 10),
                           // T&C note
-                          const Text(
-                            'Bằng cách tiếp tục, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của RideVN.',
+                          Text(
+                            l10n.bookingTermsNote,
                             textAlign: TextAlign.center,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.mutedText,
                               height: 1.5,
@@ -137,7 +140,7 @@ class _BookingConfirmView extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           SecondaryButton(
-                            label: 'Quay lại',
+                            label: l10n.commonBack,
                             onPressed: () => context.pop(),
                             icon: Icons.arrow_back_rounded,
                           ),
@@ -162,6 +165,7 @@ class _VehicleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -205,9 +209,7 @@ class _VehicleCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  vehicle.isElectric
-                      ? 'Điện · ${vehicle.typeLabel}'
-                      : vehicle.typeLabel,
+                  vehicle.typeSummaryL10n(l10n),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.mutedText,
@@ -253,7 +255,7 @@ class _VehicleCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      ' · ${vehicle.ownerName ?? 'Chủ xe'}',
+                      ' · ${vehicle.ownerName ?? l10n.vehicleOwnerFallback}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.mutedText,
@@ -276,6 +278,7 @@ class _TripDetailsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -293,9 +296,9 @@ class _TripDetailsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Chi tiết chuyến đi',
-            style: TextStyle(
+          Text(
+            l10n.bookingTripDetails,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: AppColors.darkText,
@@ -304,29 +307,29 @@ class _TripDetailsCard extends StatelessWidget {
           const SizedBox(height: 14),
           _DetailRow(
             icon: Icons.calendar_today_rounded,
-            label: 'Nhận xe',
+            label: l10n.bookingPickup,
             value: state.startDate != null ? _fmtDate(state.startDate!) : '—',
           ),
           const SizedBox(height: 10),
           _DetailRow(
             icon: Icons.event_rounded,
-            label: 'Trả xe',
+            label: l10n.bookingReturn,
             value: state.endDate != null ? _fmtDate(state.endDate!) : '—',
           ),
           const SizedBox(height: 10),
           _DetailRow(
             icon: Icons.schedule_rounded,
-            label: 'Thời gian',
-            value: '${state.totalDays} ngày',
+            label: l10n.bookingDuration,
+            value: l10n.bookingDays(state.totalDays),
           ),
           if (state.withDelivery) ...[
             const SizedBox(height: 10),
             _DetailRow(
               icon: Icons.local_shipping_outlined,
-              label: 'Giao xe tại',
+              label: l10n.bookingDeliveryTo,
               value: state.deliveryAddress.isNotEmpty
                   ? state.deliveryAddress
-                  : 'Địa chỉ giao xe',
+                  : l10n.bookingDeliveryAddressFallback,
             ),
           ],
         ],
@@ -381,6 +384,7 @@ class _TotalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final days = state.totalDays;
     final rentalTotal = vehicle.pricePerDay * days;
     final insurance = rentalTotal * 0.05;
@@ -402,14 +406,20 @@ class _TotalCard extends StatelessWidget {
       child: Column(
         children: [
           _SummaryLine(
-            label: 'Thuê xe (${vehicle.pricePerDay.toInt()}K × $days ngày)',
+            label: l10n.bookingRentalCarLine(
+              vehicle.pricePerDay.toInt().toString(),
+              days,
+            ),
             value: '${rentalTotal.toInt()}K',
           ),
           if (state.withDelivery)
-            const _SummaryLine(label: 'Giao xe', value: '50K'),
-          _SummaryLine(label: 'Bảo hiểm (5%)', value: '${insurance.toInt()}K'),
+            _SummaryLine(label: l10n.bookingDeliveryShort, value: '50K'),
           _SummaryLine(
-            label: 'Phí dịch vụ (3%)',
+            label: l10n.bookingInsuranceLabel,
+            value: '${insurance.toInt()}K',
+          ),
+          _SummaryLine(
+            label: l10n.bookingServiceFee,
             value: '${(rentalTotal * 0.03).toInt()}K',
           ),
           const Padding(
@@ -419,9 +429,9 @@ class _TotalCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Tổng thanh toán',
-                style: TextStyle(
+              Text(
+                l10n.bookingTotalPayment,
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: AppColors.darkText,
@@ -479,6 +489,7 @@ class _SummaryLine extends StatelessWidget {
 class _InfoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -495,22 +506,22 @@ class _InfoBanner extends StatelessWidget {
             color: AppColors.warning,
           ),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Đặt cọc & Hủy chuyến',
-                  style: TextStyle(
+                  l10n.bookingDepositTitle,
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: AppColors.darkText,
                   ),
                 ),
-                SizedBox(height: 3),
+                const SizedBox(height: 3),
                 Text(
-                  'Đặt cọc 30% khi xác nhận. Hoàn 100% nếu hủy trước 24h nhận xe.',
-                  style: TextStyle(
+                  l10n.bookingDepositBody,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.secondaryText,
                     height: 1.4,

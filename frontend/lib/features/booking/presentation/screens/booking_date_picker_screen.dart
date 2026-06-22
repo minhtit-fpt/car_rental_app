@@ -7,6 +7,8 @@ import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
@@ -56,15 +58,16 @@ class _BookingDatePickerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: CustomScrollView(
           slivers: [
-            const RvSliverAppBar(
-              title: 'Chọn ngày thuê',
-              subtitle: 'Chọn thời gian bắt đầu và kết thúc',
+            RvSliverAppBar(
+              title: l10n.bookingPickDatesTitle,
+              subtitle: l10n.bookingPickDatesSubtitle,
               role: RvRole.renter,
             ),
             SliverToBoxAdapter(
@@ -83,7 +86,7 @@ class _BookingDatePickerView extends StatelessWidget {
                     const SizedBox(height: 20),
                     BlocBuilder<BookingCubit, BookingFormState>(
                       builder: (context, state) => PrimaryButton(
-                        label: 'Tiếp tục',
+                        label: l10n.commonContinue,
                         onPressed: state.datesSelected
                             ? () => context.push(
                                 '/booking/confirm',
@@ -114,6 +117,7 @@ class _VehicleSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -156,9 +160,7 @@ class _VehicleSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  vehicle.isElectric
-                      ? 'Điện · ${vehicle.typeLabel}'
-                      : vehicle.typeLabel,
+                  vehicle.typeSummaryL10n(l10n),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.mutedText,
@@ -178,9 +180,12 @@ class _VehicleSummaryCard extends StatelessWidget {
                   color: AppColors.primary,
                 ),
               ),
-              const Text(
-                '/ngày',
-                style: TextStyle(fontSize: 11, color: AppColors.mutedText),
+              Text(
+                l10n.vehiclePerDay,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.mutedText,
+                ),
               ),
             ],
           ),
@@ -243,6 +248,7 @@ class _DateRangePickerState extends State<_DateRangePicker> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -260,9 +266,9 @@ class _DateRangePickerState extends State<_DateRangePicker> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Thời gian thuê',
-            style: TextStyle(
+          Text(
+            l10n.bookingRentalPeriod,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: AppColors.darkText,
@@ -273,7 +279,7 @@ class _DateRangePickerState extends State<_DateRangePicker> {
             children: [
               Expanded(
                 child: _DateBox(
-                  label: 'Ngày nhận xe',
+                  label: l10n.bookingPickupDateLabel,
                   date: _start,
                   icon: Icons.calendar_today_rounded,
                 ),
@@ -287,7 +293,7 @@ class _DateRangePickerState extends State<_DateRangePicker> {
               const SizedBox(width: 10),
               Expanded(
                 child: _DateBox(
-                  label: 'Ngày trả xe',
+                  label: l10n.bookingReturnDateLabel,
                   date: _end,
                   icon: Icons.event_rounded,
                 ),
@@ -305,7 +311,7 @@ class _DateRangePickerState extends State<_DateRangePicker> {
                 color: AppColors.primary,
               ),
               label: Text(
-                _start == null ? 'Chọn ngày' : 'Thay đổi ngày',
+                _start == null ? l10n.homeSelectDate : l10n.bookingChangeDate,
                 style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
@@ -324,7 +330,9 @@ class _DateRangePickerState extends State<_DateRangePicker> {
             const SizedBox(height: 10),
             Center(
               child: Text(
-                '${_end!.difference(_start!).inDays.clamp(1, 365)} ngày',
+                l10n.bookingDays(
+                  _end!.difference(_start!).inDays.clamp(1, 365),
+                ),
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.primary,
@@ -401,6 +409,7 @@ class _DateBox extends StatelessWidget {
 class _DeliveryToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocBuilder<BookingCubit, BookingFormState>(
       builder: (context, state) {
         return Container(
@@ -433,19 +442,19 @@ class _DeliveryToggle extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Giao xe tận nơi',
-                          style: TextStyle(
+                          l10n.bookingDelivery,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.darkText,
                           ),
                         ),
-                        Text(
+                        const Text(
                           '+50K VNĐ',
                           style: TextStyle(
                             fontSize: 12,
@@ -470,7 +479,7 @@ class _DeliveryToggle extends StatelessWidget {
                   onChanged: (v) =>
                       context.read<BookingCubit>().setDeliveryAddress(v),
                   decoration: InputDecoration(
-                    hintText: 'Nhập địa chỉ nhận xe...',
+                    hintText: l10n.bookingDeliveryAddressHint,
                     hintStyle: const TextStyle(
                       fontSize: 13,
                       color: AppColors.mutedText,
@@ -520,6 +529,7 @@ class _PriceSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocBuilder<BookingCubit, BookingFormState>(
       builder: (context, state) {
         if (!state.datesSelected) return const SizedBox.shrink();
@@ -546,9 +556,9 @@ class _PriceSummary extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Chi phí dự kiến',
-                style: TextStyle(
+              Text(
+                l10n.bookingEstimatedCost,
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.darkText,
@@ -556,12 +566,15 @@ class _PriceSummary extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _PriceLine(
-                label: '${vehicle.pricePerDay.toInt()}K × $days ngày',
+                label: l10n.bookingRentalLine(
+                  vehicle.pricePerDay.toInt().toString(),
+                  days,
+                ),
                 amount: rentalTotal,
               ),
               if (state.withDelivery)
-                const _PriceLine(label: 'Phí giao xe', amount: 50),
-              _PriceLine(label: 'Bảo hiểm (5%)', amount: insurance),
+                _PriceLine(label: l10n.bookingDeliveryFeeLabel, amount: 50),
+              _PriceLine(label: l10n.bookingInsuranceLabel, amount: insurance),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 10),
                 child: Divider(color: AppColors.border, height: 1),
@@ -569,9 +582,9 @@ class _PriceSummary extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Tổng cộng',
-                    style: TextStyle(
+                  Text(
+                    l10n.bookingTotal,
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: AppColors.darkText,

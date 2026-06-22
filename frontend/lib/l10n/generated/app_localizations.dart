@@ -985,6 +985,486 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Vehicle deleted'**
   String get ownerDeleteSuccess;
+
+  /// No description provided for @commonNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get commonNo;
+
+  /// No description provided for @commonContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get commonContinue;
+
+  /// No description provided for @commonBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get commonBack;
+
+  /// No description provided for @commonConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get commonConfirm;
+
+  /// No description provided for @bookingStatusPendingPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending payment'**
+  String get bookingStatusPendingPayment;
+
+  /// No description provided for @bookingStatusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get bookingStatusConfirmed;
+
+  /// No description provided for @bookingStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Renting'**
+  String get bookingStatusInProgress;
+
+  /// No description provided for @bookingStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get bookingStatusCompleted;
+
+  /// No description provided for @bookingStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get bookingStatusCancelled;
+
+  /// No description provided for @tripsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My trips'**
+  String get tripsTitle;
+
+  /// No description provided for @tripsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your bookings'**
+  String get tripsSubtitle;
+
+  /// No description provided for @tripsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any trips yet.'**
+  String get tripsEmpty;
+
+  /// Short booking order number shown on a trip card
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{id}'**
+  String tripsOrderNumber(String id);
+
+  /// No description provided for @tripsCancelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling...'**
+  String get tripsCancelling;
+
+  /// No description provided for @tripsCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel booking'**
+  String get tripsCancel;
+
+  /// No description provided for @tripsCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this booking?'**
+  String get tripsCancelTitle;
+
+  /// No description provided for @tripsCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this booking?'**
+  String get tripsCancelConfirm;
+
+  /// No description provided for @bookingPickDatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select rental dates'**
+  String get bookingPickDatesTitle;
+
+  /// No description provided for @bookingPickDatesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the start and end times'**
+  String get bookingPickDatesSubtitle;
+
+  /// No description provided for @bookingRentalPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental period'**
+  String get bookingRentalPeriod;
+
+  /// No description provided for @bookingPickupDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick-up date'**
+  String get bookingPickupDateLabel;
+
+  /// No description provided for @bookingReturnDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Return date'**
+  String get bookingReturnDateLabel;
+
+  /// No description provided for @bookingChangeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Change dates'**
+  String get bookingChangeDate;
+
+  /// Number of rental days
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days'**
+  String bookingDays(int count);
+
+  /// No description provided for @bookingDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Door-to-door delivery'**
+  String get bookingDelivery;
+
+  /// No description provided for @bookingDeliveryAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the delivery address...'**
+  String get bookingDeliveryAddressHint;
+
+  /// No description provided for @bookingEstimatedCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated cost'**
+  String get bookingEstimatedCost;
+
+  /// Rental cost line: price per day times number of days (price already formatted)
+  ///
+  /// In en, this message translates to:
+  /// **'{price}K × {days} days'**
+  String bookingRentalLine(String price, int days);
+
+  /// No description provided for @bookingDeliveryFeeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery fee'**
+  String get bookingDeliveryFeeLabel;
+
+  /// No description provided for @bookingInsuranceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance (5%)'**
+  String get bookingInsuranceLabel;
+
+  /// No description provided for @bookingTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get bookingTotal;
+
+  /// No description provided for @bookingConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm booking'**
+  String get bookingConfirmTitle;
+
+  /// No description provided for @bookingConfirmSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the details before booking'**
+  String get bookingConfirmSubtitle;
+
+  /// No description provided for @bookingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking failed'**
+  String get bookingFailed;
+
+  /// No description provided for @bookingConfirmAndPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm & Pay'**
+  String get bookingConfirmAndPay;
+
+  /// No description provided for @bookingTermsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing, you agree to RideVN\'s Terms of Service and Privacy Policy.'**
+  String get bookingTermsNote;
+
+  /// No description provided for @bookingTripDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip details'**
+  String get bookingTripDetails;
+
+  /// No description provided for @bookingPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick-up'**
+  String get bookingPickup;
+
+  /// No description provided for @bookingReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get bookingReturn;
+
+  /// No description provided for @bookingDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get bookingDuration;
+
+  /// No description provided for @bookingDeliveryTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Deliver to'**
+  String get bookingDeliveryTo;
+
+  /// No description provided for @bookingDeliveryAddressFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery address'**
+  String get bookingDeliveryAddressFallback;
+
+  /// Car rental summary line with price per day and number of days (price already formatted)
+  ///
+  /// In en, this message translates to:
+  /// **'Car rental ({price}K × {days} days)'**
+  String bookingRentalCarLine(String price, int days);
+
+  /// No description provided for @bookingDeliveryShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get bookingDeliveryShort;
+
+  /// No description provided for @bookingServiceFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Service fee (3%)'**
+  String get bookingServiceFee;
+
+  /// No description provided for @bookingTotalPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Total payment'**
+  String get bookingTotalPayment;
+
+  /// No description provided for @bookingDepositTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit & Cancellation'**
+  String get bookingDepositTitle;
+
+  /// No description provided for @bookingDepositBody.
+  ///
+  /// In en, this message translates to:
+  /// **'30% deposit on confirmation. Full refund if cancelled at least 24h before pick-up.'**
+  String get bookingDepositBody;
+
+  /// No description provided for @contractTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronic contract'**
+  String get contractTitle;
+
+  /// No description provided for @contractSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read carefully and sign'**
+  String get contractSubtitle;
+
+  /// No description provided for @contractHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental contract'**
+  String get contractHeading;
+
+  /// Contract reference code shown on the contract header
+  ///
+  /// In en, this message translates to:
+  /// **'Contract no.: {code}'**
+  String contractCode(String code);
+
+  /// No description provided for @contractPartiesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'I. PARTIES INVOLVED'**
+  String get contractPartiesTitle;
+
+  /// No description provided for @contractPartiesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'• Party A (Owner): Verified through the RideVN KYC system\n• Party B (Renter): Completed identity verification'**
+  String get contractPartiesBody;
+
+  /// No description provided for @contractVehicleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'II. VEHICLE INFORMATION'**
+  String get contractVehicleTitle;
+
+  /// No description provided for @contractVehicleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The vehicle is delivered in the described condition. The renter is responsible for inspecting the vehicle before pick-up and confirming in the app.'**
+  String get contractVehicleBody;
+
+  /// No description provided for @contractTermsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'III. TERMS OF USE'**
+  String get contractTermsTitle;
+
+  /// No description provided for @contractTermsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'• Do not use the vehicle for unlawful purposes\n• Do not let others drive without the owner\'s consent\n• Return the vehicle on time, at the agreed location\n• Take good care of the vehicle, no unauthorized repairs'**
+  String get contractTermsBody;
+
+  /// No description provided for @contractCompensationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'IV. DAMAGE COMPENSATION'**
+  String get contractCompensationTitle;
+
+  /// No description provided for @contractCompensationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Any damage outside the insurance coverage will be the responsibility of Party B, compensated according to the valuation of an appointed third party.'**
+  String get contractCompensationBody;
+
+  /// No description provided for @contractAgree.
+  ///
+  /// In en, this message translates to:
+  /// **'I have read carefully and agree to all the terms in this rental contract.'**
+  String get contractAgree;
+
+  /// No description provided for @contractSign.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign contract'**
+  String get contractSign;
+
+  /// No description provided for @activeTripTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip in progress'**
+  String get activeTripTitle;
+
+  /// No description provided for @activeTripSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your trip'**
+  String get activeTripSubtitle;
+
+  /// No description provided for @activeTripReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Return car'**
+  String get activeTripReturn;
+
+  /// No description provided for @activeTripEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency support'**
+  String get activeTripEmergency;
+
+  /// No description provided for @activeTripReturnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm car return?'**
+  String get activeTripReturnTitle;
+
+  /// No description provided for @activeTripReturnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you confirm that you\'ve returned the car and ended this trip?'**
+  String get activeTripReturnBody;
+
+  /// No description provided for @activeTripNotYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet'**
+  String get activeTripNotYet;
+
+  /// No description provided for @activeTripRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'🟢 Running'**
+  String get activeTripRunning;
+
+  /// No description provided for @activeTripRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get activeTripRemaining;
+
+  /// No description provided for @activeTripProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip progress'**
+  String get activeTripProgress;
+
+  /// Elapsed vs total rental days progress
+  ///
+  /// In en, this message translates to:
+  /// **'{elapsed}/{total} days'**
+  String activeTripDaysProgress(int elapsed, int total);
+
+  /// No description provided for @activeTripVehicleInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle info'**
+  String get activeTripVehicleInfo;
+
+  /// Vehicle license plate label
+  ///
+  /// In en, this message translates to:
+  /// **'Plate: {plate}'**
+  String activeTripLicensePlate(String plate);
+
+  /// No description provided for @activeTripCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get activeTripCall;
+
+  /// No description provided for @activeTripCallOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Call owner'**
+  String get activeTripCallOwner;
+
+  /// No description provided for @activeTripMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get activeTripMap;
+
+  /// No description provided for @activeTripPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get activeTripPhoto;
+
+  /// No description provided for @activeTripReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Report issue'**
+  String get activeTripReport;
 }
 
 class _AppLocalizationsDelegate

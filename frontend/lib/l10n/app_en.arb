@@ -242,5 +242,157 @@
       }
     }
   },
-  "ownerDeleteSuccess": "Vehicle deleted"
+  "ownerDeleteSuccess": "Vehicle deleted",
+
+  "commonNo": "No",
+  "commonContinue": "Continue",
+  "commonBack": "Back",
+  "commonConfirm": "Confirm",
+
+  "bookingStatusPendingPayment": "Pending payment",
+  "bookingStatusConfirmed": "Confirmed",
+  "bookingStatusInProgress": "Renting",
+  "bookingStatusCompleted": "Completed",
+  "bookingStatusCancelled": "Cancelled",
+
+  "tripsTitle": "My trips",
+  "tripsSubtitle": "Manage your bookings",
+  "tripsEmpty": "You don't have any trips yet.",
+  "tripsOrderNumber": "Order #{id}",
+  "@tripsOrderNumber": {
+    "description": "Short booking order number shown on a trip card",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "tripsCancelling": "Cancelling...",
+  "tripsCancel": "Cancel booking",
+  "tripsCancelTitle": "Cancel this booking?",
+  "tripsCancelConfirm": "Are you sure you want to cancel this booking?",
+
+  "bookingPickDatesTitle": "Select rental dates",
+  "bookingPickDatesSubtitle": "Choose the start and end times",
+  "bookingRentalPeriod": "Rental period",
+  "bookingPickupDateLabel": "Pick-up date",
+  "bookingReturnDateLabel": "Return date",
+  "bookingChangeDate": "Change dates",
+  "bookingDays": "{count} days",
+  "@bookingDays": {
+    "description": "Number of rental days",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bookingDelivery": "Door-to-door delivery",
+  "bookingDeliveryAddressHint": "Enter the delivery address...",
+  "bookingEstimatedCost": "Estimated cost",
+  "bookingRentalLine": "{price}K × {days} days",
+  "@bookingRentalLine": {
+    "description": "Rental cost line: price per day times number of days (price already formatted)",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "bookingDeliveryFeeLabel": "Delivery fee",
+  "bookingInsuranceLabel": "Insurance (5%)",
+  "bookingTotal": "Total",
+
+  "bookingConfirmTitle": "Confirm booking",
+  "bookingConfirmSubtitle": "Review the details before booking",
+  "bookingFailed": "Booking failed",
+  "bookingConfirmAndPay": "Confirm & Pay",
+  "bookingTermsNote": "By continuing, you agree to RideVN's Terms of Service and Privacy Policy.",
+  "bookingTripDetails": "Trip details",
+  "bookingPickup": "Pick-up",
+  "bookingReturn": "Return",
+  "bookingDuration": "Duration",
+  "bookingDeliveryTo": "Deliver to",
+  "bookingDeliveryAddressFallback": "Delivery address",
+  "bookingRentalCarLine": "Car rental ({price}K × {days} days)",
+  "@bookingRentalCarLine": {
+    "description": "Car rental summary line with price per day and number of days (price already formatted)",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "bookingDeliveryShort": "Delivery",
+  "bookingServiceFee": "Service fee (3%)",
+  "bookingTotalPayment": "Total payment",
+  "bookingDepositTitle": "Deposit & Cancellation",
+  "bookingDepositBody": "30% deposit on confirmation. Full refund if cancelled at least 24h before pick-up.",
+
+  "contractTitle": "Electronic contract",
+  "contractSubtitle": "Read carefully and sign",
+  "contractHeading": "Rental contract",
+  "contractCode": "Contract no.: {code}",
+  "@contractCode": {
+    "description": "Contract reference code shown on the contract header",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "contractPartiesTitle": "I. PARTIES INVOLVED",
+  "contractPartiesBody": "• Party A (Owner): Verified through the RideVN KYC system\n• Party B (Renter): Completed identity verification",
+  "contractVehicleTitle": "II. VEHICLE INFORMATION",
+  "contractVehicleBody": "The vehicle is delivered in the described condition. The renter is responsible for inspecting the vehicle before pick-up and confirming in the app.",
+  "contractTermsTitle": "III. TERMS OF USE",
+  "contractTermsBody": "• Do not use the vehicle for unlawful purposes\n• Do not let others drive without the owner's consent\n• Return the vehicle on time, at the agreed location\n• Take good care of the vehicle, no unauthorized repairs",
+  "contractCompensationTitle": "IV. DAMAGE COMPENSATION",
+  "contractCompensationBody": "Any damage outside the insurance coverage will be the responsibility of Party B, compensated according to the valuation of an appointed third party.",
+  "contractAgree": "I have read carefully and agree to all the terms in this rental contract.",
+  "contractSign": "Sign contract",
+
+  "activeTripTitle": "Trip in progress",
+  "activeTripSubtitle": "Manage your trip",
+  "activeTripReturn": "Return car",
+  "activeTripEmergency": "Emergency support",
+  "activeTripReturnTitle": "Confirm car return?",
+  "activeTripReturnBody": "Do you confirm that you've returned the car and ended this trip?",
+  "activeTripNotYet": "Not yet",
+  "activeTripRunning": "🟢 Running",
+  "activeTripRemaining": "Remaining",
+  "activeTripProgress": "Trip progress",
+  "activeTripDaysProgress": "{elapsed}/{total} days",
+  "@activeTripDaysProgress": {
+    "description": "Elapsed vs total rental days progress",
+    "placeholders": {
+      "elapsed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTripVehicleInfo": "Vehicle info",
+  "activeTripLicensePlate": "Plate: {plate}",
+  "@activeTripLicensePlate": {
+    "description": "Vehicle license plate label",
+    "placeholders": {
+      "plate": {
+        "type": "String"
+      }
+    }
+  },
+  "activeTripCall": "Call",
+  "activeTripCallOwner": "Call owner",
+  "activeTripMap": "Map",
+  "activeTripPhoto": "Take photo",
+  "activeTripReport": "Report issue"
 }

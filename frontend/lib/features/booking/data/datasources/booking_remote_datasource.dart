@@ -27,7 +27,11 @@ class BookingRemoteDataSource {
   }
 
   /// `GET /api/bookings` — trả phần `items` của envelope phân trang.
-  Future<List<dynamic>> list({String? status, int page = 1, int limit = 20}) async {
+  Future<List<dynamic>> list({
+    String? status,
+    int page = 1,
+    int limit = 20,
+  }) async {
     final query = <String, dynamic>{
       'page': page,
       'limit': limit,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
@@ -39,6 +40,7 @@ class ActiveTripScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final state = cubit.state;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -46,9 +48,9 @@ class ActiveTripScreen extends StatelessWidget {
         backgroundColor: AppColors.background,
         body: CustomScrollView(
           slivers: [
-            const RvSliverAppBar(
-              title: 'Chuyến đi đang diễn ra',
-              subtitle: 'Quản lý chuyến đi của bạn',
+            RvSliverAppBar(
+              title: l10n.activeTripTitle,
+              subtitle: l10n.activeTripSubtitle,
               role: RvRole.renter,
             ),
             SliverToBoxAdapter(
@@ -66,15 +68,17 @@ class ActiveTripScreen extends StatelessWidget {
                     _QuickActionsRow(),
                     const SizedBox(height: 20),
                     PrimaryButton(
-                      label: 'Trả xe',
+                      label: l10n.activeTripReturn,
                       onPressed: () => _showReturnDialog(context),
                       icon: Icons.check_circle_outline_rounded,
                     ),
                     const SizedBox(height: 12),
                     SecondaryButton(
-                      label: 'Hỗ trợ khẩn cấp',
-                      onPressed: () =>
-                          showComingSoonSnack(context, 'Hỗ trợ khẩn cấp'),
+                      label: l10n.activeTripEmergency,
+                      onPressed: () => showComingSoonSnack(
+                        context,
+                        l10n.activeTripEmergency,
+                      ),
                       icon: Icons.emergency_rounded,
                     ),
                     const SizedBox(height: 24),
@@ -89,28 +93,29 @@ class ActiveTripScreen extends StatelessWidget {
   }
 
   void _showReturnDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Xác nhận trả xe?',
-          style: TextStyle(
+        title: Text(
+          l10n.activeTripReturnTitle,
+          style: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
             color: AppColors.darkText,
           ),
         ),
-        content: const Text(
-          'Bạn xác nhận đã trả xe và kết thúc chuyến đi này?',
-          style: TextStyle(fontSize: 14, color: AppColors.secondaryText),
+        content: Text(
+          l10n.activeTripReturnBody,
+          style: const TextStyle(fontSize: 14, color: AppColors.secondaryText),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Chưa',
-              style: TextStyle(color: AppColors.mutedText),
+            child: Text(
+              l10n.activeTripNotYet,
+              style: const TextStyle(color: AppColors.mutedText),
             ),
           ),
           ElevatedButton(
@@ -135,7 +140,7 @@ class ActiveTripScreen extends StatelessWidget {
               ),
               elevation: 0,
             ),
-            child: const Text('Xác nhận'),
+            child: Text(l10n.commonConfirm),
           ),
         ],
       ),
@@ -150,6 +155,7 @@ class _ActiveStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -178,7 +184,7 @@ class _ActiveStatusCard extends StatelessWidget {
                     Row(
                       children: [
                         StatusChip(
-                          label: '🟢 Đang chạy',
+                          label: l10n.activeTripRunning,
                           color: AppColors.success,
                         ),
                       ],
@@ -199,7 +205,7 @@ class _ActiveStatusCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _StatItem(
-                  label: 'Nhận xe',
+                  label: l10n.bookingPickup,
                   value: state.startDate != null
                       ? _fmtDate(state.startDate!)
                       : '—',
@@ -210,7 +216,7 @@ class _ActiveStatusCard extends StatelessWidget {
                   color: Colors.white.withAlpha(50),
                 ),
                 _StatItem(
-                  label: 'Trả xe',
+                  label: l10n.bookingReturn,
                   value: state.endDate != null ? _fmtDate(state.endDate!) : '—',
                 ),
                 Container(
@@ -219,9 +225,14 @@ class _ActiveStatusCard extends StatelessWidget {
                   color: Colors.white.withAlpha(50),
                 ),
                 _StatItem(
-                  label: 'Còn lại',
+                  label: l10n.activeTripRemaining,
                   value: state.endDate != null
-                      ? '${state.endDate!.difference(DateTime.now()).inDays.clamp(0, 365)} ngày'
+                      ? l10n.bookingDays(
+                          state.endDate!
+                              .difference(DateTime.now())
+                              .inDays
+                              .clamp(0, 365),
+                        )
                       : '—',
                 ),
               ],
@@ -271,6 +282,7 @@ class _TripProgressCard extends StatelessWidget {
         ? DateTime.now().difference(state.startDate!).inDays.clamp(0, total)
         : 0;
     final progress = elapsed / total;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -292,16 +304,16 @@ class _TripProgressCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Tiến trình chuyến đi',
-                style: TextStyle(
+              Text(
+                l10n.activeTripProgress,
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.darkText,
                 ),
               ),
               Text(
-                '$elapsed/$total ngày',
+                l10n.activeTripDaysProgress(elapsed, total),
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.primary,
@@ -354,6 +366,7 @@ class _VehicleInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -371,9 +384,9 @@ class _VehicleInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Thông tin xe',
-            style: TextStyle(
+          Text(
+            l10n.activeTripVehicleInfo,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: AppColors.darkText,
@@ -382,11 +395,16 @@ class _VehicleInfoCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              _InfoChip(icon: '🔑', label: 'Biển số: 30A-12345'),
+              _InfoChip(
+                icon: '🔑',
+                label: l10n.activeTripLicensePlate('30A-12345'),
+              ),
               const SizedBox(width: 8),
               _InfoChip(
                 icon: vehicle.isElectric ? '⚡' : '⛽',
-                label: vehicle.isElectric ? 'Điện' : 'Xăng',
+                label: vehicle.isElectric
+                    ? l10n.vehicleElectric
+                    : l10n.vehicleFuelGas,
               ),
             ],
           ),
@@ -410,16 +428,16 @@ class _VehicleInfoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      vehicle.ownerName ?? 'Chủ xe',
+                      vehicle.ownerName ?? l10n.vehicleOwnerFallback,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.darkText,
                       ),
                     ),
-                    const Text(
-                      'Chủ xe',
-                      style: TextStyle(
+                    Text(
+                      l10n.roleOwner,
+                      style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.mutedText,
                       ),
@@ -428,15 +446,16 @@ class _VehicleInfoCard extends StatelessWidget {
                 ),
               ),
               OutlinedButton.icon(
-                onPressed: () => showComingSoonSnack(context, 'Gọi chủ xe'),
+                onPressed: () =>
+                    showComingSoonSnack(context, l10n.activeTripCallOwner),
                 icon: const Icon(
                   Icons.phone_outlined,
                   size: 14,
                   color: AppColors.primary,
                 ),
-                label: const Text(
-                  'Gọi',
-                  style: TextStyle(
+                label: Text(
+                  l10n.activeTripCall,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
@@ -497,11 +516,12 @@ class _InfoChip extends StatelessWidget {
 class _QuickActionsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final actions = [
-      (icon: '🗺️', label: 'Bản đồ'),
-      (icon: '💬', label: 'Nhắn tin'),
-      (icon: '📸', label: 'Chụp ảnh'),
-      (icon: '🚨', label: 'Báo hỏng'),
+      (icon: '🗺️', label: l10n.activeTripMap, route: null),
+      (icon: '💬', label: l10n.vehicleMessage, route: '/conversations'),
+      (icon: '📸', label: l10n.activeTripPhoto, route: null),
+      (icon: '🚨', label: l10n.activeTripReport, route: null),
     ];
 
     return Row(
@@ -510,8 +530,9 @@ class _QuickActionsRow extends StatelessWidget {
             (a) => Expanded(
               child: GestureDetector(
                 onTap: () {
-                  if (a.label == 'Nhắn tin') {
-                    context.push('/conversations');
+                  final route = a.route;
+                  if (route != null) {
+                    context.push(route);
                   } else {
                     showComingSoonSnack(context, a.label);
                   }

@@ -469,4 +469,266 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get ownerDeleteSuccess => 'Đã xoá xe';
+
+  @override
+  String get commonNo => 'Không';
+
+  @override
+  String get commonContinue => 'Tiếp tục';
+
+  @override
+  String get commonBack => 'Quay lại';
+
+  @override
+  String get commonConfirm => 'Xác nhận';
+
+  @override
+  String get bookingStatusPendingPayment => 'Chờ thanh toán';
+
+  @override
+  String get bookingStatusConfirmed => 'Đã xác nhận';
+
+  @override
+  String get bookingStatusInProgress => 'Đang thuê';
+
+  @override
+  String get bookingStatusCompleted => 'Hoàn thành';
+
+  @override
+  String get bookingStatusCancelled => 'Đã huỷ';
+
+  @override
+  String get tripsTitle => 'Chuyến của tôi';
+
+  @override
+  String get tripsSubtitle => 'Quản lý các đơn đặt xe';
+
+  @override
+  String get tripsEmpty => 'Bạn chưa có chuyến nào.';
+
+  @override
+  String tripsOrderNumber(String id) {
+    return 'Đơn #$id';
+  }
+
+  @override
+  String get tripsCancelling => 'Đang huỷ...';
+
+  @override
+  String get tripsCancel => 'Huỷ đơn';
+
+  @override
+  String get tripsCancelTitle => 'Huỷ đơn này?';
+
+  @override
+  String get tripsCancelConfirm => 'Bạn chắc chắn muốn huỷ đơn đặt xe này?';
+
+  @override
+  String get bookingPickDatesTitle => 'Chọn ngày thuê';
+
+  @override
+  String get bookingPickDatesSubtitle => 'Chọn thời gian bắt đầu và kết thúc';
+
+  @override
+  String get bookingRentalPeriod => 'Thời gian thuê';
+
+  @override
+  String get bookingPickupDateLabel => 'Ngày nhận xe';
+
+  @override
+  String get bookingReturnDateLabel => 'Ngày trả xe';
+
+  @override
+  String get bookingChangeDate => 'Thay đổi ngày';
+
+  @override
+  String bookingDays(int count) {
+    return '$count ngày';
+  }
+
+  @override
+  String get bookingDelivery => 'Giao xe tận nơi';
+
+  @override
+  String get bookingDeliveryAddressHint => 'Nhập địa chỉ nhận xe...';
+
+  @override
+  String get bookingEstimatedCost => 'Chi phí dự kiến';
+
+  @override
+  String bookingRentalLine(String price, int days) {
+    return '${price}K × $days ngày';
+  }
+
+  @override
+  String get bookingDeliveryFeeLabel => 'Phí giao xe';
+
+  @override
+  String get bookingInsuranceLabel => 'Bảo hiểm (5%)';
+
+  @override
+  String get bookingTotal => 'Tổng cộng';
+
+  @override
+  String get bookingConfirmTitle => 'Xác nhận đặt xe';
+
+  @override
+  String get bookingConfirmSubtitle => 'Kiểm tra thông tin trước khi đặt';
+
+  @override
+  String get bookingFailed => 'Đặt xe thất bại';
+
+  @override
+  String get bookingConfirmAndPay => 'Xác nhận & Thanh toán';
+
+  @override
+  String get bookingTermsNote =>
+      'Bằng cách tiếp tục, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của RideVN.';
+
+  @override
+  String get bookingTripDetails => 'Chi tiết chuyến đi';
+
+  @override
+  String get bookingPickup => 'Nhận xe';
+
+  @override
+  String get bookingReturn => 'Trả xe';
+
+  @override
+  String get bookingDuration => 'Thời gian';
+
+  @override
+  String get bookingDeliveryTo => 'Giao xe tại';
+
+  @override
+  String get bookingDeliveryAddressFallback => 'Địa chỉ giao xe';
+
+  @override
+  String bookingRentalCarLine(String price, int days) {
+    return 'Thuê xe (${price}K × $days ngày)';
+  }
+
+  @override
+  String get bookingDeliveryShort => 'Giao xe';
+
+  @override
+  String get bookingServiceFee => 'Phí dịch vụ (3%)';
+
+  @override
+  String get bookingTotalPayment => 'Tổng thanh toán';
+
+  @override
+  String get bookingDepositTitle => 'Đặt cọc & Hủy chuyến';
+
+  @override
+  String get bookingDepositBody =>
+      'Đặt cọc 30% khi xác nhận. Hoàn 100% nếu hủy trước 24h nhận xe.';
+
+  @override
+  String get contractTitle => 'Hợp đồng điện tử';
+
+  @override
+  String get contractSubtitle => 'Đọc kỹ và ký hợp đồng';
+
+  @override
+  String get contractHeading => 'Hợp đồng thuê xe';
+
+  @override
+  String contractCode(String code) {
+    return 'Mã hợp đồng: $code';
+  }
+
+  @override
+  String get contractPartiesTitle => 'I. CÁC BÊN THAM GIA';
+
+  @override
+  String get contractPartiesBody =>
+      '• Bên A (Chủ xe): Được xác minh qua hệ thống KYC RideVN\n• Bên B (Người thuê): Đã hoàn tất xác minh danh tính';
+
+  @override
+  String get contractVehicleTitle => 'II. THÔNG TIN XE';
+
+  @override
+  String get contractVehicleBody =>
+      'Xe được giao đúng tình trạng đã mô tả. Người thuê có trách nhiệm kiểm tra xe trước khi nhận và xác nhận trong ứng dụng.';
+
+  @override
+  String get contractTermsTitle => 'III. ĐIỀU KHOẢN SỬ DỤNG';
+
+  @override
+  String get contractTermsBody =>
+      '• Không sử dụng xe vào mục đích trái pháp luật\n• Không cho người khác lái xe khi chưa được chủ xe đồng ý\n• Trả xe đúng thời hạn, đúng địa điểm thỏa thuận\n• Bảo quản xe cẩn thận, không tự ý sửa chữa';
+
+  @override
+  String get contractCompensationTitle => 'IV. BỒI THƯỜNG THIỆT HẠI';
+
+  @override
+  String get contractCompensationBody =>
+      'Mọi thiệt hại nằm ngoài phạm vi bảo hiểm sẽ do Bên B chịu trách nhiệm bồi thường theo định giá của bên thứ ba được chỉ định.';
+
+  @override
+  String get contractAgree =>
+      'Tôi đã đọc kỹ và đồng ý với tất cả điều khoản trong hợp đồng thuê xe này.';
+
+  @override
+  String get contractSign => 'Ký hợp đồng';
+
+  @override
+  String get activeTripTitle => 'Chuyến đi đang diễn ra';
+
+  @override
+  String get activeTripSubtitle => 'Quản lý chuyến đi của bạn';
+
+  @override
+  String get activeTripReturn => 'Trả xe';
+
+  @override
+  String get activeTripEmergency => 'Hỗ trợ khẩn cấp';
+
+  @override
+  String get activeTripReturnTitle => 'Xác nhận trả xe?';
+
+  @override
+  String get activeTripReturnBody =>
+      'Bạn xác nhận đã trả xe và kết thúc chuyến đi này?';
+
+  @override
+  String get activeTripNotYet => 'Chưa';
+
+  @override
+  String get activeTripRunning => '🟢 Đang chạy';
+
+  @override
+  String get activeTripRemaining => 'Còn lại';
+
+  @override
+  String get activeTripProgress => 'Tiến trình chuyến đi';
+
+  @override
+  String activeTripDaysProgress(int elapsed, int total) {
+    return '$elapsed/$total ngày';
+  }
+
+  @override
+  String get activeTripVehicleInfo => 'Thông tin xe';
+
+  @override
+  String activeTripLicensePlate(String plate) {
+    return 'Biển số: $plate';
+  }
+
+  @override
+  String get activeTripCall => 'Gọi';
+
+  @override
+  String get activeTripCallOwner => 'Gọi chủ xe';
+
+  @override
+  String get activeTripMap => 'Bản đồ';
+
+  @override
+  String get activeTripPhoto => 'Chụp ảnh';
+
+  @override
+  String get activeTripReport => 'Báo hỏng';
 }

@@ -5,6 +5,7 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/booking/domain/entities/booking.dart';
 import 'package:frontend/features/booking/presentation/cubit/my_trips_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
 /// Danh sách chuyến (đơn đặt) của người thuê — tab "Chuyến" ở shell.
@@ -25,6 +26,7 @@ class _MyTripsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
@@ -33,9 +35,9 @@ class _MyTripsView extends StatelessWidget {
           onRefresh: () => context.read<MyTripsCubit>().load(),
           child: CustomScrollView(
             slivers: [
-              const RvSliverAppBar(
-                title: 'Chuyến của tôi',
-                subtitle: 'Quản lý các đơn đặt xe',
+              RvSliverAppBar(
+                title: l10n.tripsTitle,
+                subtitle: l10n.tripsSubtitle,
                 role: RvRole.renter,
               ),
               BlocBuilder<MyTripsCubit, MyTripsState>(
@@ -49,9 +51,9 @@ class _MyTripsView extends StatelessWidget {
                     child: _Message(text: message),
                   ),
                   MyTripsLoaded(:final bookings) when bookings.isEmpty =>
-                    const SliverFillRemaining(
+                    SliverFillRemaining(
                       hasScrollBody: false,
-                      child: _Message(text: 'Bạn chưa có chuyến nào.'),
+                      child: _Message(text: l10n.tripsEmpty),
                     ),
                   MyTripsLoaded(:final bookings, :final cancellingId) =>
                     SliverPadding(
@@ -105,6 +107,7 @@ class _TripCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final canCancel = _cancellable.contains(booking.status);
     return Container(
       padding: const EdgeInsets.all(16),
@@ -127,7 +130,9 @@ class _TripCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Đơn #${booking.id.substring(0, booking.id.length.clamp(0, 8))}',
+                l10n.tripsOrderNumber(
+                  booking.id.substring(0, booking.id.length.clamp(0, 8)),
+                ),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -140,7 +145,8 @@ class _TripCard extends StatelessWidget {
           const SizedBox(height: 10),
           _InfoLine(
             icon: Icons.event_outlined,
-            text: '${_fmtDate(booking.startTime)} → '
+            text:
+                '${_fmtDate(booking.startTime)} → '
                 '${_fmtDate(booking.endTime)}',
           ),
           const SizedBox(height: 6),
@@ -153,9 +159,7 @@ class _TripCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: isCancelling
-                    ? null
-                    : () => _confirmCancel(context),
+                onPressed: isCancelling ? null : () => _confirmCancel(context),
                 icon: isCancelling
                     ? const SizedBox(
                         width: 16,
@@ -163,7 +167,9 @@ class _TripCard extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.close_rounded, size: 18),
-                label: Text(isCancelling ? 'Đang huỷ...' : 'Huỷ đơn'),
+                label: Text(
+                  isCancelling ? l10n.tripsCancelling : l10n.tripsCancel,
+                ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.danger,
                   side: const BorderSide(color: AppColors.danger),
@@ -180,19 +186,18 @@ class _TripCard extends StatelessWidget {
   }
 
   Future<void> _confirmCancel(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final cubit = context.read<MyTripsCubit>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text('Huỷ đơn này?'),
-        content: const Text('Bạn chắc chắn muốn huỷ đơn đặt xe này?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l10n.tripsCancelTitle),
+        content: Text(l10n.tripsCancelConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Không'),
+            child: Text(l10n.commonNo),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -200,7 +205,7 @@ class _TripCard extends StatelessWidget {
               backgroundColor: AppColors.danger,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Huỷ đơn'),
+            child: Text(l10n.tripsCancel),
           ),
         ],
       ),
@@ -240,12 +245,28 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final (label, color) = switch (status) {
-      BookingStatus.pendingPayment => ('Chờ thanh toán', AppColors.accent),
-      BookingStatus.confirmed => ('Đã xác nhận', AppColors.primary),
-      BookingStatus.inProgress => ('Đang thuê', AppColors.teal),
-      BookingStatus.completed => ('Hoàn thành', AppColors.mutedText),
-      BookingStatus.cancelled => ('Đã huỷ', AppColors.danger),
+      BookingStatus.pendingPayment => (
+        l10n.bookingStatusPendingPayment,
+        AppColors.accent,
+      ),
+      BookingStatus.confirmed => (
+        l10n.bookingStatusConfirmed,
+        AppColors.primary,
+      ),
+      BookingStatus.inProgress => (
+        l10n.bookingStatusInProgress,
+        AppColors.teal,
+      ),
+      BookingStatus.completed => (
+        l10n.bookingStatusCompleted,
+        AppColors.mutedText,
+      ),
+      BookingStatus.cancelled => (
+        l10n.bookingStatusCancelled,
+        AppColors.danger,
+      ),
       BookingStatus.unknown => ('—', AppColors.mutedText),
     };
     return Container(
