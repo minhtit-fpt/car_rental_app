@@ -5,6 +5,7 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/owner/domain/entities/owner_revenue.dart';
 import 'package:frontend/features/owner/presentation/cubit/owner_revenue_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 
@@ -42,15 +43,16 @@ class _RevenueReportView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: CustomScrollView(
           slivers: [
-            const RvSliverAppBar(
-              title: 'Báo cáo doanh thu',
-              subtitle: 'Theo dõi thu nhập của bạn',
+            RvSliverAppBar(
+              title: l10n.ownerRevenueTitle,
+              subtitle: l10n.ownerRevenueSubtitle,
               role: RvRole.owner,
             ),
             SliverToBoxAdapter(
@@ -89,8 +91,11 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 48),
-          const Icon(Icons.error_outline_rounded,
-              color: AppColors.danger, size: 40),
+          const Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.danger,
+            size: 40,
+          ),
           const SizedBox(height: 12),
           Text(
             message,
@@ -98,7 +103,10 @@ class _ErrorView extends StatelessWidget {
             style: const TextStyle(color: AppColors.secondaryText),
           ),
           const SizedBox(height: 16),
-          OutlinedButton(onPressed: onRetry, child: const Text('Thử lại')),
+          OutlinedButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context).commonRetry),
+          ),
         ],
       ),
     );
@@ -134,6 +142,7 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -144,9 +153,9 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Thu nhập tháng này',
-            style: TextStyle(fontSize: 13, color: Colors.white70),
+          Text(
+            l10n.ownerIncomeThisMonth,
+            style: const TextStyle(fontSize: 13, color: Colors.white70),
           ),
           const SizedBox(height: 8),
           Text(
@@ -159,7 +168,7 @@ class _SummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _StatChip(
-            label: '${revenue.totalTrips} chuyến đã thanh toán',
+            label: l10n.ownerPaidTrips(revenue.totalTrips),
             icon: Icons.directions_car_rounded,
           ),
         ],
@@ -186,7 +195,10 @@ class _StatChip extends StatelessWidget {
         children: [
           Icon(icon, size: 13, color: Colors.white),
           const SizedBox(width: 5),
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.white)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: Colors.white),
+          ),
         ],
       ),
     );
@@ -220,15 +232,18 @@ class _ChartCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Biểu đồ doanh thu'),
+          SectionHeader(title: AppLocalizations.of(context).ownerRevenueChart),
           const SizedBox(height: 16),
           if (maxTotal == 0)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
               child: Center(
                 child: Text(
-                  'Chưa có doanh thu trong giai đoạn này',
-                  style: TextStyle(color: AppColors.mutedText, fontSize: 13),
+                  AppLocalizations.of(context).ownerNoRevenue,
+                  style: const TextStyle(
+                    color: AppColors.mutedText,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             )
@@ -315,15 +330,20 @@ class _TransactionList extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Giao dịch gần đây'),
+          SectionHeader(
+            title: AppLocalizations.of(context).ownerRecentTransactions,
+          ),
           const SizedBox(height: 12),
           if (transactions.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
               child: Center(
                 child: Text(
-                  'Chưa có giao dịch nào',
-                  style: TextStyle(color: AppColors.mutedText, fontSize: 13),
+                  AppLocalizations.of(context).ownerNoTransactions,
+                  style: const TextStyle(
+                    color: AppColors.mutedText,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             )
@@ -383,7 +403,10 @@ class _TransactionRow extends StatelessWidget {
               ),
               Text(
                 '${transaction.renterDisplayName} · $dateLabel',
-                style: const TextStyle(fontSize: 12, color: AppColors.mutedText),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.mutedText,
+                ),
               ),
             ],
           ),

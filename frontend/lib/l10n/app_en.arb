@@ -394,5 +394,112 @@
   "activeTripCallOwner": "Call owner",
   "activeTripMap": "Map",
   "activeTripPhoto": "Take photo",
-  "activeTripReport": "Report issue"
+  "activeTripReport": "Report issue",
+
+  "commonYes": "Yes",
+  "vehicleTransmissionNone": "Not applicable",
+
+  "ownerCalendarTitle": "Vehicle calendar",
+  "ownerCalendarSubtitle": "Manage your rental schedule",
+  "ownerPendingApproval": "Pending",
+  "ownerToday": "Today",
+  "ownerNeedsResponse": "Needs response",
+  "ownerNoPendingRequests": "No requests pending",
+  "ownerReject": "Reject",
+  "ownerApprove": "Approve",
+
+  "ownerRequestDetailTitle": "Request details",
+  "ownerRequestDetailSubtitle": "Review and handle the rental request",
+  "ownerNoRequestData": "No request data",
+  "ownerRequestApproved": "Request approved",
+  "ownerRequestRejected": "Request rejected",
+  "ownerSentOn": "Sent {date}",
+  "@ownerSentOn": {
+    "description": "When the rental request was sent",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "ownerHours": "{count} hours",
+  "@ownerHours": {
+    "description": "Trip duration in hours",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ownerTotalRental": "Total rental",
+  "ownerPlatformFee": "Platform fee (10%)",
+  "ownerYouReceive": "You receive",
+  "ownerProcessing": "Processing…",
+  "ownerApproveRequest": "Approve request",
+  "ownerRequestHandled": "This request has already been handled.",
+  "ownerStatusPendingConfirm": "🟡 Awaiting confirmation",
+  "ownerStatusConfirmed": "✅ Confirmed",
+  "ownerStatusInProgress": "🚗 Renting",
+  "ownerStatusCompleted": "✔ Completed",
+  "ownerStatusCancelled": "✖ Cancelled",
+  "ownerStatusUnknown": "Unknown",
+
+  "ownerRevenueTitle": "Revenue report",
+  "ownerRevenueSubtitle": "Track your income",
+  "ownerIncomeThisMonth": "Income this month",
+  "ownerPaidTrips": "{count} paid trips",
+  "@ownerPaidTrips": {
+    "description": "Number of paid trips this month",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ownerRevenueChart": "Revenue chart",
+  "ownerNoRevenue": "No revenue in this period yet",
+  "ownerRecentTransactions": "Recent transactions",
+  "ownerNoTransactions": "No transactions yet",
+
+  "ownerVehicleNameRequired": "Please enter the vehicle name",
+  "ownerVehiclePriceInvalid": "Rental price must be greater than 0",
+  "ownerVehicleCoordsInvalid": "Invalid coordinates",
+  "ownerVehicleUpdateSuccess": "Vehicle updated successfully",
+  "ownerVehicleCreateSuccess": "Vehicle published successfully",
+  "ownerVehicleEditTitle": "Edit vehicle",
+  "ownerVehicleAddTitle": "List a new vehicle",
+  "ownerVehicleEditSubtitle": "Update your vehicle's information",
+  "ownerVehicleAddSubtitle": "Fill in the details to list your vehicle",
+  "ownerVehicleSaveChanges": "Save changes",
+  "ownerVehiclePublish": "Publish",
+  "ownerVehiclePhotos": "Vehicle photos",
+  "ownerVehiclePhotosHint": "Up to 10 photos · The first is the cover",
+  "ownerVehicleAddPhoto": "Add photo",
+  "ownerVehicleBasicInfo": "Basic information",
+  "ownerVehicleName": "Vehicle name",
+  "ownerVehicleNameHint": "e.g. Toyota Camry 2024",
+  "ownerVehiclePricePerHour": "Price/hour (VND)",
+  "ownerVehiclePriceHint": "e.g. 50000",
+  "ownerVehicleType": "Vehicle type",
+  "ownerVehicleLocation": "Vehicle location",
+  "ownerVehicleLat": "Latitude (lat)",
+  "ownerVehicleLatHint": "e.g. 21.0278",
+  "ownerVehicleLng": "Longitude (lng)",
+  "ownerVehicleLngHint": "e.g. 105.8342",
+  "ownerVehicleMapSoon": "Picking a location on the map is coming soon.",
+  "ownerVehicleSpecs": "Specifications",
+  "ownerVehicleSpecsHint": "Can be left empty if not applicable (e.g. motorbike, bicycle).",
+  "ownerVehicleSeats": "Seats",
+  "ownerVehicleSeatsHint": "e.g. 5",
+  "ownerVehicleDoors": "Doors",
+  "ownerVehicleDoorsHint": "e.g. 4",
+  "ownerVehicleTransmission": "Transmission",
+  "ownerVehicleCity": "City",
+  "ownerVehicleCityHint": "e.g. HCMC",
+  "ownerVehicleDescription": "Vehicle description",
+  "ownerVehicleDescriptionHint": "Describe the condition and standout features...",
+  "ownerVehicleOptions": "Options",
+  "ownerVehicleEv": "Electric (EV)",
+  "ownerVehicleEvSubtitle": "Show the EV badge on the listing",
+  "ownerVehicleDeliverySubtitle": "Allow delivery to the customer's address"
 }

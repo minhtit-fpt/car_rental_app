@@ -9,7 +9,9 @@ import 'package:frontend/features/owner/presentation/cubit/owner_bookings_cubit.
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle_availability.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_availability_cubit.dart';
+import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
 import 'package:frontend/features/owner/presentation/cubit/my_vehicles_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
 
@@ -49,15 +51,16 @@ class _CalendarViewState extends State<_CalendarView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: CustomScrollView(
           slivers: [
-            const RvSliverAppBar(
-              title: 'Lịch xe',
-              subtitle: 'Quản lý lịch cho thuê',
+            RvSliverAppBar(
+              title: l10n.ownerCalendarTitle,
+              subtitle: l10n.ownerCalendarSubtitle,
               role: RvRole.owner,
             ),
             SliverToBoxAdapter(
@@ -75,16 +78,17 @@ class _CalendarViewState extends State<_CalendarView> {
                     child: Center(child: CircularProgressIndicator()),
                   ),
                   MyVehiclesError(:final message) => _Centered(text: message),
-                  MyVehiclesLoaded(:final vehicles) => vehicles.isEmpty
-                      ? const _Centered(text: 'Bạn chưa đăng xe nào')
-                      : _Body(
-                          vehicles: vehicles,
-                          selectedVehicleId: _selectedVehicleId,
-                          focusedMonth: _focusedMonth,
-                          onSelectVehicle: _selectVehicle,
-                          onMonthChanged: (d) =>
-                              setState(() => _focusedMonth = d),
-                        ),
+                  MyVehiclesLoaded(:final vehicles) =>
+                    vehicles.isEmpty
+                        ? _Centered(text: l10n.ownerNoCars)
+                        : _Body(
+                            vehicles: vehicles,
+                            selectedVehicleId: _selectedVehicleId,
+                            focusedMonth: _focusedMonth,
+                            onSelectVehicle: _selectVehicle,
+                            onMonthChanged: (d) =>
+                                setState(() => _focusedMonth = d),
+                          ),
                 },
               ),
             ),
@@ -176,6 +180,7 @@ class _SummaryHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocBuilder<OwnerBookingsCubit, OwnerBookingsState>(
       builder: (context, state) {
         final pending = state is OwnerBookingsLoaded ? state.pending.length : 0;
@@ -188,14 +193,14 @@ class _SummaryHero extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _HeroStat(label: 'Xe của bạn', value: '$vehicleCount'),
+              _HeroStat(label: l10n.ownerYourCars, value: '$vehicleCount'),
               Container(
                 width: 1,
                 height: 28,
                 color: Colors.white24,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
               ),
-              _HeroStat(label: 'Chờ duyệt', value: '$pending'),
+              _HeroStat(label: l10n.ownerPendingApproval, value: '$pending'),
             ],
           ),
         );
@@ -222,8 +227,10 @@ class _HeroStat extends StatelessWidget {
             color: Colors.white,
           ),
         ),
-        Text(label,
-            style: const TextStyle(fontSize: 11, color: Colors.white60)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: Colors.white60),
+        ),
       ],
     );
   }
@@ -242,6 +249,7 @@ class _VehiclePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -284,7 +292,7 @@ class _VehiclePicker extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  selected.typeLabel,
+                  selected.typeLabelL10n(l10n),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.mutedText,
@@ -295,12 +303,13 @@ class _VehiclePicker extends StatelessWidget {
           ),
           if (vehicles.length > 1)
             PopupMenuButton<String>(
-              icon: const Icon(Icons.expand_more_rounded,
-                  color: AppColors.mutedText),
+              icon: const Icon(
+                Icons.expand_more_rounded,
+                color: AppColors.mutedText,
+              ),
               onSelected: onSelect,
               itemBuilder: (context) => vehicles
-                  .map((v) =>
-                      PopupMenuItem(value: v.id, child: Text(v.title)))
+                  .map((v) => PopupMenuItem(value: v.id, child: Text(v.title)))
                   .toList(),
             ),
         ],
@@ -325,7 +334,8 @@ class _CalendarCard extends StatelessWidget {
   _DayStatus _statusFor(int day) {
     final date = DateTime(focusedMonth.year, focusedMonth.month, day);
     final today = DateTime.now();
-    final isToday = day == today.day &&
+    final isToday =
+        day == today.day &&
         focusedMonth.month == today.month &&
         focusedMonth.year == today.year;
 
@@ -333,9 +343,11 @@ class _CalendarCard extends StatelessWidget {
         .where((b) => b.coversDay(date))
         .toList();
     if (interval != null && interval.isNotEmpty) {
-      final hasConfirmed = interval.any((b) =>
-          b.status == BookingStatus.confirmed ||
-          b.status == BookingStatus.inProgress);
+      final hasConfirmed = interval.any(
+        (b) =>
+            b.status == BookingStatus.confirmed ||
+            b.status == BookingStatus.inProgress,
+      );
       if (hasConfirmed) return _DayStatus.booked;
       return _DayStatus.pending;
     }
@@ -345,14 +357,26 @@ class _CalendarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final daysInMonth =
-        DateUtils.getDaysInMonth(focusedMonth.year, focusedMonth.month);
+    final daysInMonth = DateUtils.getDaysInMonth(
+      focusedMonth.year,
+      focusedMonth.month,
+    );
     final firstWeekday =
         DateTime(focusedMonth.year, focusedMonth.month, 1).weekday % 7;
 
     const monthNames = [
-      'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-      'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
+      'Tháng 1',
+      'Tháng 2',
+      'Tháng 3',
+      'Tháng 4',
+      'Tháng 5',
+      'Tháng 6',
+      'Tháng 7',
+      'Tháng 8',
+      'Tháng 9',
+      'Tháng 10',
+      'Tháng 11',
+      'Tháng 12',
     ];
 
     return Container(
@@ -375,8 +399,10 @@ class _CalendarCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                icon: const Icon(Icons.chevron_left_rounded,
-                    color: AppColors.darkText),
+                icon: const Icon(
+                  Icons.chevron_left_rounded,
+                  color: AppColors.darkText,
+                ),
                 onPressed: () => onMonthChanged(
                   DateTime(focusedMonth.year, focusedMonth.month - 1),
                 ),
@@ -390,8 +416,10 @@ class _CalendarCard extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.chevron_right_rounded,
-                    color: AppColors.darkText),
+                icon: const Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.darkText,
+                ),
                 onPressed: () => onMonthChanged(
                   DateTime(focusedMonth.year, focusedMonth.month + 1),
                 ),
@@ -401,18 +429,20 @@ class _CalendarCard extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
-                .map((d) => Expanded(
-                      child: Center(
-                        child: Text(
-                          d,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.mutedText,
-                          ),
+                .map(
+                  (d) => Expanded(
+                    child: Center(
+                      child: Text(
+                        d,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.mutedText,
                         ),
                       ),
-                    ))
+                    ),
+                  ),
+                )
                 .toList(),
           ),
           const SizedBox(height: 8),
@@ -453,15 +483,15 @@ class _DayCell extends StatelessWidget {
       _DayStatus.today => (AppColors.accent, Colors.white, AppColors.accent),
       _DayStatus.booked => (AppColors.primary, Colors.white, AppColors.primary),
       _DayStatus.pending => (
-          AppColors.warning.withAlpha(40),
-          AppColors.warning,
-          AppColors.warning.withAlpha(120),
-        ),
+        AppColors.warning.withAlpha(40),
+        AppColors.warning,
+        AppColors.warning.withAlpha(120),
+      ),
       _DayStatus.available => (
-          AppColors.surface,
-          AppColors.darkText,
-          Colors.transparent,
-        ),
+        AppColors.surface,
+        AppColors.darkText,
+        Colors.transparent,
+      ),
     };
 
     return Container(
@@ -476,8 +506,9 @@ class _DayCell extends StatelessWidget {
           '$day',
           style: TextStyle(
             fontSize: 13,
-            fontWeight:
-                status == _DayStatus.today ? FontWeight.bold : FontWeight.normal,
+            fontWeight: status == _DayStatus.today
+                ? FontWeight.bold
+                : FontWeight.normal,
             color: textColor,
           ),
         ),
@@ -489,14 +520,18 @@ class _DayCell extends StatelessWidget {
 class _LegendRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        StatusChip(label: 'Đã xác nhận', color: AppColors.primary),
+        StatusChip(
+          label: l10n.bookingStatusConfirmed,
+          color: AppColors.primary,
+        ),
         const SizedBox(width: 8),
-        StatusChip(label: 'Chờ duyệt', color: AppColors.warning),
+        StatusChip(label: l10n.ownerPendingApproval, color: AppColors.warning),
         const SizedBox(width: 8),
-        StatusChip(label: 'Hôm nay', color: AppColors.accent),
+        StatusChip(label: l10n.ownerToday, color: AppColors.accent),
       ],
     );
   }
@@ -540,9 +575,9 @@ class _PendingRequests extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text(
-                    'Cần phản hồi',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context).ownerNeedsResponse,
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: AppColors.darkText,
@@ -550,8 +585,10 @@ class _PendingRequests extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.accent,
                       borderRadius: BorderRadius.circular(10),
@@ -569,11 +606,14 @@ class _PendingRequests extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               if (pending.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
-                    'Không có yêu cầu nào đang chờ',
-                    style: TextStyle(color: AppColors.mutedText, fontSize: 13),
+                    AppLocalizations.of(context).ownerNoPendingRequests,
+                    style: const TextStyle(
+                      color: AppColors.mutedText,
+                      fontSize: 13,
+                    ),
                   ),
                 )
               else
@@ -604,6 +644,7 @@ class _PendingBookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -650,7 +691,10 @@ class _PendingBookingCard extends StatelessWidget {
                   ],
                 ),
               ),
-              StatusChip(label: 'Chờ duyệt', color: AppColors.warning),
+              StatusChip(
+                label: l10n.ownerPendingApproval,
+                color: AppColors.warning,
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -660,8 +704,9 @@ class _PendingBookingCard extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: busy
                       ? null
-                      : () =>
-                          context.read<OwnerBookingsCubit>().reject(booking.id),
+                      : () => context.read<OwnerBookingsCubit>().reject(
+                          booking.id,
+                        ),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.border),
                     shape: RoundedRectangleBorder(
@@ -670,10 +715,12 @@ class _PendingBookingCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     foregroundColor: AppColors.danger,
                   ),
-                  child: const Text(
-                    'Từ chối',
-                    style:
-                        TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  child: Text(
+                    l10n.ownerReject,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -682,9 +729,9 @@ class _PendingBookingCard extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: busy
                       ? null
-                      : () => context
-                          .read<OwnerBookingsCubit>()
-                          .approve(booking.id),
+                      : () => context.read<OwnerBookingsCubit>().approve(
+                          booking.id,
+                        ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -695,9 +742,11 @@ class _PendingBookingCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                   ),
                   child: Text(
-                    busy ? '...' : 'Chấp nhận',
+                    busy ? '...' : l10n.ownerApprove,
                     style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w600),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

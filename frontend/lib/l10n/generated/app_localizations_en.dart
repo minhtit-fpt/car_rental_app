@@ -734,4 +734,251 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activeTripReport => 'Report issue';
+
+  @override
+  String get commonYes => 'Yes';
+
+  @override
+  String get vehicleTransmissionNone => 'Not applicable';
+
+  @override
+  String get ownerCalendarTitle => 'Vehicle calendar';
+
+  @override
+  String get ownerCalendarSubtitle => 'Manage your rental schedule';
+
+  @override
+  String get ownerPendingApproval => 'Pending';
+
+  @override
+  String get ownerToday => 'Today';
+
+  @override
+  String get ownerNeedsResponse => 'Needs response';
+
+  @override
+  String get ownerNoPendingRequests => 'No requests pending';
+
+  @override
+  String get ownerReject => 'Reject';
+
+  @override
+  String get ownerApprove => 'Approve';
+
+  @override
+  String get ownerRequestDetailTitle => 'Request details';
+
+  @override
+  String get ownerRequestDetailSubtitle =>
+      'Review and handle the rental request';
+
+  @override
+  String get ownerNoRequestData => 'No request data';
+
+  @override
+  String get ownerRequestApproved => 'Request approved';
+
+  @override
+  String get ownerRequestRejected => 'Request rejected';
+
+  @override
+  String ownerSentOn(String date) {
+    return 'Sent $date';
+  }
+
+  @override
+  String ownerHours(int count) {
+    return '$count hours';
+  }
+
+  @override
+  String get ownerTotalRental => 'Total rental';
+
+  @override
+  String get ownerPlatformFee => 'Platform fee (10%)';
+
+  @override
+  String get ownerYouReceive => 'You receive';
+
+  @override
+  String get ownerProcessing => 'Processing…';
+
+  @override
+  String get ownerApproveRequest => 'Approve request';
+
+  @override
+  String get ownerRequestHandled => 'This request has already been handled.';
+
+  @override
+  String get ownerStatusPendingConfirm => '🟡 Awaiting confirmation';
+
+  @override
+  String get ownerStatusConfirmed => '✅ Confirmed';
+
+  @override
+  String get ownerStatusInProgress => '🚗 Renting';
+
+  @override
+  String get ownerStatusCompleted => '✔ Completed';
+
+  @override
+  String get ownerStatusCancelled => '✖ Cancelled';
+
+  @override
+  String get ownerStatusUnknown => 'Unknown';
+
+  @override
+  String get ownerRevenueTitle => 'Revenue report';
+
+  @override
+  String get ownerRevenueSubtitle => 'Track your income';
+
+  @override
+  String get ownerIncomeThisMonth => 'Income this month';
+
+  @override
+  String ownerPaidTrips(int count) {
+    return '$count paid trips';
+  }
+
+  @override
+  String get ownerRevenueChart => 'Revenue chart';
+
+  @override
+  String get ownerNoRevenue => 'No revenue in this period yet';
+
+  @override
+  String get ownerRecentTransactions => 'Recent transactions';
+
+  @override
+  String get ownerNoTransactions => 'No transactions yet';
+
+  @override
+  String get ownerVehicleNameRequired => 'Please enter the vehicle name';
+
+  @override
+  String get ownerVehiclePriceInvalid => 'Rental price must be greater than 0';
+
+  @override
+  String get ownerVehicleCoordsInvalid => 'Invalid coordinates';
+
+  @override
+  String get ownerVehicleUpdateSuccess => 'Vehicle updated successfully';
+
+  @override
+  String get ownerVehicleCreateSuccess => 'Vehicle published successfully';
+
+  @override
+  String get ownerVehicleEditTitle => 'Edit vehicle';
+
+  @override
+  String get ownerVehicleAddTitle => 'List a new vehicle';
+
+  @override
+  String get ownerVehicleEditSubtitle => 'Update your vehicle\'s information';
+
+  @override
+  String get ownerVehicleAddSubtitle =>
+      'Fill in the details to list your vehicle';
+
+  @override
+  String get ownerVehicleSaveChanges => 'Save changes';
+
+  @override
+  String get ownerVehiclePublish => 'Publish';
+
+  @override
+  String get ownerVehiclePhotos => 'Vehicle photos';
+
+  @override
+  String get ownerVehiclePhotosHint =>
+      'Up to 10 photos · The first is the cover';
+
+  @override
+  String get ownerVehicleAddPhoto => 'Add photo';
+
+  @override
+  String get ownerVehicleBasicInfo => 'Basic information';
+
+  @override
+  String get ownerVehicleName => 'Vehicle name';
+
+  @override
+  String get ownerVehicleNameHint => 'e.g. Toyota Camry 2024';
+
+  @override
+  String get ownerVehiclePricePerHour => 'Price/hour (VND)';
+
+  @override
+  String get ownerVehiclePriceHint => 'e.g. 50000';
+
+  @override
+  String get ownerVehicleType => 'Vehicle type';
+
+  @override
+  String get ownerVehicleLocation => 'Vehicle location';
+
+  @override
+  String get ownerVehicleLat => 'Latitude (lat)';
+
+  @override
+  String get ownerVehicleLatHint => 'e.g. 21.0278';
+
+  @override
+  String get ownerVehicleLng => 'Longitude (lng)';
+
+  @override
+  String get ownerVehicleLngHint => 'e.g. 105.8342';
+
+  @override
+  String get ownerVehicleMapSoon =>
+      'Picking a location on the map is coming soon.';
+
+  @override
+  String get ownerVehicleSpecs => 'Specifications';
+
+  @override
+  String get ownerVehicleSpecsHint =>
+      'Can be left empty if not applicable (e.g. motorbike, bicycle).';
+
+  @override
+  String get ownerVehicleSeats => 'Seats';
+
+  @override
+  String get ownerVehicleSeatsHint => 'e.g. 5';
+
+  @override
+  String get ownerVehicleDoors => 'Doors';
+
+  @override
+  String get ownerVehicleDoorsHint => 'e.g. 4';
+
+  @override
+  String get ownerVehicleTransmission => 'Transmission';
+
+  @override
+  String get ownerVehicleCity => 'City';
+
+  @override
+  String get ownerVehicleCityHint => 'e.g. HCMC';
+
+  @override
+  String get ownerVehicleDescription => 'Vehicle description';
+
+  @override
+  String get ownerVehicleDescriptionHint =>
+      'Describe the condition and standout features...';
+
+  @override
+  String get ownerVehicleOptions => 'Options';
+
+  @override
+  String get ownerVehicleEv => 'Electric (EV)';
+
+  @override
+  String get ownerVehicleEvSubtitle => 'Show the EV badge on the listing';
+
+  @override
+  String get ownerVehicleDeliverySubtitle =>
+      'Allow delivery to the customer\'s address';
 }

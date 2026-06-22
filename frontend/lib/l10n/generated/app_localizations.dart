@@ -1465,6 +1465,474 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report issue'**
   String get activeTripReport;
+
+  /// No description provided for @commonYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get commonYes;
+
+  /// No description provided for @vehicleTransmissionNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not applicable'**
+  String get vehicleTransmissionNone;
+
+  /// No description provided for @ownerCalendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle calendar'**
+  String get ownerCalendarTitle;
+
+  /// No description provided for @ownerCalendarSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your rental schedule'**
+  String get ownerCalendarSubtitle;
+
+  /// No description provided for @ownerPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get ownerPendingApproval;
+
+  /// No description provided for @ownerToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get ownerToday;
+
+  /// No description provided for @ownerNeedsResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs response'**
+  String get ownerNeedsResponse;
+
+  /// No description provided for @ownerNoPendingRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No requests pending'**
+  String get ownerNoPendingRequests;
+
+  /// No description provided for @ownerReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get ownerReject;
+
+  /// No description provided for @ownerApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get ownerApprove;
+
+  /// No description provided for @ownerRequestDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request details'**
+  String get ownerRequestDetailTitle;
+
+  /// No description provided for @ownerRequestDetailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and handle the rental request'**
+  String get ownerRequestDetailSubtitle;
+
+  /// No description provided for @ownerNoRequestData.
+  ///
+  /// In en, this message translates to:
+  /// **'No request data'**
+  String get ownerNoRequestData;
+
+  /// No description provided for @ownerRequestApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Request approved'**
+  String get ownerRequestApproved;
+
+  /// No description provided for @ownerRequestRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Request rejected'**
+  String get ownerRequestRejected;
+
+  /// When the rental request was sent
+  ///
+  /// In en, this message translates to:
+  /// **'Sent {date}'**
+  String ownerSentOn(String date);
+
+  /// Trip duration in hours
+  ///
+  /// In en, this message translates to:
+  /// **'{count} hours'**
+  String ownerHours(int count);
+
+  /// No description provided for @ownerTotalRental.
+  ///
+  /// In en, this message translates to:
+  /// **'Total rental'**
+  String get ownerTotalRental;
+
+  /// No description provided for @ownerPlatformFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform fee (10%)'**
+  String get ownerPlatformFee;
+
+  /// No description provided for @ownerYouReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'You receive'**
+  String get ownerYouReceive;
+
+  /// No description provided for @ownerProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing…'**
+  String get ownerProcessing;
+
+  /// No description provided for @ownerApproveRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve request'**
+  String get ownerApproveRequest;
+
+  /// No description provided for @ownerRequestHandled.
+  ///
+  /// In en, this message translates to:
+  /// **'This request has already been handled.'**
+  String get ownerRequestHandled;
+
+  /// No description provided for @ownerStatusPendingConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'🟡 Awaiting confirmation'**
+  String get ownerStatusPendingConfirm;
+
+  /// No description provided for @ownerStatusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Confirmed'**
+  String get ownerStatusConfirmed;
+
+  /// No description provided for @ownerStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'🚗 Renting'**
+  String get ownerStatusInProgress;
+
+  /// No description provided for @ownerStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'✔ Completed'**
+  String get ownerStatusCompleted;
+
+  /// No description provided for @ownerStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'✖ Cancelled'**
+  String get ownerStatusCancelled;
+
+  /// No description provided for @ownerStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get ownerStatusUnknown;
+
+  /// No description provided for @ownerRevenueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue report'**
+  String get ownerRevenueTitle;
+
+  /// No description provided for @ownerRevenueSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your income'**
+  String get ownerRevenueSubtitle;
+
+  /// No description provided for @ownerIncomeThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Income this month'**
+  String get ownerIncomeThisMonth;
+
+  /// Number of paid trips this month
+  ///
+  /// In en, this message translates to:
+  /// **'{count} paid trips'**
+  String ownerPaidTrips(int count);
+
+  /// No description provided for @ownerRevenueChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue chart'**
+  String get ownerRevenueChart;
+
+  /// No description provided for @ownerNoRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'No revenue in this period yet'**
+  String get ownerNoRevenue;
+
+  /// No description provided for @ownerRecentTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent transactions'**
+  String get ownerRecentTransactions;
+
+  /// No description provided for @ownerNoTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet'**
+  String get ownerNoTransactions;
+
+  /// No description provided for @ownerVehicleNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the vehicle name'**
+  String get ownerVehicleNameRequired;
+
+  /// No description provided for @ownerVehiclePriceInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental price must be greater than 0'**
+  String get ownerVehiclePriceInvalid;
+
+  /// No description provided for @ownerVehicleCoordsInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid coordinates'**
+  String get ownerVehicleCoordsInvalid;
+
+  /// No description provided for @ownerVehicleUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle updated successfully'**
+  String get ownerVehicleUpdateSuccess;
+
+  /// No description provided for @ownerVehicleCreateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle published successfully'**
+  String get ownerVehicleCreateSuccess;
+
+  /// No description provided for @ownerVehicleEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit vehicle'**
+  String get ownerVehicleEditTitle;
+
+  /// No description provided for @ownerVehicleAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'List a new vehicle'**
+  String get ownerVehicleAddTitle;
+
+  /// No description provided for @ownerVehicleEditSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your vehicle\'s information'**
+  String get ownerVehicleEditSubtitle;
+
+  /// No description provided for @ownerVehicleAddSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the details to list your vehicle'**
+  String get ownerVehicleAddSubtitle;
+
+  /// No description provided for @ownerVehicleSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get ownerVehicleSaveChanges;
+
+  /// No description provided for @ownerVehiclePublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish'**
+  String get ownerVehiclePublish;
+
+  /// No description provided for @ownerVehiclePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle photos'**
+  String get ownerVehiclePhotos;
+
+  /// No description provided for @ownerVehiclePhotosHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 10 photos · The first is the cover'**
+  String get ownerVehiclePhotosHint;
+
+  /// No description provided for @ownerVehicleAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get ownerVehicleAddPhoto;
+
+  /// No description provided for @ownerVehicleBasicInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic information'**
+  String get ownerVehicleBasicInfo;
+
+  /// No description provided for @ownerVehicleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle name'**
+  String get ownerVehicleName;
+
+  /// No description provided for @ownerVehicleNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Toyota Camry 2024'**
+  String get ownerVehicleNameHint;
+
+  /// No description provided for @ownerVehiclePricePerHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Price/hour (VND)'**
+  String get ownerVehiclePricePerHour;
+
+  /// No description provided for @ownerVehiclePriceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 50000'**
+  String get ownerVehiclePriceHint;
+
+  /// No description provided for @ownerVehicleType.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle type'**
+  String get ownerVehicleType;
+
+  /// No description provided for @ownerVehicleLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle location'**
+  String get ownerVehicleLocation;
+
+  /// No description provided for @ownerVehicleLat.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude (lat)'**
+  String get ownerVehicleLat;
+
+  /// No description provided for @ownerVehicleLatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 21.0278'**
+  String get ownerVehicleLatHint;
+
+  /// No description provided for @ownerVehicleLng.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude (lng)'**
+  String get ownerVehicleLng;
+
+  /// No description provided for @ownerVehicleLngHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 105.8342'**
+  String get ownerVehicleLngHint;
+
+  /// No description provided for @ownerVehicleMapSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Picking a location on the map is coming soon.'**
+  String get ownerVehicleMapSoon;
+
+  /// No description provided for @ownerVehicleSpecs.
+  ///
+  /// In en, this message translates to:
+  /// **'Specifications'**
+  String get ownerVehicleSpecs;
+
+  /// No description provided for @ownerVehicleSpecsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Can be left empty if not applicable (e.g. motorbike, bicycle).'**
+  String get ownerVehicleSpecsHint;
+
+  /// No description provided for @ownerVehicleSeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Seats'**
+  String get ownerVehicleSeats;
+
+  /// No description provided for @ownerVehicleSeatsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 5'**
+  String get ownerVehicleSeatsHint;
+
+  /// No description provided for @ownerVehicleDoors.
+  ///
+  /// In en, this message translates to:
+  /// **'Doors'**
+  String get ownerVehicleDoors;
+
+  /// No description provided for @ownerVehicleDoorsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 4'**
+  String get ownerVehicleDoorsHint;
+
+  /// No description provided for @ownerVehicleTransmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmission'**
+  String get ownerVehicleTransmission;
+
+  /// No description provided for @ownerVehicleCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get ownerVehicleCity;
+
+  /// No description provided for @ownerVehicleCityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. HCMC'**
+  String get ownerVehicleCityHint;
+
+  /// No description provided for @ownerVehicleDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle description'**
+  String get ownerVehicleDescription;
+
+  /// No description provided for @ownerVehicleDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the condition and standout features...'**
+  String get ownerVehicleDescriptionHint;
+
+  /// No description provided for @ownerVehicleOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get ownerVehicleOptions;
+
+  /// No description provided for @ownerVehicleEv.
+  ///
+  /// In en, this message translates to:
+  /// **'Electric (EV)'**
+  String get ownerVehicleEv;
+
+  /// No description provided for @ownerVehicleEvSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the EV badge on the listing'**
+  String get ownerVehicleEvSubtitle;
+
+  /// No description provided for @ownerVehicleDeliverySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow delivery to the customer\'s address'**
+  String get ownerVehicleDeliverySubtitle;
 }
 
 class _AppLocalizationsDelegate

@@ -731,4 +731,249 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get activeTripReport => 'Báo hỏng';
+
+  @override
+  String get commonYes => 'Có';
+
+  @override
+  String get vehicleTransmissionNone => 'Không áp dụng';
+
+  @override
+  String get ownerCalendarTitle => 'Lịch xe';
+
+  @override
+  String get ownerCalendarSubtitle => 'Quản lý lịch cho thuê';
+
+  @override
+  String get ownerPendingApproval => 'Chờ duyệt';
+
+  @override
+  String get ownerToday => 'Hôm nay';
+
+  @override
+  String get ownerNeedsResponse => 'Cần phản hồi';
+
+  @override
+  String get ownerNoPendingRequests => 'Không có yêu cầu nào đang chờ';
+
+  @override
+  String get ownerReject => 'Từ chối';
+
+  @override
+  String get ownerApprove => 'Chấp nhận';
+
+  @override
+  String get ownerRequestDetailTitle => 'Chi tiết yêu cầu';
+
+  @override
+  String get ownerRequestDetailSubtitle => 'Xem xét và xử lý yêu cầu thuê xe';
+
+  @override
+  String get ownerNoRequestData => 'Không có dữ liệu yêu cầu';
+
+  @override
+  String get ownerRequestApproved => 'Đã chấp nhận yêu cầu';
+
+  @override
+  String get ownerRequestRejected => 'Đã từ chối yêu cầu';
+
+  @override
+  String ownerSentOn(String date) {
+    return 'Gửi $date';
+  }
+
+  @override
+  String ownerHours(int count) {
+    return '$count giờ';
+  }
+
+  @override
+  String get ownerTotalRental => 'Tổng tiền thuê';
+
+  @override
+  String get ownerPlatformFee => 'Phí nền tảng (10%)';
+
+  @override
+  String get ownerYouReceive => 'Bạn nhận được';
+
+  @override
+  String get ownerProcessing => 'Đang xử lý…';
+
+  @override
+  String get ownerApproveRequest => 'Chấp nhận yêu cầu';
+
+  @override
+  String get ownerRequestHandled => 'Yêu cầu này đã được xử lý.';
+
+  @override
+  String get ownerStatusPendingConfirm => '🟡 Chờ xác nhận';
+
+  @override
+  String get ownerStatusConfirmed => '✅ Đã xác nhận';
+
+  @override
+  String get ownerStatusInProgress => '🚗 Đang thuê';
+
+  @override
+  String get ownerStatusCompleted => '✔ Hoàn tất';
+
+  @override
+  String get ownerStatusCancelled => '✖ Đã huỷ';
+
+  @override
+  String get ownerStatusUnknown => 'Không rõ';
+
+  @override
+  String get ownerRevenueTitle => 'Báo cáo doanh thu';
+
+  @override
+  String get ownerRevenueSubtitle => 'Theo dõi thu nhập của bạn';
+
+  @override
+  String get ownerIncomeThisMonth => 'Thu nhập tháng này';
+
+  @override
+  String ownerPaidTrips(int count) {
+    return '$count chuyến đã thanh toán';
+  }
+
+  @override
+  String get ownerRevenueChart => 'Biểu đồ doanh thu';
+
+  @override
+  String get ownerNoRevenue => 'Chưa có doanh thu trong giai đoạn này';
+
+  @override
+  String get ownerRecentTransactions => 'Giao dịch gần đây';
+
+  @override
+  String get ownerNoTransactions => 'Chưa có giao dịch nào';
+
+  @override
+  String get ownerVehicleNameRequired => 'Vui lòng nhập tên xe';
+
+  @override
+  String get ownerVehiclePriceInvalid => 'Giá thuê phải lớn hơn 0';
+
+  @override
+  String get ownerVehicleCoordsInvalid => 'Toạ độ không hợp lệ';
+
+  @override
+  String get ownerVehicleUpdateSuccess => 'Cập nhật xe thành công';
+
+  @override
+  String get ownerVehicleCreateSuccess => 'Đăng xe thành công';
+
+  @override
+  String get ownerVehicleEditTitle => 'Chỉnh sửa xe';
+
+  @override
+  String get ownerVehicleAddTitle => 'Đăng xe mới';
+
+  @override
+  String get ownerVehicleEditSubtitle => 'Cập nhật thông tin xe của bạn';
+
+  @override
+  String get ownerVehicleAddSubtitle => 'Điền thông tin để đăng xe';
+
+  @override
+  String get ownerVehicleSaveChanges => 'Lưu thay đổi';
+
+  @override
+  String get ownerVehiclePublish => 'Đăng xe';
+
+  @override
+  String get ownerVehiclePhotos => 'Ảnh xe';
+
+  @override
+  String get ownerVehiclePhotosHint =>
+      'Tối đa 10 ảnh · Ảnh đầu tiên là ảnh bìa';
+
+  @override
+  String get ownerVehicleAddPhoto => 'Thêm ảnh';
+
+  @override
+  String get ownerVehicleBasicInfo => 'Thông tin cơ bản';
+
+  @override
+  String get ownerVehicleName => 'Tên xe';
+
+  @override
+  String get ownerVehicleNameHint => 'VD: Toyota Camry 2024';
+
+  @override
+  String get ownerVehiclePricePerHour => 'Giá/giờ (VNĐ)';
+
+  @override
+  String get ownerVehiclePriceHint => 'VD: 50000';
+
+  @override
+  String get ownerVehicleType => 'Loại xe';
+
+  @override
+  String get ownerVehicleLocation => 'Vị trí xe';
+
+  @override
+  String get ownerVehicleLat => 'Vĩ độ (lat)';
+
+  @override
+  String get ownerVehicleLatHint => 'VD: 21.0278';
+
+  @override
+  String get ownerVehicleLng => 'Kinh độ (lng)';
+
+  @override
+  String get ownerVehicleLngHint => 'VD: 105.8342';
+
+  @override
+  String get ownerVehicleMapSoon =>
+      'Chọn vị trí trên bản đồ sẽ sớm được hỗ trợ.';
+
+  @override
+  String get ownerVehicleSpecs => 'Thông số kỹ thuật';
+
+  @override
+  String get ownerVehicleSpecsHint =>
+      'Có thể bỏ trống nếu không áp dụng (vd: xe máy, xe đạp).';
+
+  @override
+  String get ownerVehicleSeats => 'Số chỗ';
+
+  @override
+  String get ownerVehicleSeatsHint => 'VD: 5';
+
+  @override
+  String get ownerVehicleDoors => 'Số cửa';
+
+  @override
+  String get ownerVehicleDoorsHint => 'VD: 4';
+
+  @override
+  String get ownerVehicleTransmission => 'Hộp số';
+
+  @override
+  String get ownerVehicleCity => 'Thành phố';
+
+  @override
+  String get ownerVehicleCityHint => 'VD: TP. HCM';
+
+  @override
+  String get ownerVehicleDescription => 'Mô tả xe';
+
+  @override
+  String get ownerVehicleDescriptionHint =>
+      'Mô tả tình trạng, tiện ích nổi bật của xe...';
+
+  @override
+  String get ownerVehicleOptions => 'Tùy chọn';
+
+  @override
+  String get ownerVehicleEv => 'Xe điện (EV)';
+
+  @override
+  String get ownerVehicleEvSubtitle => 'Hiển thị badge EV trên listing';
+
+  @override
+  String get ownerVehicleDeliverySubtitle =>
+      'Cho phép giao xe đến địa chỉ khách';
 }
