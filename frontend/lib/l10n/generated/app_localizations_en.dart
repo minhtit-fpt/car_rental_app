@@ -163,7 +163,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kycVerified => '✓ KYC Verified';
 
   @override
-  String get kycPending => '⏳ KYC Under review';
+  String get kycPending => 'Pending';
 
   @override
   String get kycRejected => '✕ KYC Rejected';
@@ -1157,4 +1157,265 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatInputHint => 'Type a message...';
+
+  @override
+  String get paymentTitle => 'Payment';
+
+  @override
+  String get paymentSubtitle => 'Choose a payment method';
+
+  @override
+  String paymentPayAmount(String amount) {
+    return 'Pay $amount VNĐ';
+  }
+
+  @override
+  String get paymentAmount => 'Payment amount';
+
+  @override
+  String get paymentSslBadge => '🔒  Secure SSL payment';
+
+  @override
+  String get paymentMethod => 'Payment method';
+
+  @override
+  String get paymentMethodVnpayDesc => 'VNPay wallet & domestic ATM';
+
+  @override
+  String get paymentMethodMomoDesc => 'MoMo e-wallet';
+
+  @override
+  String get paymentMethodZalopayDesc => 'ZaloPay e-wallet';
+
+  @override
+  String get paymentMethodCard => 'International card';
+
+  @override
+  String get paymentSslEncryption => 'Transactions encrypted with 256-bit SSL';
+
+  @override
+  String get paymentVnpayTitle => 'VNPay payment';
+
+  @override
+  String get paymentResultSuccessTitle => 'Payment successful!';
+
+  @override
+  String get paymentResultFailTitle => 'Payment failed';
+
+  @override
+  String get paymentResultSuccessBody =>
+      'Your trip has been confirmed.\nEnjoy your trip!';
+
+  @override
+  String get paymentResultFailBody =>
+      'The transaction was unsuccessful.\nPlease try again or choose another method.';
+
+  @override
+  String get paymentViewTrip => 'View trip';
+
+  @override
+  String get paymentBackHome => 'Back home';
+
+  @override
+  String get paymentAmountLabel => 'Amount';
+
+  @override
+  String get paymentTxnId => 'Transaction ID';
+
+  @override
+  String get paymentTime => 'Time';
+
+  @override
+  String get paymentStatusLabel => 'Status';
+
+  @override
+  String get paymentStatusSuccess => '✅ Success';
+
+  @override
+  String get reviewTitle => 'Rate your trip';
+
+  @override
+  String get reviewSubtitle => 'Share your experience';
+
+  @override
+  String get reviewVehicleQuality => 'Vehicle quality';
+
+  @override
+  String get reviewTagClean => 'Clean car';
+
+  @override
+  String get reviewTagOnTime => 'On time';
+
+  @override
+  String get reviewTagFriendlyOwner => 'Friendly owner';
+
+  @override
+  String get reviewTagAsDescribed => 'As described';
+
+  @override
+  String get reviewTagDelivery => 'Door-to-door delivery';
+
+  @override
+  String get reviewTagFairPrice => 'Fair price';
+
+  @override
+  String get reviewRatingBad => 'Bad';
+
+  @override
+  String get reviewRatingPoor => 'Poor';
+
+  @override
+  String get reviewRatingOk => 'Okay';
+
+  @override
+  String get reviewRatingGood => 'Good';
+
+  @override
+  String get reviewRatingExcellent => 'Excellent';
+
+  @override
+  String get reviewCompleted => '✅ Completed';
+
+  @override
+  String get reviewHighlights => 'Highlights';
+
+  @override
+  String get reviewCommentLabel => 'Additional comments (optional)';
+
+  @override
+  String get reviewCommentHint => 'Share your experience...';
+
+  @override
+  String get reviewSubmit => 'Submit review';
+
+  @override
+  String get reviewsTitle => 'Reviews';
+
+  @override
+  String reviewsAboutUser(String name) {
+    return 'Reviews about $name';
+  }
+
+  @override
+  String get reviewsAllReceived => 'All received reviews';
+
+  @override
+  String get reviewsEmpty => 'No reviews yet';
+
+  @override
+  String reviewsCount(int count) {
+    return '$count reviews';
+  }
+
+  @override
+  String get reviewsLoadError => 'Couldn\'t load reviews. Try again later.';
+
+  @override
+  String reviewsViewAll(int count) {
+    return 'View all $count reviews';
+  }
+
+  @override
+  String get kycTitle => 'Identity verification';
+
+  @override
+  String get kycSubtitle => 'Complete KYC to rent and list vehicles';
+
+  @override
+  String get kycStepCccd => 'National ID card';
+
+  @override
+  String get kycStepLicense => 'Driver\'s license';
+
+  @override
+  String get kycStepSelfie => 'Portrait photo (selfie)';
+
+  @override
+  String get kycSelfieHint => 'Face the camera, with good lighting';
+
+  @override
+  String get kycSubmit => 'Submit verification';
+
+  @override
+  String get kycInfoBanner =>
+      'Your information is encrypted and secure. Used only for identity verification.';
+
+  @override
+  String get kycUploaded => 'Uploaded';
+
+  @override
+  String get kycUploading => 'Uploading...';
+
+  @override
+  String get kycTapToUpload => 'Tap to upload a photo';
+
+  @override
+  String get kycStatusTitle => 'KYC status';
+
+  @override
+  String get kycStatusSubtitle => 'Your identity verification';
+
+  @override
+  String get kycStatusUnverifiedTitle => 'No documents submitted';
+
+  @override
+  String get kycStatusUnverifiedSubtitle =>
+      'You haven\'t submitted verification documents.\nSubmit your ID, license and selfie to begin.';
+
+  @override
+  String get kycStatusPendingTitle => 'Under review';
+
+  @override
+  String get kycStatusPendingSubtitle =>
+      'Your documents are being reviewed.\nUsually takes 1–2 business days.';
+
+  @override
+  String get kycStatusApprovedTitle => 'Verified';
+
+  @override
+  String get kycStatusApprovedSubtitle =>
+      'Your account is verified.\nYou can rent a car now.';
+
+  @override
+  String get kycStatusRejectedTitle => 'Verification failed';
+
+  @override
+  String get kycStatusRejectedSubtitle =>
+      'Your documents were rejected. Please\nresubmit with clearer photos.';
+
+  @override
+  String get kycTimelineTitle => 'Review progress';
+
+  @override
+  String get kycStepSubmit => 'Submit documents';
+
+  @override
+  String get kycStepReview => 'Under review';
+
+  @override
+  String get kycStepComplete => 'Verification complete';
+
+  @override
+  String get kycStepRejected => 'Rejected';
+
+  @override
+  String get kycNotSubmitted => 'Not submitted';
+
+  @override
+  String get kycProcessing => 'Processing...';
+
+  @override
+  String get kycRejectReason => 'Rejection reason';
+
+  @override
+  String get kycSubmitDocs => 'Submit KYC documents';
+
+  @override
+  String get kycFindCarNow => 'Find a car now';
+
+  @override
+  String get kycResubmit => 'Resubmit documents';
+
+  @override
+  String get kycContactSupport => 'Contact support';
 }

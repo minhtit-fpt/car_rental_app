@@ -6,6 +6,8 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/review/presentation/cubit/review_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
@@ -46,15 +48,6 @@ class _ReviewViewState extends State<_ReviewView> {
   final _commentController = TextEditingController();
   final List<String> _selectedTags = [];
 
-  static const _positiveTags = [
-    'Xe sạch',
-    'Đúng giờ',
-    'Chủ xe thân thiện',
-    'Xe đúng mô tả',
-    'Giao xe tận nơi',
-    'Giá hợp lý',
-  ];
-
   @override
   void dispose() {
     _commentController.dispose();
@@ -79,15 +72,24 @@ class _ReviewViewState extends State<_ReviewView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final positiveTags = [
+      l10n.reviewTagClean,
+      l10n.reviewTagOnTime,
+      l10n.reviewTagFriendlyOwner,
+      l10n.reviewTagAsDescribed,
+      l10n.reviewTagDelivery,
+      l10n.reviewTagFairPrice,
+    ];
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: CustomScrollView(
           slivers: [
-            const RvSliverAppBar(
-              title: 'Đánh giá chuyến đi',
-              subtitle: 'Chia sẻ trải nghiệm của bạn',
+            RvSliverAppBar(
+              title: l10n.reviewTitle,
+              subtitle: l10n.reviewSubtitle,
               role: RvRole.renter,
             ),
             SliverToBoxAdapter(
@@ -99,7 +101,7 @@ class _ReviewViewState extends State<_ReviewView> {
                     _VehicleCard(vehicle: widget.vehicle),
                     const SizedBox(height: 20),
                     _RatingCard(
-                      title: 'Chất lượng xe',
+                      title: l10n.reviewVehicleQuality,
                       emoji: '🚗',
                       rating: _vehicleRating,
                       onRatingChanged: (r) =>
@@ -107,16 +109,17 @@ class _ReviewViewState extends State<_ReviewView> {
                     ),
                     const SizedBox(height: 16),
                     _RatingCard(
-                      title: 'Chủ xe',
+                      title: l10n.roleOwner,
                       emoji: '👤',
-                      subtitle: widget.vehicle.ownerName ?? 'Chủ xe',
+                      subtitle:
+                          widget.vehicle.ownerName ?? l10n.vehicleOwnerFallback,
                       rating: _ownerRating,
                       onRatingChanged: (r) => setState(() => _ownerRating = r),
                     ),
 
                     const SizedBox(height: 16),
                     _TagsCard(
-                      tags: _positiveTags,
+                      tags: positiveTags,
                       selected: _selectedTags,
                       onToggle: (tag) {
                         setState(() {
@@ -153,7 +156,7 @@ class _ReviewViewState extends State<_ReviewView> {
                       builder: (context, state) {
                         final isSubmitting = state is ReviewSubmitting;
                         return PrimaryButton(
-                          label: 'Gửi đánh giá',
+                          label: l10n.reviewSubmit,
                           onPressed: _canSubmit && !isSubmitting
                               ? () => _submit(context)
                               : null,
@@ -180,6 +183,7 @@ class _VehicleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -221,9 +225,7 @@ class _VehicleCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  vehicle.isElectric
-                      ? 'Điện · ${vehicle.typeLabel}'
-                      : vehicle.typeLabel,
+                  vehicle.typeSummaryL10n(l10n),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.mutedText,
@@ -239,9 +241,9 @@ class _VehicleCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.success.withAlpha(80)),
             ),
-            child: const Text(
-              '✅ Đã hoàn thành',
-              style: TextStyle(
+            child: Text(
+              l10n.reviewCompleted,
+              style: const TextStyle(
                 fontSize: 11,
                 color: AppColors.success,
                 fontWeight: FontWeight.w600,
@@ -271,7 +273,15 @@ class _RatingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labels = ['', 'Tệ', 'Không ổn', 'Bình thường', 'Tốt', 'Xuất sắc'];
+    final l10n = AppLocalizations.of(context);
+    final labels = [
+      '',
+      l10n.reviewRatingBad,
+      l10n.reviewRatingPoor,
+      l10n.reviewRatingOk,
+      l10n.reviewRatingGood,
+      l10n.reviewRatingExcellent,
+    ];
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -370,9 +380,9 @@ class _TagsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Điểm nổi bật',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).reviewHighlights,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: AppColors.darkText,
@@ -447,9 +457,9 @@ class _CommentCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Nhận xét thêm (tùy chọn)',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).reviewCommentLabel,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: AppColors.darkText,
@@ -461,7 +471,7 @@ class _CommentCard extends StatelessWidget {
             maxLines: 4,
             maxLength: 500,
             decoration: InputDecoration(
-              hintText: 'Chia sẻ trải nghiệm của bạn...',
+              hintText: AppLocalizations.of(context).reviewCommentHint,
               hintStyle: const TextStyle(
                 fontSize: 13,
                 color: AppColors.mutedText,

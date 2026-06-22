@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/kyc/domain/entities/kyc_status_info.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_status_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
@@ -19,8 +20,8 @@ KycStatus _mapStatus(String s) => switch (s) {
   _ => KycStatus.unverified,
 };
 
-String _fmtDateTime(DateTime? d) {
-  if (d == null) return 'Chờ xử lý';
+String _fmtDateTime(DateTime? d, String pendingLabel) {
+  if (d == null) return pendingLabel;
   String two(int v) => v.toString().padLeft(2, '0');
   return '${two(d.day)}/${two(d.month)} ${two(d.hour)}:${two(d.minute)}';
 }
@@ -36,9 +37,9 @@ class KycStatusScreen extends StatelessWidget {
         backgroundColor: AppColors.background,
         body: CustomScrollView(
           slivers: [
-            const RvSliverAppBar(
-              title: 'Trạng thái KYC',
-              subtitle: 'Xác minh danh tính của bạn',
+            RvSliverAppBar(
+              title: AppLocalizations.of(context).kycStatusTitle,
+              subtitle: AppLocalizations.of(context).kycStatusSubtitle,
               role: RvRole.neutral,
             ),
             SliverToBoxAdapter(
@@ -114,7 +115,10 @@ class _ErrorBlock extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          OutlinedButton(onPressed: onRetry, child: const Text('Thử lại')),
+          OutlinedButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context).commonRetry),
+          ),
         ],
       ),
     );
@@ -127,7 +131,7 @@ class _StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final info = _statusInfo(status);
+    final info = _statusInfo(status, AppLocalizations.of(context));
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -178,33 +182,31 @@ class _StatusCard extends StatelessWidget {
 
   ({String emoji, String title, String subtitle, Color color}) _statusInfo(
     KycStatus s,
+    AppLocalizations l10n,
   ) {
     return switch (s) {
       KycStatus.unverified => (
         emoji: '📄',
-        title: 'Chưa nộp hồ sơ',
-        subtitle:
-            'Bạn chưa gửi hồ sơ xác minh.\nNộp CCCD, bằng lái và ảnh chân dung để bắt đầu.',
+        title: l10n.kycStatusUnverifiedTitle,
+        subtitle: l10n.kycStatusUnverifiedSubtitle,
         color: AppColors.mutedText,
       ),
       KycStatus.pending => (
         emoji: '⏳',
-        title: 'Đang chờ xét duyệt',
-        subtitle:
-            'Hồ sơ của bạn đang được xem xét.\nThường mất 1–2 ngày làm việc.',
+        title: l10n.kycStatusPendingTitle,
+        subtitle: l10n.kycStatusPendingSubtitle,
         color: AppColors.warning,
       ),
       KycStatus.approved => (
         emoji: '✅',
-        title: 'Đã xác minh',
-        subtitle:
-            'Tài khoản của bạn đã được xác minh.\nBạn có thể thuê xe ngay.',
+        title: l10n.kycStatusApprovedTitle,
+        subtitle: l10n.kycStatusApprovedSubtitle,
         color: AppColors.success,
       ),
       KycStatus.rejected => (
         emoji: '❌',
-        title: 'Xác minh thất bại',
-        subtitle: 'Hồ sơ bị từ chối. Vui lòng\nnộp lại với ảnh rõ ràng hơn.',
+        title: l10n.kycStatusRejectedTitle,
+        subtitle: l10n.kycStatusRejectedSubtitle,
         color: AppColors.danger,
       ),
     };
@@ -218,29 +220,34 @@ class _TimelineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final reviewed =
         status == KycStatus.approved || status == KycStatus.rejected;
     final steps = [
       _TimelineStep(
-        label: 'Nộp hồ sơ',
+        label: l10n.kycStepSubmit,
         time: status == KycStatus.unverified
-            ? 'Chưa nộp'
-            : _fmtDateTime(info.submittedAt),
+            ? l10n.kycNotSubmitted
+            : _fmtDateTime(info.submittedAt, l10n.kycPending),
         isDone: status != KycStatus.unverified,
       ),
       _TimelineStep(
-        label: 'Đang xét duyệt',
+        label: l10n.kycStepReview,
         time: status == KycStatus.pending
-            ? 'Đang xử lý...'
+            ? l10n.kycProcessing
             : reviewed
-            ? _fmtDateTime(info.reviewedAt)
-            : 'Chờ xử lý',
+            ? _fmtDateTime(info.reviewedAt, l10n.kycPending)
+            : l10n.kycPending,
         isDone: reviewed,
         isActive: status == KycStatus.pending,
       ),
       _TimelineStep(
-        label: status == KycStatus.rejected ? 'Từ chối' : 'Xác minh hoàn tất',
-        time: reviewed ? _fmtDateTime(info.reviewedAt) : 'Chờ xử lý',
+        label: status == KycStatus.rejected
+            ? l10n.kycStepRejected
+            : l10n.kycStepComplete,
+        time: reviewed
+            ? _fmtDateTime(info.reviewedAt, l10n.kycPending)
+            : l10n.kycPending,
         isDone: reviewed,
         isRejected: status == KycStatus.rejected,
       ),
@@ -263,9 +270,9 @@ class _TimelineCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Tiến trình xét duyệt',
-            style: TextStyle(
+          Text(
+            l10n.kycTimelineTitle,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: AppColors.darkText,
@@ -406,17 +413,17 @@ class _RejectionReasonCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.info_outline_rounded,
                 size: 16,
                 color: AppColors.danger,
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
-                'Lý do từ chối',
-                style: TextStyle(
+                AppLocalizations.of(context).kycRejectReason,
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.danger,
@@ -444,33 +451,35 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return switch (status) {
       KycStatus.unverified => PrimaryButton(
-        label: 'Nộp hồ sơ KYC',
+        label: l10n.kycSubmitDocs,
         onPressed: () => context.push('/kyc/upload'),
         icon: Icons.upload_rounded,
       ),
       KycStatus.pending => SecondaryButton(
-        label: 'Về trang chủ',
+        label: l10n.paymentBackHome,
         onPressed: () => context.go('/'),
         icon: Icons.home_outlined,
       ),
       KycStatus.approved => PrimaryButton(
-        label: 'Tìm xe ngay',
+        label: l10n.kycFindCarNow,
         onPressed: () => context.go('/'),
         icon: Icons.directions_car_rounded,
       ),
       KycStatus.rejected => Column(
         children: [
           PrimaryButton(
-            label: 'Nộp lại hồ sơ',
+            label: l10n.kycResubmit,
             onPressed: () => context.pushReplacement('/kyc/upload'),
             icon: Icons.upload_rounded,
           ),
           const SizedBox(height: 12),
           SecondaryButton(
-            label: 'Liên hệ hỗ trợ',
-            onPressed: () => showComingSoonSnack(context, 'Liên hệ hỗ trợ'),
+            label: l10n.kycContactSupport,
+            onPressed: () =>
+                showComingSoonSnack(context, l10n.kycContactSupport),
             icon: Icons.headset_mic_outlined,
           ),
         ],

@@ -6,6 +6,7 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/payment/presentation/cubit/payment_cubit.dart';
 import 'package:frontend/features/payment/presentation/screens/vnpay_webview_screen.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
@@ -97,11 +98,12 @@ class _PaymentViewState extends State<_PaymentView> {
             );
           case PaymentAwaitingGateway(:final paymentId, :final payUrl):
             // Mở cổng VNPay thật; chờ WebView bắt URL return.
-            final params = await Navigator.of(context).push<Map<String, String>>(
-              MaterialPageRoute(
-                builder: (_) => VnpayWebViewScreen(payUrl: payUrl),
-              ),
-            );
+            final params = await Navigator.of(context)
+                .push<Map<String, String>>(
+                  MaterialPageRoute(
+                    builder: (_) => VnpayWebViewScreen(payUrl: payUrl),
+                  ),
+                );
             if (!context.mounted) return;
             final cubit = context.read<PaymentCubit>();
             if (params != null) {
@@ -120,9 +122,9 @@ class _PaymentViewState extends State<_PaymentView> {
           backgroundColor: AppColors.background,
           body: CustomScrollView(
             slivers: [
-              const RvSliverAppBar(
-                title: 'Thanh toán',
-                subtitle: 'Chọn phương thức thanh toán',
+              RvSliverAppBar(
+                title: AppLocalizations.of(context).paymentTitle,
+                subtitle: AppLocalizations.of(context).paymentSubtitle,
                 role: RvRole.renter,
               ),
               SliverToBoxAdapter(
@@ -144,12 +146,14 @@ class _PaymentViewState extends State<_PaymentView> {
                         builder: (context, state) {
                           final isProcessing = state is PaymentProcessing;
                           return PrimaryButton(
-                            label: 'Thanh toán ${_fmtVnd(widget.amount)} VNĐ',
+                            label: AppLocalizations.of(
+                              context,
+                            ).paymentPayAmount(_fmtVnd(widget.amount)),
                             onPressed: isProcessing
                                 ? null
-                                : () => context
-                                      .read<PaymentCubit>()
-                                      .pay(bookingId: widget.bookingId),
+                                : () => context.read<PaymentCubit>().pay(
+                                    bookingId: widget.bookingId,
+                                  ),
                             isLoading: isProcessing,
                             icon: Icons.lock_outline_rounded,
                           );
@@ -183,9 +187,9 @@ class _AmountCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text(
-            'Số tiền thanh toán',
-            style: TextStyle(fontSize: 13, color: Colors.white70),
+          Text(
+            AppLocalizations.of(context).paymentAmount,
+            style: const TextStyle(fontSize: 13, color: Colors.white70),
           ),
           const SizedBox(height: 8),
           Text(
@@ -203,9 +207,9 @@ class _AmountCard extends StatelessWidget {
               color: Colors.white.withAlpha(25),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
-              '🔒  Thanh toán bảo mật SSL',
-              style: TextStyle(fontSize: 12, color: Colors.white),
+            child: Text(
+              AppLocalizations.of(context).paymentSslBadge,
+              style: const TextStyle(fontSize: 12, color: Colors.white),
             ),
           ),
         ],
@@ -215,21 +219,39 @@ class _AmountCard extends StatelessWidget {
 }
 
 class _MethodSelector extends StatelessWidget {
-  const _MethodSelector({
-    required this.selected,
-    required this.onChanged,
-  });
+  const _MethodSelector({required this.selected, required this.onChanged});
 
   final _PayMethod selected;
   final ValueChanged<_PayMethod> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    const methods = [
-      (method: _PayMethod.vnpay, emoji: '🏦', name: 'VNPay', desc: 'Ví VNPay & ATM nội địa'),
-      (method: _PayMethod.momo, emoji: '🟣', name: 'MoMo', desc: 'Ví điện tử MoMo'),
-      (method: _PayMethod.zalopay, emoji: '🔵', name: 'ZaloPay', desc: 'Ví điện tử ZaloPay'),
-      (method: _PayMethod.card, emoji: '💳', name: 'Thẻ quốc tế', desc: 'Visa / Mastercard'),
+    final l10n = AppLocalizations.of(context);
+    final methods = [
+      (
+        method: _PayMethod.vnpay,
+        emoji: '🏦',
+        name: 'VNPay',
+        desc: l10n.paymentMethodVnpayDesc,
+      ),
+      (
+        method: _PayMethod.momo,
+        emoji: '🟣',
+        name: 'MoMo',
+        desc: l10n.paymentMethodMomoDesc,
+      ),
+      (
+        method: _PayMethod.zalopay,
+        emoji: '🔵',
+        name: 'ZaloPay',
+        desc: l10n.paymentMethodZalopayDesc,
+      ),
+      (
+        method: _PayMethod.card,
+        emoji: '💳',
+        name: l10n.paymentMethodCard,
+        desc: 'Visa / Mastercard',
+      ),
     ];
 
     return Container(
@@ -249,9 +271,9 @@ class _MethodSelector extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Phương thức thanh toán',
-            style: TextStyle(
+          Text(
+            l10n.paymentMethod,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: AppColors.darkText,
@@ -272,9 +294,7 @@ class _MethodSelector extends StatelessWidget {
                       : AppColors.background,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isSelected
-                        ? AppColors.primary
-                        : AppColors.border,
+                    color: isSelected ? AppColors.primary : AppColors.border,
                     width: isSelected ? 1.5 : 1,
                   ),
                 ),
@@ -299,7 +319,9 @@ class _MethodSelector extends StatelessWidget {
                           Text(
                             m.desc,
                             style: const TextStyle(
-                                fontSize: 12, color: AppColors.mutedText),
+                              fontSize: 12,
+                              color: AppColors.mutedText,
+                            ),
                           ),
                         ],
                       ),
@@ -335,12 +357,15 @@ class _SecurityBadge extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.verified_user_outlined,
-            size: 14, color: AppColors.mutedText),
+        const Icon(
+          Icons.verified_user_outlined,
+          size: 14,
+          color: AppColors.mutedText,
+        ),
         const SizedBox(width: 6),
-        const Text(
-          'Giao dịch được mã hóa 256-bit SSL',
-          style: TextStyle(fontSize: 12, color: AppColors.mutedText),
+        Text(
+          AppLocalizations.of(context).paymentSslEncryption,
+          style: const TextStyle(fontSize: 12, color: AppColors.mutedText),
         ),
       ],
     );

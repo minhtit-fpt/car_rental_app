@@ -14,11 +14,7 @@ class ReviewRemoteDataSource {
   }) async {
     final data = await _client.post(
       '/api/reviews',
-      data: {
-        'bookingId': bookingId,
-        'rating': rating,
-        'comment': ?comment,
-      },
+      data: {'bookingId': bookingId, 'rating': rating, 'comment': ?comment},
     );
     return data as Map<String, dynamic>;
   }

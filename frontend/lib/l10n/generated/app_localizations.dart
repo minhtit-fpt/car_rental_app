@@ -401,7 +401,7 @@ abstract class AppLocalizations {
   /// No description provided for @kycPending.
   ///
   /// In en, this message translates to:
-  /// **'⏳ KYC Under review'**
+  /// **'Pending'**
   String get kycPending;
 
   /// No description provided for @kycRejected.
@@ -2263,6 +2263,498 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type a message...'**
   String get chatInputHint;
+
+  /// No description provided for @paymentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get paymentTitle;
+
+  /// No description provided for @paymentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a payment method'**
+  String get paymentSubtitle;
+
+  /// Pay button label with the formatted amount
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {amount} VNĐ'**
+  String paymentPayAmount(String amount);
+
+  /// No description provided for @paymentAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment amount'**
+  String get paymentAmount;
+
+  /// No description provided for @paymentSslBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'🔒  Secure SSL payment'**
+  String get paymentSslBadge;
+
+  /// No description provided for @paymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get paymentMethod;
+
+  /// No description provided for @paymentMethodVnpayDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'VNPay wallet & domestic ATM'**
+  String get paymentMethodVnpayDesc;
+
+  /// No description provided for @paymentMethodMomoDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'MoMo e-wallet'**
+  String get paymentMethodMomoDesc;
+
+  /// No description provided for @paymentMethodZalopayDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'ZaloPay e-wallet'**
+  String get paymentMethodZalopayDesc;
+
+  /// No description provided for @paymentMethodCard.
+  ///
+  /// In en, this message translates to:
+  /// **'International card'**
+  String get paymentMethodCard;
+
+  /// No description provided for @paymentSslEncryption.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions encrypted with 256-bit SSL'**
+  String get paymentSslEncryption;
+
+  /// No description provided for @paymentVnpayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'VNPay payment'**
+  String get paymentVnpayTitle;
+
+  /// No description provided for @paymentResultSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment successful!'**
+  String get paymentResultSuccessTitle;
+
+  /// No description provided for @paymentResultFailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment failed'**
+  String get paymentResultFailTitle;
+
+  /// No description provided for @paymentResultSuccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your trip has been confirmed.\nEnjoy your trip!'**
+  String get paymentResultSuccessBody;
+
+  /// No description provided for @paymentResultFailBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The transaction was unsuccessful.\nPlease try again or choose another method.'**
+  String get paymentResultFailBody;
+
+  /// No description provided for @paymentViewTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'View trip'**
+  String get paymentViewTrip;
+
+  /// No description provided for @paymentBackHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Back home'**
+  String get paymentBackHome;
+
+  /// No description provided for @paymentAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get paymentAmountLabel;
+
+  /// No description provided for @paymentTxnId.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID'**
+  String get paymentTxnId;
+
+  /// No description provided for @paymentTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get paymentTime;
+
+  /// No description provided for @paymentStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get paymentStatusLabel;
+
+  /// No description provided for @paymentStatusSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Success'**
+  String get paymentStatusSuccess;
+
+  /// No description provided for @reviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate your trip'**
+  String get reviewTitle;
+
+  /// No description provided for @reviewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your experience'**
+  String get reviewSubtitle;
+
+  /// No description provided for @reviewVehicleQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle quality'**
+  String get reviewVehicleQuality;
+
+  /// No description provided for @reviewTagClean.
+  ///
+  /// In en, this message translates to:
+  /// **'Clean car'**
+  String get reviewTagClean;
+
+  /// No description provided for @reviewTagOnTime.
+  ///
+  /// In en, this message translates to:
+  /// **'On time'**
+  String get reviewTagOnTime;
+
+  /// No description provided for @reviewTagFriendlyOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Friendly owner'**
+  String get reviewTagFriendlyOwner;
+
+  /// No description provided for @reviewTagAsDescribed.
+  ///
+  /// In en, this message translates to:
+  /// **'As described'**
+  String get reviewTagAsDescribed;
+
+  /// No description provided for @reviewTagDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Door-to-door delivery'**
+  String get reviewTagDelivery;
+
+  /// No description provided for @reviewTagFairPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair price'**
+  String get reviewTagFairPrice;
+
+  /// No description provided for @reviewRatingBad.
+  ///
+  /// In en, this message translates to:
+  /// **'Bad'**
+  String get reviewRatingBad;
+
+  /// No description provided for @reviewRatingPoor.
+  ///
+  /// In en, this message translates to:
+  /// **'Poor'**
+  String get reviewRatingPoor;
+
+  /// No description provided for @reviewRatingOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Okay'**
+  String get reviewRatingOk;
+
+  /// No description provided for @reviewRatingGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get reviewRatingGood;
+
+  /// No description provided for @reviewRatingExcellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get reviewRatingExcellent;
+
+  /// No description provided for @reviewCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Completed'**
+  String get reviewCompleted;
+
+  /// No description provided for @reviewHighlights.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlights'**
+  String get reviewHighlights;
+
+  /// No description provided for @reviewCommentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional comments (optional)'**
+  String get reviewCommentLabel;
+
+  /// No description provided for @reviewCommentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your experience...'**
+  String get reviewCommentHint;
+
+  /// No description provided for @reviewSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit review'**
+  String get reviewSubmit;
+
+  /// No description provided for @reviewsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get reviewsTitle;
+
+  /// Reviews screen subtitle naming the reviewed user
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews about {name}'**
+  String reviewsAboutUser(String name);
+
+  /// No description provided for @reviewsAllReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'All received reviews'**
+  String get reviewsAllReceived;
+
+  /// No description provided for @reviewsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No reviews yet'**
+  String get reviewsEmpty;
+
+  /// Total number of reviews
+  ///
+  /// In en, this message translates to:
+  /// **'{count} reviews'**
+  String reviewsCount(int count);
+
+  /// No description provided for @reviewsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load reviews. Try again later.'**
+  String get reviewsLoadError;
+
+  /// Link to view all reviews
+  ///
+  /// In en, this message translates to:
+  /// **'View all {count} reviews'**
+  String reviewsViewAll(int count);
+
+  /// No description provided for @kycTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity verification'**
+  String get kycTitle;
+
+  /// No description provided for @kycSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete KYC to rent and list vehicles'**
+  String get kycSubtitle;
+
+  /// No description provided for @kycStepCccd.
+  ///
+  /// In en, this message translates to:
+  /// **'National ID card'**
+  String get kycStepCccd;
+
+  /// No description provided for @kycStepLicense.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver\'s license'**
+  String get kycStepLicense;
+
+  /// No description provided for @kycStepSelfie.
+  ///
+  /// In en, this message translates to:
+  /// **'Portrait photo (selfie)'**
+  String get kycStepSelfie;
+
+  /// No description provided for @kycSelfieHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Face the camera, with good lighting'**
+  String get kycSelfieHint;
+
+  /// No description provided for @kycSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit verification'**
+  String get kycSubmit;
+
+  /// No description provided for @kycInfoBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Your information is encrypted and secure. Used only for identity verification.'**
+  String get kycInfoBanner;
+
+  /// No description provided for @kycUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded'**
+  String get kycUploaded;
+
+  /// No description provided for @kycUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading...'**
+  String get kycUploading;
+
+  /// No description provided for @kycTapToUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to upload a photo'**
+  String get kycTapToUpload;
+
+  /// No description provided for @kycStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'KYC status'**
+  String get kycStatusTitle;
+
+  /// No description provided for @kycStatusSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your identity verification'**
+  String get kycStatusSubtitle;
+
+  /// No description provided for @kycStatusUnverifiedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents submitted'**
+  String get kycStatusUnverifiedTitle;
+
+  /// No description provided for @kycStatusUnverifiedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t submitted verification documents.\nSubmit your ID, license and selfie to begin.'**
+  String get kycStatusUnverifiedSubtitle;
+
+  /// No description provided for @kycStatusPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get kycStatusPendingTitle;
+
+  /// No description provided for @kycStatusPendingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your documents are being reviewed.\nUsually takes 1–2 business days.'**
+  String get kycStatusPendingSubtitle;
+
+  /// No description provided for @kycStatusApprovedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get kycStatusApprovedTitle;
+
+  /// No description provided for @kycStatusApprovedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is verified.\nYou can rent a car now.'**
+  String get kycStatusApprovedSubtitle;
+
+  /// No description provided for @kycStatusRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification failed'**
+  String get kycStatusRejectedTitle;
+
+  /// No description provided for @kycStatusRejectedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your documents were rejected. Please\nresubmit with clearer photos.'**
+  String get kycStatusRejectedSubtitle;
+
+  /// No description provided for @kycTimelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review progress'**
+  String get kycTimelineTitle;
+
+  /// No description provided for @kycStepSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit documents'**
+  String get kycStepSubmit;
+
+  /// No description provided for @kycStepReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get kycStepReview;
+
+  /// No description provided for @kycStepComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification complete'**
+  String get kycStepComplete;
+
+  /// No description provided for @kycStepRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get kycStepRejected;
+
+  /// No description provided for @kycNotSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not submitted'**
+  String get kycNotSubmitted;
+
+  /// No description provided for @kycProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing...'**
+  String get kycProcessing;
+
+  /// No description provided for @kycRejectReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejection reason'**
+  String get kycRejectReason;
+
+  /// No description provided for @kycSubmitDocs.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit KYC documents'**
+  String get kycSubmitDocs;
+
+  /// No description provided for @kycFindCarNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a car now'**
+  String get kycFindCarNow;
+
+  /// No description provided for @kycResubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Resubmit documents'**
+  String get kycResubmit;
+
+  /// No description provided for @kycContactSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support'**
+  String get kycContactSupport;
 }
 
 class _AppLocalizationsDelegate

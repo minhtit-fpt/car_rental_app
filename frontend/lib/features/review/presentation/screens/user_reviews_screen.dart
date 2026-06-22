@@ -5,6 +5,7 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/review/domain/entities/review.dart';
 import 'package:frontend/features/review/presentation/cubit/user_reviews_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
@@ -31,6 +32,7 @@ class _UserReviewsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
@@ -38,10 +40,10 @@ class _UserReviewsView extends StatelessWidget {
         body: CustomScrollView(
           slivers: [
             RvSliverAppBar(
-              title: 'Đánh giá',
+              title: l10n.reviewsTitle,
               subtitle: userName != null && userName!.isNotEmpty
-                  ? 'Đánh giá về $userName'
-                  : 'Tất cả đánh giá nhận được',
+                  ? l10n.reviewsAboutUser(userName!)
+                  : l10n.reviewsAllReceived,
             ),
             BlocBuilder<UserReviewsCubit, UserReviewsState>(
               builder: (context, state) => switch (state) {
@@ -54,9 +56,9 @@ class _UserReviewsView extends StatelessWidget {
                   child: _Message(text: message),
                 ),
                 UserReviewsLoaded(:final summary) when summary.total == 0 =>
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     hasScrollBody: false,
-                    child: _Message(text: 'Chưa có đánh giá nào'),
+                    child: _Message(text: l10n.reviewsEmpty),
                   ),
                 UserReviewsLoaded(:final summary) => _ReviewsSliver(
                   summary: summary,
@@ -129,7 +131,7 @@ class _SummaryHeader extends StatelessWidget {
               RatingStars(rating: summary.average, size: 18),
               const SizedBox(height: 4),
               Text(
-                '${summary.total} đánh giá',
+                AppLocalizations.of(context).reviewsCount(summary.total),
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.mutedText,

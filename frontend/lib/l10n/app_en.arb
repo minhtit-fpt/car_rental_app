@@ -608,5 +608,124 @@
   "chatEmpty": "No conversations yet",
   "chatStartConversation": "Start a conversation",
   "chatNoMessages": "No messages yet",
-  "chatInputHint": "Type a message..."
+  "chatInputHint": "Type a message...",
+
+  "paymentTitle": "Payment",
+  "paymentSubtitle": "Choose a payment method",
+  "paymentPayAmount": "Pay {amount} VNĐ",
+  "@paymentPayAmount": {
+    "description": "Pay button label with the formatted amount",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentAmount": "Payment amount",
+  "paymentSslBadge": "🔒  Secure SSL payment",
+  "paymentMethod": "Payment method",
+  "paymentMethodVnpayDesc": "VNPay wallet & domestic ATM",
+  "paymentMethodMomoDesc": "MoMo e-wallet",
+  "paymentMethodZalopayDesc": "ZaloPay e-wallet",
+  "paymentMethodCard": "International card",
+  "paymentSslEncryption": "Transactions encrypted with 256-bit SSL",
+  "paymentVnpayTitle": "VNPay payment",
+  "paymentResultSuccessTitle": "Payment successful!",
+  "paymentResultFailTitle": "Payment failed",
+  "paymentResultSuccessBody": "Your trip has been confirmed.\nEnjoy your trip!",
+  "paymentResultFailBody": "The transaction was unsuccessful.\nPlease try again or choose another method.",
+  "paymentViewTrip": "View trip",
+  "paymentBackHome": "Back home",
+  "paymentAmountLabel": "Amount",
+  "paymentTxnId": "Transaction ID",
+  "paymentTime": "Time",
+  "paymentStatusLabel": "Status",
+  "paymentStatusSuccess": "✅ Success",
+
+  "reviewTitle": "Rate your trip",
+  "reviewSubtitle": "Share your experience",
+  "reviewVehicleQuality": "Vehicle quality",
+  "reviewTagClean": "Clean car",
+  "reviewTagOnTime": "On time",
+  "reviewTagFriendlyOwner": "Friendly owner",
+  "reviewTagAsDescribed": "As described",
+  "reviewTagDelivery": "Door-to-door delivery",
+  "reviewTagFairPrice": "Fair price",
+  "reviewRatingBad": "Bad",
+  "reviewRatingPoor": "Poor",
+  "reviewRatingOk": "Okay",
+  "reviewRatingGood": "Good",
+  "reviewRatingExcellent": "Excellent",
+  "reviewCompleted": "✅ Completed",
+  "reviewHighlights": "Highlights",
+  "reviewCommentLabel": "Additional comments (optional)",
+  "reviewCommentHint": "Share your experience...",
+  "reviewSubmit": "Submit review",
+
+  "reviewsTitle": "Reviews",
+  "reviewsAboutUser": "Reviews about {name}",
+  "@reviewsAboutUser": {
+    "description": "Reviews screen subtitle naming the reviewed user",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewsAllReceived": "All received reviews",
+  "reviewsEmpty": "No reviews yet",
+  "reviewsCount": "{count} reviews",
+  "@reviewsCount": {
+    "description": "Total number of reviews",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewsLoadError": "Couldn't load reviews. Try again later.",
+  "reviewsViewAll": "View all {count} reviews",
+  "@reviewsViewAll": {
+    "description": "Link to view all reviews",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "kycTitle": "Identity verification",
+  "kycSubtitle": "Complete KYC to rent and list vehicles",
+  "kycStepCccd": "National ID card",
+  "kycStepLicense": "Driver's license",
+  "kycStepSelfie": "Portrait photo (selfie)",
+  "kycSelfieHint": "Face the camera, with good lighting",
+  "kycSubmit": "Submit verification",
+  "kycInfoBanner": "Your information is encrypted and secure. Used only for identity verification.",
+  "kycUploaded": "Uploaded",
+  "kycUploading": "Uploading...",
+  "kycTapToUpload": "Tap to upload a photo",
+  "kycStatusTitle": "KYC status",
+  "kycStatusSubtitle": "Your identity verification",
+  "kycStatusUnverifiedTitle": "No documents submitted",
+  "kycStatusUnverifiedSubtitle": "You haven't submitted verification documents.\nSubmit your ID, license and selfie to begin.",
+  "kycStatusPendingTitle": "Under review",
+  "kycStatusPendingSubtitle": "Your documents are being reviewed.\nUsually takes 1–2 business days.",
+  "kycStatusApprovedTitle": "Verified",
+  "kycStatusApprovedSubtitle": "Your account is verified.\nYou can rent a car now.",
+  "kycStatusRejectedTitle": "Verification failed",
+  "kycStatusRejectedSubtitle": "Your documents were rejected. Please\nresubmit with clearer photos.",
+  "kycTimelineTitle": "Review progress",
+  "kycStepSubmit": "Submit documents",
+  "kycStepReview": "Under review",
+  "kycStepComplete": "Verification complete",
+  "kycStepRejected": "Rejected",
+  "kycNotSubmitted": "Not submitted",
+  "kycProcessing": "Processing...",
+  "kycPending": "Pending",
+  "kycRejectReason": "Rejection reason",
+  "kycSubmitDocs": "Submit KYC documents",
+  "kycFindCarNow": "Find a car now",
+  "kycResubmit": "Resubmit documents",
+  "kycContactSupport": "Contact support"
 }

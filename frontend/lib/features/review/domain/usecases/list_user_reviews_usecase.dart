@@ -8,9 +8,6 @@ class ListUserReviewsUseCase {
 
   final ReviewRepository _repository;
 
-  Future<ReviewSummary> call(
-    String userId, {
-    int page = 1,
-    int limit = 20,
-  }) => _repository.listForUser(userId, page: page, limit: limit);
+  Future<ReviewSummary> call(String userId, {int page = 1, int limit = 20}) =>
+      _repository.listForUser(userId, page: page, limit: limit);
 }

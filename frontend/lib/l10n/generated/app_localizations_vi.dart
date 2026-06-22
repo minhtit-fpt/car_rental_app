@@ -161,7 +161,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get kycVerified => '✓ KYC Đã xác minh';
 
   @override
-  String get kycPending => '⏳ KYC Đang duyệt';
+  String get kycPending => 'Chờ xử lý';
 
   @override
   String get kycRejected => '✕ KYC Bị từ chối';
@@ -1152,4 +1152,265 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get chatInputHint => 'Nhắn tin...';
+
+  @override
+  String get paymentTitle => 'Thanh toán';
+
+  @override
+  String get paymentSubtitle => 'Chọn phương thức thanh toán';
+
+  @override
+  String paymentPayAmount(String amount) {
+    return 'Thanh toán $amount VNĐ';
+  }
+
+  @override
+  String get paymentAmount => 'Số tiền thanh toán';
+
+  @override
+  String get paymentSslBadge => '🔒  Thanh toán bảo mật SSL';
+
+  @override
+  String get paymentMethod => 'Phương thức thanh toán';
+
+  @override
+  String get paymentMethodVnpayDesc => 'Ví VNPay & ATM nội địa';
+
+  @override
+  String get paymentMethodMomoDesc => 'Ví điện tử MoMo';
+
+  @override
+  String get paymentMethodZalopayDesc => 'Ví điện tử ZaloPay';
+
+  @override
+  String get paymentMethodCard => 'Thẻ quốc tế';
+
+  @override
+  String get paymentSslEncryption => 'Giao dịch được mã hóa 256-bit SSL';
+
+  @override
+  String get paymentVnpayTitle => 'Thanh toán VNPay';
+
+  @override
+  String get paymentResultSuccessTitle => 'Thanh toán thành công!';
+
+  @override
+  String get paymentResultFailTitle => 'Thanh toán thất bại';
+
+  @override
+  String get paymentResultSuccessBody =>
+      'Chuyến đi của bạn đã được xác nhận.\nChúc bạn có chuyến đi vui vẻ!';
+
+  @override
+  String get paymentResultFailBody =>
+      'Giao dịch không thành công.\nVui lòng thử lại hoặc chọn phương thức khác.';
+
+  @override
+  String get paymentViewTrip => 'Xem chuyến đi';
+
+  @override
+  String get paymentBackHome => 'Về trang chủ';
+
+  @override
+  String get paymentAmountLabel => 'Số tiền';
+
+  @override
+  String get paymentTxnId => 'Mã giao dịch';
+
+  @override
+  String get paymentTime => 'Thời gian';
+
+  @override
+  String get paymentStatusLabel => 'Trạng thái';
+
+  @override
+  String get paymentStatusSuccess => '✅ Thành công';
+
+  @override
+  String get reviewTitle => 'Đánh giá chuyến đi';
+
+  @override
+  String get reviewSubtitle => 'Chia sẻ trải nghiệm của bạn';
+
+  @override
+  String get reviewVehicleQuality => 'Chất lượng xe';
+
+  @override
+  String get reviewTagClean => 'Xe sạch';
+
+  @override
+  String get reviewTagOnTime => 'Đúng giờ';
+
+  @override
+  String get reviewTagFriendlyOwner => 'Chủ xe thân thiện';
+
+  @override
+  String get reviewTagAsDescribed => 'Xe đúng mô tả';
+
+  @override
+  String get reviewTagDelivery => 'Giao xe tận nơi';
+
+  @override
+  String get reviewTagFairPrice => 'Giá hợp lý';
+
+  @override
+  String get reviewRatingBad => 'Tệ';
+
+  @override
+  String get reviewRatingPoor => 'Không ổn';
+
+  @override
+  String get reviewRatingOk => 'Bình thường';
+
+  @override
+  String get reviewRatingGood => 'Tốt';
+
+  @override
+  String get reviewRatingExcellent => 'Xuất sắc';
+
+  @override
+  String get reviewCompleted => '✅ Đã hoàn thành';
+
+  @override
+  String get reviewHighlights => 'Điểm nổi bật';
+
+  @override
+  String get reviewCommentLabel => 'Nhận xét thêm (tùy chọn)';
+
+  @override
+  String get reviewCommentHint => 'Chia sẻ trải nghiệm của bạn...';
+
+  @override
+  String get reviewSubmit => 'Gửi đánh giá';
+
+  @override
+  String get reviewsTitle => 'Đánh giá';
+
+  @override
+  String reviewsAboutUser(String name) {
+    return 'Đánh giá về $name';
+  }
+
+  @override
+  String get reviewsAllReceived => 'Tất cả đánh giá nhận được';
+
+  @override
+  String get reviewsEmpty => 'Chưa có đánh giá nào';
+
+  @override
+  String reviewsCount(int count) {
+    return '$count đánh giá';
+  }
+
+  @override
+  String get reviewsLoadError => 'Không tải được đánh giá. Thử lại sau.';
+
+  @override
+  String reviewsViewAll(int count) {
+    return 'Xem tất cả $count đánh giá';
+  }
+
+  @override
+  String get kycTitle => 'Xác minh danh tính';
+
+  @override
+  String get kycSubtitle => 'Hoàn thành KYC để thuê và đăng xe';
+
+  @override
+  String get kycStepCccd => 'CCCD / Căn cước công dân';
+
+  @override
+  String get kycStepLicense => 'Bằng lái xe';
+
+  @override
+  String get kycStepSelfie => 'Ảnh chân dung (selfie)';
+
+  @override
+  String get kycSelfieHint => 'Chụp thẳng mặt, ánh sáng đầy đủ';
+
+  @override
+  String get kycSubmit => 'Gửi xác minh';
+
+  @override
+  String get kycInfoBanner =>
+      'Thông tin của bạn được mã hoá và bảo mật. Chỉ dùng để xác minh danh tính.';
+
+  @override
+  String get kycUploaded => 'Đã tải lên';
+
+  @override
+  String get kycUploading => 'Đang tải...';
+
+  @override
+  String get kycTapToUpload => 'Chạm để tải ảnh';
+
+  @override
+  String get kycStatusTitle => 'Trạng thái KYC';
+
+  @override
+  String get kycStatusSubtitle => 'Xác minh danh tính của bạn';
+
+  @override
+  String get kycStatusUnverifiedTitle => 'Chưa nộp hồ sơ';
+
+  @override
+  String get kycStatusUnverifiedSubtitle =>
+      'Bạn chưa gửi hồ sơ xác minh.\nNộp CCCD, bằng lái và ảnh chân dung để bắt đầu.';
+
+  @override
+  String get kycStatusPendingTitle => 'Đang chờ xét duyệt';
+
+  @override
+  String get kycStatusPendingSubtitle =>
+      'Hồ sơ của bạn đang được xem xét.\nThường mất 1–2 ngày làm việc.';
+
+  @override
+  String get kycStatusApprovedTitle => 'Đã xác minh';
+
+  @override
+  String get kycStatusApprovedSubtitle =>
+      'Tài khoản của bạn đã được xác minh.\nBạn có thể thuê xe ngay.';
+
+  @override
+  String get kycStatusRejectedTitle => 'Xác minh thất bại';
+
+  @override
+  String get kycStatusRejectedSubtitle =>
+      'Hồ sơ bị từ chối. Vui lòng\nnộp lại với ảnh rõ ràng hơn.';
+
+  @override
+  String get kycTimelineTitle => 'Tiến trình xét duyệt';
+
+  @override
+  String get kycStepSubmit => 'Nộp hồ sơ';
+
+  @override
+  String get kycStepReview => 'Đang xét duyệt';
+
+  @override
+  String get kycStepComplete => 'Xác minh hoàn tất';
+
+  @override
+  String get kycStepRejected => 'Từ chối';
+
+  @override
+  String get kycNotSubmitted => 'Chưa nộp';
+
+  @override
+  String get kycProcessing => 'Đang xử lý...';
+
+  @override
+  String get kycRejectReason => 'Lý do từ chối';
+
+  @override
+  String get kycSubmitDocs => 'Nộp hồ sơ KYC';
+
+  @override
+  String get kycFindCarNow => 'Tìm xe ngay';
+
+  @override
+  String get kycResubmit => 'Nộp lại hồ sơ';
+
+  @override
+  String get kycContactSupport => 'Liên hệ hỗ trợ';
 }
