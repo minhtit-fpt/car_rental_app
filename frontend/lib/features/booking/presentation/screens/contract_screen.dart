@@ -295,12 +295,12 @@ class _SignatureSectionState extends State<_SignatureSection> {
                 visualDensity: VisualDensity.compact,
               ),
               const SizedBox(width: 4),
-              const Expanded(
+              Expanded(
                 child: Padding(
-                  padding: EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.only(top: 10),
                   child: Text(
-                    'Tôi đã đọc kỹ và đồng ý với tất cả điều khoản trong hợp đồng thuê xe này.',
-                    style: TextStyle(
+                    l10n.contractAgree,
+                    style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.secondaryText,
                       height: 1.5,

@@ -69,23 +69,9 @@ class Vehicle {
   /// Có dữ liệu đánh giá thật để hiển thị hay không.
   bool get hasRating => rating != null && (reviewCount ?? 0) > 0;
 
-  /// Nhãn hộp số tiếng Việt, null nếu chưa có dữ liệu.
-  String? get transmissionLabel => switch (transmission) {
-    'AUTOMATIC' => 'Tự động',
-    'MANUAL' => 'Số sàn',
-    _ => null,
-  };
-
   String get emoji => switch (type) {
     'MOTORBIKE' => '🏍️',
     'BICYCLE' => '🚲',
     _ => '🚗',
-  };
-
-  /// Nhãn loại xe tiếng Việt.
-  String get typeLabel => switch (type) {
-    'MOTORBIKE' => 'Xe máy',
-    'BICYCLE' => 'Xe đạp',
-    _ => 'Ô tô',
   };
 }
