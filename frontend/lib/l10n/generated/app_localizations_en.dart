@@ -981,4 +981,90 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get ownerVehicleDeliverySubtitle =>
       'Allow delivery to the customer\'s address';
+
+  @override
+  String get commonComingSoon => 'Coming soon';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsLogout => 'Log out';
+
+  @override
+  String get settingsLogoutConfirm =>
+      'Are you sure you want to log out of this account?';
+
+  @override
+  String get settingsSectionPreferences => 'Preferences';
+
+  @override
+  String get settingsSectionAccount => 'Account';
+
+  @override
+  String get settingsSectionOther => 'Other';
+
+  @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
+  String get settingsNotificationsSubtitle => 'Receive push notifications';
+
+  @override
+  String get settingsDarkMode => 'Dark mode';
+
+  @override
+  String get settingsDarkModeSubtitle => 'Dark background mode';
+
+  @override
+  String get settingsChangePassword => 'Change password';
+
+  @override
+  String get settingsDeleteAccount => 'Delete account';
+
+  @override
+  String get settingsAbout => 'About';
+
+  @override
+  String settingsAboutSubtitle(String version) {
+    return 'RideVN · Version $version';
+  }
+
+  @override
+  String settingsVersionLabel(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get settingsTermsPolicies => 'Terms & policies';
+
+  @override
+  String get profileEditSubtitle => 'Update your personal information';
+
+  @override
+  String get profileUpdateSuccess => 'Profile updated';
+
+  @override
+  String get profileUpdateFailed => 'Update failed';
+
+  @override
+  String get profileChangeAvatar => 'Change avatar';
+
+  @override
+  String get profilePersonalInfo => 'Personal information';
+
+  @override
+  String get profileFullName => 'Full name';
+
+  @override
+  String get profileEmail => 'Email';
+
+  @override
+  String get profilePhoneReadonly => 'Phone number can\'t be changed';
+
+  @override
+  String get profileBio => 'About you';
+
+  @override
+  String get profileBioHint => 'Share a little about yourself...';
 }

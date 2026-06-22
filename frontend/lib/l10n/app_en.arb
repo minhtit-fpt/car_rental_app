@@ -501,5 +501,51 @@
   "ownerVehicleOptions": "Options",
   "ownerVehicleEv": "Electric (EV)",
   "ownerVehicleEvSubtitle": "Show the EV badge on the listing",
-  "ownerVehicleDeliverySubtitle": "Allow delivery to the customer's address"
+  "ownerVehicleDeliverySubtitle": "Allow delivery to the customer's address",
+
+  "commonComingSoon": "Coming soon",
+
+  "settingsTitle": "Settings",
+  "settingsLogout": "Log out",
+  "settingsLogoutConfirm": "Are you sure you want to log out of this account?",
+  "settingsSectionPreferences": "Preferences",
+  "settingsSectionAccount": "Account",
+  "settingsSectionOther": "Other",
+  "settingsNotifications": "Notifications",
+  "settingsNotificationsSubtitle": "Receive push notifications",
+  "settingsDarkMode": "Dark mode",
+  "settingsDarkModeSubtitle": "Dark background mode",
+  "settingsChangePassword": "Change password",
+  "settingsDeleteAccount": "Delete account",
+  "settingsAbout": "About",
+  "settingsAboutSubtitle": "RideVN · Version {version}",
+  "@settingsAboutSubtitle": {
+    "description": "About row subtitle with app version",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsVersionLabel": "Version {version}",
+  "@settingsVersionLabel": {
+    "description": "App version label in the about dialog",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTermsPolicies": "Terms & policies",
+
+  "profileEditSubtitle": "Update your personal information",
+  "profileUpdateSuccess": "Profile updated",
+  "profileUpdateFailed": "Update failed",
+  "profileChangeAvatar": "Change avatar",
+  "profilePersonalInfo": "Personal information",
+  "profileFullName": "Full name",
+  "profileEmail": "Email",
+  "profilePhoneReadonly": "Phone number can't be changed",
+  "profileBio": "About you",
+  "profileBioHint": "Share a little about yourself..."
 }

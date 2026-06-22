@@ -1933,6 +1933,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow delivery to the customer\'s address'**
   String get ownerVehicleDeliverySubtitle;
+
+  /// No description provided for @commonComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get commonComingSoon;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get settingsLogout;
+
+  /// No description provided for @settingsLogoutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to log out of this account?'**
+  String get settingsLogoutConfirm;
+
+  /// No description provided for @settingsSectionPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get settingsSectionPreferences;
+
+  /// No description provided for @settingsSectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsSectionAccount;
+
+  /// No description provided for @settingsSectionOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get settingsSectionOther;
+
+  /// No description provided for @settingsNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get settingsNotifications;
+
+  /// No description provided for @settingsNotificationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive push notifications'**
+  String get settingsNotificationsSubtitle;
+
+  /// No description provided for @settingsDarkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark mode'**
+  String get settingsDarkMode;
+
+  /// No description provided for @settingsDarkModeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark background mode'**
+  String get settingsDarkModeSubtitle;
+
+  /// No description provided for @settingsChangePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get settingsChangePassword;
+
+  /// No description provided for @settingsDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get settingsDeleteAccount;
+
+  /// No description provided for @settingsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAbout;
+
+  /// About row subtitle with app version
+  ///
+  /// In en, this message translates to:
+  /// **'RideVN · Version {version}'**
+  String settingsAboutSubtitle(String version);
+
+  /// App version label in the about dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String settingsVersionLabel(String version);
+
+  /// No description provided for @settingsTermsPolicies.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & policies'**
+  String get settingsTermsPolicies;
+
+  /// No description provided for @profileEditSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your personal information'**
+  String get profileEditSubtitle;
+
+  /// No description provided for @profileUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated'**
+  String get profileUpdateSuccess;
+
+  /// No description provided for @profileUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed'**
+  String get profileUpdateFailed;
+
+  /// No description provided for @profileChangeAvatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Change avatar'**
+  String get profileChangeAvatar;
+
+  /// No description provided for @profilePersonalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal information'**
+  String get profilePersonalInfo;
+
+  /// No description provided for @profileFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get profileFullName;
+
+  /// No description provided for @profileEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get profileEmail;
+
+  /// No description provided for @profilePhoneReadonly.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number can\'t be changed'**
+  String get profilePhoneReadonly;
+
+  /// No description provided for @profileBio.
+  ///
+  /// In en, this message translates to:
+  /// **'About you'**
+  String get profileBio;
+
+  /// No description provided for @profileBioHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a little about yourself...'**
+  String get profileBioHint;
 }
 
 class _AppLocalizationsDelegate

@@ -976,4 +976,90 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get ownerVehicleDeliverySubtitle =>
       'Cho phép giao xe đến địa chỉ khách';
+
+  @override
+  String get commonComingSoon => 'Sắp có';
+
+  @override
+  String get settingsTitle => 'Cài đặt';
+
+  @override
+  String get settingsLogout => 'Đăng xuất';
+
+  @override
+  String get settingsLogoutConfirm =>
+      'Bạn có chắc muốn đăng xuất khỏi tài khoản này?';
+
+  @override
+  String get settingsSectionPreferences => 'Tuỳ chỉnh';
+
+  @override
+  String get settingsSectionAccount => 'Tài khoản';
+
+  @override
+  String get settingsSectionOther => 'Khác';
+
+  @override
+  String get settingsNotifications => 'Thông báo';
+
+  @override
+  String get settingsNotificationsSubtitle => 'Nhận thông báo đẩy';
+
+  @override
+  String get settingsDarkMode => 'Giao diện tối';
+
+  @override
+  String get settingsDarkModeSubtitle => 'Chế độ nền tối';
+
+  @override
+  String get settingsChangePassword => 'Đổi mật khẩu';
+
+  @override
+  String get settingsDeleteAccount => 'Xoá tài khoản';
+
+  @override
+  String get settingsAbout => 'Về ứng dụng';
+
+  @override
+  String settingsAboutSubtitle(String version) {
+    return 'RideVN · Phiên bản $version';
+  }
+
+  @override
+  String settingsVersionLabel(String version) {
+    return 'Phiên bản $version';
+  }
+
+  @override
+  String get settingsTermsPolicies => 'Điều khoản & chính sách';
+
+  @override
+  String get profileEditSubtitle => 'Cập nhật thông tin cá nhân';
+
+  @override
+  String get profileUpdateSuccess => 'Đã cập nhật hồ sơ';
+
+  @override
+  String get profileUpdateFailed => 'Cập nhật thất bại';
+
+  @override
+  String get profileChangeAvatar => 'Đổi ảnh đại diện';
+
+  @override
+  String get profilePersonalInfo => 'Thông tin cá nhân';
+
+  @override
+  String get profileFullName => 'Họ và tên';
+
+  @override
+  String get profileEmail => 'Email';
+
+  @override
+  String get profilePhoneReadonly => 'Không thể thay đổi số điện thoại';
+
+  @override
+  String get profileBio => 'Giới thiệu bản thân';
+
+  @override
+  String get profileBioHint => 'Chia sẻ một chút về bản thân...';
 }

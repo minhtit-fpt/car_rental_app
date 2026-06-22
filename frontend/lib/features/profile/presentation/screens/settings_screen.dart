@@ -25,36 +25,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
 
   Future<void> _confirmLogout() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Đăng xuất',
-          style: TextStyle(
+        title: Text(
+          l10n.settingsLogout,
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: AppColors.darkText,
           ),
         ),
-        content: const Text(
-          'Bạn có chắc muốn đăng xuất khỏi tài khoản này?',
-          style: TextStyle(fontSize: 14, color: AppColors.secondaryText),
+        content: Text(
+          l10n.settingsLogoutConfirm,
+          style: const TextStyle(fontSize: 14, color: AppColors.secondaryText),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text(
-              'Huỷ',
-              style: TextStyle(color: AppColors.mutedText),
+            child: Text(
+              l10n.commonCancel,
+              style: const TextStyle(color: AppColors.mutedText),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text(
-              'Đăng xuất',
-              style: TextStyle(
+            child: Text(
+              l10n.settingsLogout,
+              style: const TextStyle(
                 color: AppColors.danger,
                 fontWeight: FontWeight.w600,
               ),
@@ -144,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _SettingsSection(
-                      label: 'Tuỳ chỉnh',
+                      label: l10n.settingsSectionPreferences,
                       rows: [
                         _SettingsRow(
                           icon: Icons.language_outlined,
@@ -154,8 +155,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         _SettingsRow(
                           icon: Icons.notifications_outlined,
-                          title: 'Thông báo',
-                          subtitle: 'Nhận thông báo đẩy',
+                          title: l10n.settingsNotifications,
+                          subtitle: l10n.settingsNotificationsSubtitle,
                           trailing: Switch.adaptive(
                             value: _notificationsEnabled,
                             activeThumbColor: AppColors.primary,
@@ -165,8 +166,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         _SettingsRow(
                           icon: Icons.dark_mode_outlined,
-                          title: 'Giao diện tối',
-                          subtitle: 'Chế độ nền tối',
+                          title: l10n.settingsDarkMode,
+                          subtitle: l10n.settingsDarkModeSubtitle,
                           trailing: const _ComingSoonChip(),
                           // Disabled: chưa có hạ tầng đổi theme.
                           onTap: null,
@@ -175,23 +176,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 16),
                     _SettingsSection(
-                      label: 'Tài khoản',
+                      label: l10n.settingsSectionAccount,
                       rows: [
                         _SettingsRow(
                           icon: Icons.lock_outline_rounded,
-                          title: 'Đổi mật khẩu',
+                          title: l10n.settingsChangePassword,
                           trailing: const _ComingSoonChip(),
                           onTap: null,
                         ),
                         _SettingsRow(
                           icon: Icons.logout_rounded,
-                          title: 'Đăng xuất',
+                          title: l10n.settingsLogout,
                           danger: true,
                           onTap: _confirmLogout,
                         ),
                         _SettingsRow(
                           icon: Icons.delete_outline_rounded,
-                          title: 'Xoá tài khoản',
+                          title: l10n.settingsDeleteAccount,
                           danger: true,
                           trailing: const _ComingSoonChip(),
                           onTap: null,
@@ -200,22 +201,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 16),
                     _SettingsSection(
-                      label: 'Khác',
+                      label: l10n.settingsSectionOther,
                       rows: [
                         _SettingsRow(
                           icon: Icons.info_outline_rounded,
-                          title: 'Về ứng dụng',
-                          subtitle: 'RideVN · Phiên bản $_appVersion',
+                          title: l10n.settingsAbout,
+                          subtitle: l10n.settingsAboutSubtitle(_appVersion),
                           onTap: () => showAboutDialog(
                             context: context,
                             applicationName: 'RideVN',
-                            applicationVersion: 'Phiên bản $_appVersion',
+                            applicationVersion: l10n.settingsVersionLabel(
+                              _appVersion,
+                            ),
                             applicationLegalese: '© 2026 RideVN',
                           ),
                         ),
                         _SettingsRow(
                           icon: Icons.description_outlined,
-                          title: 'Điều khoản & chính sách',
+                          title: l10n.settingsTermsPolicies,
                           trailing: const _ComingSoonChip(),
                           onTap: null,
                         ),
@@ -251,9 +254,9 @@ class _SettingsSliverAppBar extends StatelessWidget {
       systemOverlayStyle: SystemUiOverlayStyle.light,
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsetsDirectional.only(start: 56, bottom: 16),
-        title: const Text(
-          'Cài đặt',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context).settingsTitle,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w800,
@@ -462,9 +465,9 @@ class _ComingSoonChip extends StatelessWidget {
         color: AppColors.surfaceSunken,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Text(
-        'Sắp có',
-        style: TextStyle(
+      child: Text(
+        AppLocalizations.of(context).commonComingSoon,
+        style: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600,
           color: AppColors.mutedText,

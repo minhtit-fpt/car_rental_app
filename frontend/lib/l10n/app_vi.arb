@@ -329,5 +329,35 @@
   "ownerVehicleOptions": "Tùy chọn",
   "ownerVehicleEv": "Xe điện (EV)",
   "ownerVehicleEvSubtitle": "Hiển thị badge EV trên listing",
-  "ownerVehicleDeliverySubtitle": "Cho phép giao xe đến địa chỉ khách"
+  "ownerVehicleDeliverySubtitle": "Cho phép giao xe đến địa chỉ khách",
+
+  "commonComingSoon": "Sắp có",
+
+  "settingsTitle": "Cài đặt",
+  "settingsLogout": "Đăng xuất",
+  "settingsLogoutConfirm": "Bạn có chắc muốn đăng xuất khỏi tài khoản này?",
+  "settingsSectionPreferences": "Tuỳ chỉnh",
+  "settingsSectionAccount": "Tài khoản",
+  "settingsSectionOther": "Khác",
+  "settingsNotifications": "Thông báo",
+  "settingsNotificationsSubtitle": "Nhận thông báo đẩy",
+  "settingsDarkMode": "Giao diện tối",
+  "settingsDarkModeSubtitle": "Chế độ nền tối",
+  "settingsChangePassword": "Đổi mật khẩu",
+  "settingsDeleteAccount": "Xoá tài khoản",
+  "settingsAbout": "Về ứng dụng",
+  "settingsAboutSubtitle": "RideVN · Phiên bản {version}",
+  "settingsVersionLabel": "Phiên bản {version}",
+  "settingsTermsPolicies": "Điều khoản & chính sách",
+
+  "profileEditSubtitle": "Cập nhật thông tin cá nhân",
+  "profileUpdateSuccess": "Đã cập nhật hồ sơ",
+  "profileUpdateFailed": "Cập nhật thất bại",
+  "profileChangeAvatar": "Đổi ảnh đại diện",
+  "profilePersonalInfo": "Thông tin cá nhân",
+  "profileFullName": "Họ và tên",
+  "profileEmail": "Email",
+  "profilePhoneReadonly": "Không thể thay đổi số điện thoại",
+  "profileBio": "Giới thiệu bản thân",
+  "profileBioHint": "Chia sẻ một chút về bản thân..."
 }
