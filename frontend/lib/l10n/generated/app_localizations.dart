@@ -548,6 +548,12 @@ abstract class AppLocalizations {
   /// **'Share'**
   String get vehicleShare;
 
+  /// Text shared from the vehicle detail screen. price is already formatted (e.g. 890K, 1.2M).
+  ///
+  /// In en, this message translates to:
+  /// **'Check out {title} — only {price} VNĐ/day on RideVN 🚗\n{link}'**
+  String vehicleShareMessage(String title, String price, String link);
+
   /// No description provided for @vehicleBookNow.
   ///
   /// In en, this message translates to:
@@ -1466,6 +1472,108 @@ abstract class AppLocalizations {
   /// **'Report issue'**
   String get activeTripReport;
 
+  /// No description provided for @reportSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get reportSheetTitle;
+
+  /// No description provided for @reportSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo of the issue (optional), then chat with our support team.'**
+  String get reportSheetSubtitle;
+
+  /// No description provided for @reportCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get reportCamera;
+
+  /// No description provided for @reportGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get reportGallery;
+
+  /// No description provided for @reportPhotoAttached.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo attached'**
+  String get reportPhotoAttached;
+
+  /// No description provided for @reportRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get reportRemovePhoto;
+
+  /// No description provided for @reportContinueToSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with support'**
+  String get reportContinueToSupport;
+
+  /// No description provided for @emergencySheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get emergencySheetTitle;
+
+  /// No description provided for @emergencySheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a number to copy it, then call from your phone.'**
+  String get emergencySheetSubtitle;
+
+  /// No description provided for @emergencyPolice.
+  ///
+  /// In en, this message translates to:
+  /// **'Police'**
+  String get emergencyPolice;
+
+  /// No description provided for @emergencyFire.
+  ///
+  /// In en, this message translates to:
+  /// **'Fire & rescue'**
+  String get emergencyFire;
+
+  /// No description provided for @emergencyAmbulance.
+  ///
+  /// In en, this message translates to:
+  /// **'Ambulance'**
+  String get emergencyAmbulance;
+
+  /// No description provided for @emergencyNumberCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} number {number} copied'**
+  String emergencyNumberCopied(String label, String number);
+
+  /// No description provided for @emergencyTipsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety tips'**
+  String get emergencyTipsTitle;
+
+  /// No description provided for @emergencyTipSafePlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to a safe place before making a call.'**
+  String get emergencyTipSafePlace;
+
+  /// No description provided for @emergencyTipShareLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your live location with someone you trust.'**
+  String get emergencyTipShareLocation;
+
+  /// No description provided for @emergencyTipNoteDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Note the vehicle plate, your location, and what happened.'**
+  String get emergencyTipNoteDetails;
+
   /// No description provided for @commonYes.
   ///
   /// In en, this message translates to:
@@ -2035,6 +2143,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terms & policies'**
   String get settingsTermsPolicies;
+
+  /// No description provided for @termsScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Policies'**
+  String get termsScreenTitle;
+
+  /// No description provided for @termsUpdatedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated June 2026'**
+  String get termsUpdatedLabel;
+
+  /// No description provided for @termsIntroHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Acceptance of terms'**
+  String get termsIntroHeading;
+
+  /// No description provided for @termsIntroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'By creating an account or using RideVN, you agree to these Terms & Policies. If you do not agree, please stop using the app. We may update these terms from time to time and will note the date of the latest revision above.'**
+  String get termsIntroBody;
+
+  /// No description provided for @termsAccountHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Your account'**
+  String get termsAccountHeading;
+
+  /// No description provided for @termsAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You are responsible for keeping your login credentials secure and for all activity under your account. You must provide accurate information and complete identity verification (KYC) before renting or listing a vehicle. You may hold both renter and owner roles on one account.'**
+  String get termsAccountBody;
+
+  /// No description provided for @termsBookingHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'3. Bookings & payments'**
+  String get termsBookingHeading;
+
+  /// No description provided for @termsBookingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A booking is a contract between the renter and the vehicle owner; RideVN facilitates the transaction. Prices, deposits and any surge adjustments are shown before you confirm. Payments are processed through our supported gateways. Cancellation and refund eligibility depend on the timing of the cancellation and the owner\'s policy shown at checkout.'**
+  String get termsBookingBody;
+
+  /// No description provided for @termsConductHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'4. Vehicle use & conduct'**
+  String get termsConductHeading;
+
+  /// No description provided for @termsConductBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Renters must hold a valid licence, drive lawfully, and return the vehicle on time, in the agreed condition, and at the agreed location. Owners must keep their vehicles roadworthy, insured, and accurately described. Prohibited use includes illegal activity, subletting, and removing tracking or safety equipment.'**
+  String get termsConductBody;
+
+  /// No description provided for @termsPrivacyHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'5. Privacy & your data'**
+  String get termsPrivacyHeading;
+
+  /// No description provided for @termsPrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We collect the data needed to operate the service — account details, KYC documents, location used for nearby search, bookings and payments. KYC documents are stored privately and are never shared publicly. We do not sell your personal data. You can request access to or deletion of your account data from Settings.'**
+  String get termsPrivacyBody;
+
+  /// No description provided for @termsContactHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'6. Contact us'**
+  String get termsContactHeading;
+
+  /// No description provided for @termsContactBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions about these terms or your data? Reach our support team from the in-app chat, or email support@ridevn.app.'**
+  String get termsContactBody;
+
+  /// No description provided for @changePasswordCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get changePasswordCurrent;
+
+  /// No description provided for @changePasswordNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get changePasswordNew;
+
+  /// No description provided for @changePasswordConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new password'**
+  String get changePasswordConfirm;
+
+  /// No description provided for @changePasswordSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Update password'**
+  String get changePasswordSubmit;
+
+  /// No description provided for @changePasswordSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated'**
+  String get changePasswordSuccess;
+
+  /// No description provided for @changePasswordFillAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in all fields'**
+  String get changePasswordFillAll;
+
+  /// No description provided for @changePasswordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'New password must be at least 8 characters'**
+  String get changePasswordTooShort;
+
+  /// No description provided for @changePasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'New passwords do not match'**
+  String get changePasswordMismatch;
+
+  /// No description provided for @changePasswordSameAsCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'New password must be different from the current one'**
+  String get changePasswordSameAsCurrent;
+
+  /// No description provided for @deleteAccountWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes your account and all related data — bookings, vehicles, reviews and messages. This cannot be undone.'**
+  String get deleteAccountWarning;
+
+  /// No description provided for @deleteAccountConfirmCheckbox.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand this action is permanent.'**
+  String get deleteAccountConfirmCheckbox;
+
+  /// No description provided for @deleteAccountConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete my account'**
+  String get deleteAccountConfirmButton;
 
   /// No description provided for @profileEditSubtitle.
   ///

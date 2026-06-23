@@ -243,6 +243,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicleShare => 'Share';
 
   @override
+  String vehicleShareMessage(String title, String price, String link) {
+    return 'Check out $title — only $price VNĐ/day on RideVN 🚗\n$link';
+  }
+
+  @override
   String get vehicleBookNow => 'Book now';
 
   @override
@@ -736,6 +741,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activeTripReport => 'Report issue';
 
   @override
+  String get reportSheetTitle => 'Report a problem';
+
+  @override
+  String get reportSheetSubtitle =>
+      'Add a photo of the issue (optional), then chat with our support team.';
+
+  @override
+  String get reportCamera => 'Camera';
+
+  @override
+  String get reportGallery => 'Gallery';
+
+  @override
+  String get reportPhotoAttached => 'Photo attached';
+
+  @override
+  String get reportRemovePhoto => 'Remove';
+
+  @override
+  String get reportContinueToSupport => 'Chat with support';
+
+  @override
+  String get emergencySheetTitle => 'Emergency';
+
+  @override
+  String get emergencySheetSubtitle =>
+      'Tap a number to copy it, then call from your phone.';
+
+  @override
+  String get emergencyPolice => 'Police';
+
+  @override
+  String get emergencyFire => 'Fire & rescue';
+
+  @override
+  String get emergencyAmbulance => 'Ambulance';
+
+  @override
+  String emergencyNumberCopied(String label, String number) {
+    return '$label number $number copied';
+  }
+
+  @override
+  String get emergencyTipsTitle => 'Safety tips';
+
+  @override
+  String get emergencyTipSafePlace =>
+      'Move to a safe place before making a call.';
+
+  @override
+  String get emergencyTipShareLocation =>
+      'Share your live location with someone you trust.';
+
+  @override
+  String get emergencyTipNoteDetails =>
+      'Note the vehicle plate, your location, and what happened.';
+
+  @override
   String get commonYes => 'Yes';
 
   @override
@@ -1037,6 +1100,94 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTermsPolicies => 'Terms & policies';
+
+  @override
+  String get termsScreenTitle => 'Terms & Policies';
+
+  @override
+  String get termsUpdatedLabel => 'Last updated June 2026';
+
+  @override
+  String get termsIntroHeading => '1. Acceptance of terms';
+
+  @override
+  String get termsIntroBody =>
+      'By creating an account or using RideVN, you agree to these Terms & Policies. If you do not agree, please stop using the app. We may update these terms from time to time and will note the date of the latest revision above.';
+
+  @override
+  String get termsAccountHeading => '2. Your account';
+
+  @override
+  String get termsAccountBody =>
+      'You are responsible for keeping your login credentials secure and for all activity under your account. You must provide accurate information and complete identity verification (KYC) before renting or listing a vehicle. You may hold both renter and owner roles on one account.';
+
+  @override
+  String get termsBookingHeading => '3. Bookings & payments';
+
+  @override
+  String get termsBookingBody =>
+      'A booking is a contract between the renter and the vehicle owner; RideVN facilitates the transaction. Prices, deposits and any surge adjustments are shown before you confirm. Payments are processed through our supported gateways. Cancellation and refund eligibility depend on the timing of the cancellation and the owner\'s policy shown at checkout.';
+
+  @override
+  String get termsConductHeading => '4. Vehicle use & conduct';
+
+  @override
+  String get termsConductBody =>
+      'Renters must hold a valid licence, drive lawfully, and return the vehicle on time, in the agreed condition, and at the agreed location. Owners must keep their vehicles roadworthy, insured, and accurately described. Prohibited use includes illegal activity, subletting, and removing tracking or safety equipment.';
+
+  @override
+  String get termsPrivacyHeading => '5. Privacy & your data';
+
+  @override
+  String get termsPrivacyBody =>
+      'We collect the data needed to operate the service — account details, KYC documents, location used for nearby search, bookings and payments. KYC documents are stored privately and are never shared publicly. We do not sell your personal data. You can request access to or deletion of your account data from Settings.';
+
+  @override
+  String get termsContactHeading => '6. Contact us';
+
+  @override
+  String get termsContactBody =>
+      'Questions about these terms or your data? Reach our support team from the in-app chat, or email support@ridevn.app.';
+
+  @override
+  String get changePasswordCurrent => 'Current password';
+
+  @override
+  String get changePasswordNew => 'New password';
+
+  @override
+  String get changePasswordConfirm => 'Confirm new password';
+
+  @override
+  String get changePasswordSubmit => 'Update password';
+
+  @override
+  String get changePasswordSuccess => 'Password updated';
+
+  @override
+  String get changePasswordFillAll => 'Please fill in all fields';
+
+  @override
+  String get changePasswordTooShort =>
+      'New password must be at least 8 characters';
+
+  @override
+  String get changePasswordMismatch => 'New passwords do not match';
+
+  @override
+  String get changePasswordSameAsCurrent =>
+      'New password must be different from the current one';
+
+  @override
+  String get deleteAccountWarning =>
+      'This permanently deletes your account and all related data — bookings, vehicles, reviews and messages. This cannot be undone.';
+
+  @override
+  String get deleteAccountConfirmCheckbox =>
+      'I understand this action is permanent.';
+
+  @override
+  String get deleteAccountConfirmButton => 'Delete my account';
 
   @override
   String get profileEditSubtitle => 'Update your personal information';

@@ -16,7 +16,7 @@ import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
-import 'package:frontend/shared/utils/coming_soon.dart';
+import 'package:frontend/shared/utils/share_helper.dart';
 
 // pricePerDay stored in K VNĐ
 String _fmtVnd(double kAmount) {
@@ -184,10 +184,7 @@ class _DetailAppBar extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   _GlassCircleButton(
-                    onTap: () => showComingSoonSnack(
-                      context,
-                      AppLocalizations.of(context).vehicleShare,
-                    ),
+                    onTap: () => shareVehicle(context, vehicle),
                     child: const Icon(
                       Icons.share_outlined,
                       color: AppColors.darkText,

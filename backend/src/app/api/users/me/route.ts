@@ -25,3 +25,19 @@ export async function PATCH(req: Request): Promise<Response> {
     return toErrorResponse(error);
   }
 }
+
+// DELETE /api/users/me — xoá cứng tài khoản của chính mình (cascade DB).
+export async function DELETE(req: Request): Promise<Response> {
+  try {
+    const claims = await requireAuth(req);
+    await enforceRateLimit(
+      `account-delete:${getClientIp(req)}`,
+      RATE_LIMIT,
+      WINDOW_SECONDS,
+    );
+    await userService.deleteAccount(claims.sub);
+    return ok({ deleted: true });
+  } catch (error) {
+    return toErrorResponse(error);
+  }
+}

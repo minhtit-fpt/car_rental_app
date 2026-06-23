@@ -11,4 +11,13 @@ class AppConfig {
     'API_BASE_URL',
     defaultValue: 'http://localhost:3000',
   );
+
+  /// Origin công khai dùng cho link chia sẻ / deep-link (vd: chia sẻ xe).
+  /// Tách khỏi [apiBaseUrl] vì link chia sẻ trỏ tới web/app công khai, không
+  /// phải endpoint API. Override khi build:
+  ///   flutter run --dart-define=WEB_BASE_URL=https://ridevn.app
+  static const String webBaseUrl = String.fromEnvironment(
+    'WEB_BASE_URL',
+    defaultValue: 'https://ridevn.app',
+  );
 }

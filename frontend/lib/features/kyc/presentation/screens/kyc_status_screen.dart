@@ -9,7 +9,6 @@ import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
-import 'package:frontend/shared/utils/coming_soon.dart';
 
 enum KycStatus { unverified, pending, approved, rejected }
 
@@ -478,8 +477,7 @@ class _ActionButtons extends StatelessWidget {
           const SizedBox(height: 12),
           SecondaryButton(
             label: l10n.kycContactSupport,
-            onPressed: () =>
-                showComingSoonSnack(context, l10n.kycContactSupport),
+            onPressed: () => context.push('/conversations'),
             icon: Icons.headset_mic_outlined,
           ),
         ],

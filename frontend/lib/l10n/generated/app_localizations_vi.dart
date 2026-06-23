@@ -241,6 +241,11 @@ class AppLocalizationsVi extends AppLocalizations {
   String get vehicleShare => 'Chia sẻ';
 
   @override
+  String vehicleShareMessage(String title, String price, String link) {
+    return 'Thuê $title — chỉ $price VNĐ/ngày trên RideVN 🚗\n$link';
+  }
+
+  @override
   String get vehicleBookNow => 'Đặt xe ngay';
 
   @override
@@ -733,6 +738,64 @@ class AppLocalizationsVi extends AppLocalizations {
   String get activeTripReport => 'Báo hỏng';
 
   @override
+  String get reportSheetTitle => 'Báo cáo sự cố';
+
+  @override
+  String get reportSheetSubtitle =>
+      'Thêm ảnh sự cố (tuỳ chọn) rồi nhắn cho đội hỗ trợ.';
+
+  @override
+  String get reportCamera => 'Máy ảnh';
+
+  @override
+  String get reportGallery => 'Thư viện';
+
+  @override
+  String get reportPhotoAttached => 'Đã đính kèm ảnh';
+
+  @override
+  String get reportRemovePhoto => 'Gỡ';
+
+  @override
+  String get reportContinueToSupport => 'Nhắn hỗ trợ';
+
+  @override
+  String get emergencySheetTitle => 'Khẩn cấp';
+
+  @override
+  String get emergencySheetSubtitle =>
+      'Chạm để sao chép số, rồi gọi từ điện thoại của bạn.';
+
+  @override
+  String get emergencyPolice => 'Cảnh sát';
+
+  @override
+  String get emergencyFire => 'Cứu hoả';
+
+  @override
+  String get emergencyAmbulance => 'Cấp cứu';
+
+  @override
+  String emergencyNumberCopied(String label, String number) {
+    return 'Đã sao chép số $label $number';
+  }
+
+  @override
+  String get emergencyTipsTitle => 'Mẹo an toàn';
+
+  @override
+  String get emergencyTipSafePlace =>
+      'Di chuyển đến nơi an toàn trước khi gọi.';
+
+  @override
+  String get emergencyTipShareLocation =>
+      'Chia sẻ vị trí trực tiếp cho người bạn tin tưởng.';
+
+  @override
+  String get emergencyTipNoteDetails =>
+      'Ghi lại biển số xe, vị trí và diễn biến sự việc.';
+
+  @override
   String get commonYes => 'Có';
 
   @override
@@ -1032,6 +1095,93 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get settingsTermsPolicies => 'Điều khoản & chính sách';
+
+  @override
+  String get termsScreenTitle => 'Điều khoản & Chính sách';
+
+  @override
+  String get termsUpdatedLabel => 'Cập nhật lần cuối tháng 6/2026';
+
+  @override
+  String get termsIntroHeading => '1. Chấp thuận điều khoản';
+
+  @override
+  String get termsIntroBody =>
+      'Khi tạo tài khoản hoặc sử dụng RideVN, bạn đồng ý với các Điều khoản & Chính sách này. Nếu không đồng ý, vui lòng ngừng sử dụng ứng dụng. Chúng tôi có thể cập nhật điều khoản theo thời gian và sẽ ghi ngày sửa đổi gần nhất ở phía trên.';
+
+  @override
+  String get termsAccountHeading => '2. Tài khoản của bạn';
+
+  @override
+  String get termsAccountBody =>
+      'Bạn chịu trách nhiệm bảo mật thông tin đăng nhập và mọi hoạt động dưới tài khoản của mình. Bạn cần cung cấp thông tin chính xác và hoàn tất xác minh danh tính (KYC) trước khi thuê hoặc đăng xe. Một tài khoản có thể đồng thời là người thuê và chủ xe.';
+
+  @override
+  String get termsBookingHeading => '3. Đặt xe & thanh toán';
+
+  @override
+  String get termsBookingBody =>
+      'Mỗi lượt đặt xe là hợp đồng giữa người thuê và chủ xe; RideVN là bên hỗ trợ giao dịch. Giá thuê, tiền cọc và các điều chỉnh giờ cao điểm được hiển thị trước khi bạn xác nhận. Thanh toán được xử lý qua các cổng được hỗ trợ. Điều kiện huỷ và hoàn tiền phụ thuộc vào thời điểm huỷ và chính sách của chủ xe hiển thị khi thanh toán.';
+
+  @override
+  String get termsConductHeading => '4. Sử dụng xe & ứng xử';
+
+  @override
+  String get termsConductBody =>
+      'Người thuê phải có giấy phép lái xe hợp lệ, lái xe đúng luật và trả xe đúng giờ, đúng tình trạng và đúng địa điểm đã thoả thuận. Chủ xe phải giữ xe đủ điều kiện lưu thông, có bảo hiểm và mô tả chính xác. Nghiêm cấm sử dụng vào mục đích trái pháp luật, cho thuê lại hoặc tháo gỡ thiết bị định vị/an toàn.';
+
+  @override
+  String get termsPrivacyHeading => '5. Quyền riêng tư & dữ liệu';
+
+  @override
+  String get termsPrivacyBody =>
+      'Chúng tôi thu thập dữ liệu cần thiết để vận hành dịch vụ — thông tin tài khoản, giấy tờ KYC, vị trí dùng để tìm xe gần, lịch sử đặt xe và thanh toán. Giấy tờ KYC được lưu riêng tư, không bao giờ công khai. Chúng tôi không bán dữ liệu cá nhân của bạn. Bạn có thể yêu cầu truy cập hoặc xoá dữ liệu tài khoản trong phần Cài đặt.';
+
+  @override
+  String get termsContactHeading => '6. Liên hệ';
+
+  @override
+  String get termsContactBody =>
+      'Có thắc mắc về điều khoản hoặc dữ liệu của bạn? Liên hệ đội hỗ trợ qua chat trong ứng dụng, hoặc email support@ridevn.app.';
+
+  @override
+  String get changePasswordCurrent => 'Mật khẩu hiện tại';
+
+  @override
+  String get changePasswordNew => 'Mật khẩu mới';
+
+  @override
+  String get changePasswordConfirm => 'Xác nhận mật khẩu mới';
+
+  @override
+  String get changePasswordSubmit => 'Cập nhật mật khẩu';
+
+  @override
+  String get changePasswordSuccess => 'Đã đổi mật khẩu';
+
+  @override
+  String get changePasswordFillAll => 'Vui lòng nhập đầy đủ các trường';
+
+  @override
+  String get changePasswordTooShort => 'Mật khẩu mới phải tối thiểu 8 ký tự';
+
+  @override
+  String get changePasswordMismatch => 'Mật khẩu xác nhận không khớp';
+
+  @override
+  String get changePasswordSameAsCurrent =>
+      'Mật khẩu mới phải khác mật khẩu hiện tại';
+
+  @override
+  String get deleteAccountWarning =>
+      'Hành động này sẽ xoá vĩnh viễn tài khoản và toàn bộ dữ liệu liên quan — chuyến đi, xe, đánh giá và tin nhắn. Không thể hoàn tác.';
+
+  @override
+  String get deleteAccountConfirmCheckbox =>
+      'Tôi hiểu hành động này là vĩnh viễn.';
+
+  @override
+  String get deleteAccountConfirmButton => 'Xoá tài khoản của tôi';
 
   @override
   String get profileEditSubtitle => 'Cập nhật thông tin cá nhân';

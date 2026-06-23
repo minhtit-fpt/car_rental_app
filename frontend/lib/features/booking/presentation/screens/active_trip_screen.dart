@@ -10,6 +10,8 @@ import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
 import 'package:frontend/shared/utils/coming_soon.dart';
+import 'package:frontend/shared/utils/emergency_sheet.dart';
+import 'package:frontend/shared/utils/report_sheet.dart';
 
 const _months = [
   'Th1',
@@ -75,10 +77,7 @@ class ActiveTripScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     SecondaryButton(
                       label: l10n.activeTripEmergency,
-                      onPressed: () => showComingSoonSnack(
-                        context,
-                        l10n.activeTripEmergency,
-                      ),
+                      onPressed: () => showEmergencySheet(context),
                       icon: Icons.emergency_rounded,
                     ),
                     const SizedBox(height: 24),
@@ -517,11 +516,29 @@ class _QuickActionsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final actions = [
-      (icon: '🗺️', label: l10n.activeTripMap, route: null),
-      (icon: '💬', label: l10n.vehicleMessage, route: '/conversations'),
-      (icon: '📸', label: l10n.activeTripPhoto, route: null),
-      (icon: '🚨', label: l10n.activeTripReport, route: null),
+    final actions = <({String icon, String label, VoidCallback onTap})>[
+      // Map (🗺️) chờ Phase C — vẫn báo "Sắp có" cho tới khi có Maps SDK.
+      (
+        icon: '🗺️',
+        label: l10n.activeTripMap,
+        onTap: () => showComingSoonSnack(context, l10n.activeTripMap),
+      ),
+      (
+        icon: '💬',
+        label: l10n.vehicleMessage,
+        onTap: () => context.push('/conversations'),
+      ),
+      // Chụp ảnh gộp vào luồng Báo hỏng (đính kèm ảnh + chuyển hỗ trợ).
+      (
+        icon: '📸',
+        label: l10n.activeTripPhoto,
+        onTap: () => showReportSheet(context),
+      ),
+      (
+        icon: '🚨',
+        label: l10n.activeTripReport,
+        onTap: () => showReportSheet(context),
+      ),
     ];
 
     return Row(
@@ -529,14 +546,7 @@ class _QuickActionsRow extends StatelessWidget {
           .map(
             (a) => Expanded(
               child: GestureDetector(
-                onTap: () {
-                  final route = a.route;
-                  if (route != null) {
-                    context.push(route);
-                  } else {
-                    showComingSoonSnack(context, a.label);
-                  }
-                },
+                onTap: a.onTap,
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   padding: const EdgeInsets.symmetric(vertical: 12),

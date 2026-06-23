@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/locale/locale_cubit.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
@@ -69,6 +70,117 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Đồng bộ với logout ở app_shell: router tự redirect về /login khi
       // AuthCubit phát trạng thái chưa đăng nhập (refreshListenable).
       context.read<AuthCubit>().logout();
+    }
+  }
+
+  /// Xác nhận xoá tài khoản — yêu cầu tick checkbox "tôi hiểu" trước khi cho xoá.
+  /// Thành công → AuthCubit phát unauthenticated → router về /login.
+  Future<void> _confirmDeleteAccount() async {
+    final l10n = AppLocalizations.of(context);
+    final authCubit = context.read<AuthCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        var acknowledged = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text(
+              l10n.settingsDeleteAccount,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.danger,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.deleteAccountWarning,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.secondaryText,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: () =>
+                      setDialogState(() => acknowledged = !acknowledged),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Checkbox(
+                        value: acknowledged,
+                        activeColor: AppColors.danger,
+                        onChanged: (v) =>
+                            setDialogState(() => acknowledged = v ?? false),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Text(
+                            l10n.deleteAccountConfirmCheckbox,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.darkText,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(
+                  l10n.commonCancel,
+                  style: const TextStyle(color: AppColors.mutedText),
+                ),
+              ),
+              TextButton(
+                onPressed: acknowledged
+                    ? () => Navigator.of(dialogContext).pop(true)
+                    : null,
+                child: Text(
+                  l10n.deleteAccountConfirmButton,
+                  style: TextStyle(
+                    color: acknowledged
+                        ? AppColors.danger
+                        : AppColors.mutedText,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+    final success = await authCubit.deleteAccount();
+    if (!success) {
+      final message = authCubit.state.errorMessage;
+      if (message != null) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(message),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      }
     }
   }
 
@@ -181,8 +293,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _SettingsRow(
                           icon: Icons.lock_outline_rounded,
                           title: l10n.settingsChangePassword,
-                          trailing: const _ComingSoonChip(),
-                          onTap: null,
+                          onTap: () => context.push('/change-password'),
                         ),
                         _SettingsRow(
                           icon: Icons.logout_rounded,
@@ -194,8 +305,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: Icons.delete_outline_rounded,
                           title: l10n.settingsDeleteAccount,
                           danger: true,
-                          trailing: const _ComingSoonChip(),
-                          onTap: null,
+                          onTap: _confirmDeleteAccount,
                         ),
                       ],
                     ),
@@ -219,8 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _SettingsRow(
                           icon: Icons.description_outlined,
                           title: l10n.settingsTermsPolicies,
-                          trailing: const _ComingSoonChip(),
-                          onTap: null,
+                          onTap: () => context.push('/terms'),
                         ),
                       ],
                     ),

@@ -134,6 +134,15 @@
   "vehicleOwnerFallback": "Owner",
   "vehicleMessage": "Message",
   "vehicleShare": "Share",
+  "vehicleShareMessage": "Check out {title} — only {price} VNĐ/day on RideVN 🚗\n{link}",
+  "@vehicleShareMessage": {
+    "description": "Text shared from the vehicle detail screen. price is already formatted (e.g. 890K, 1.2M).",
+    "placeholders": {
+      "title": { "type": "String" },
+      "price": { "type": "String" },
+      "link": { "type": "String" }
+    }
+  },
   "vehicleBookNow": "Book now",
   "vehicleOwnerMetaSample": " · 36 trips · Fast response",
   "vehicleBadgeInstant": "⚡ Instant book",
@@ -396,6 +405,31 @@
   "activeTripPhoto": "Take photo",
   "activeTripReport": "Report issue",
 
+  "reportSheetTitle": "Report a problem",
+  "reportSheetSubtitle": "Add a photo of the issue (optional), then chat with our support team.",
+  "reportCamera": "Camera",
+  "reportGallery": "Gallery",
+  "reportPhotoAttached": "Photo attached",
+  "reportRemovePhoto": "Remove",
+  "reportContinueToSupport": "Chat with support",
+
+  "emergencySheetTitle": "Emergency",
+  "emergencySheetSubtitle": "Tap a number to copy it, then call from your phone.",
+  "emergencyPolice": "Police",
+  "emergencyFire": "Fire & rescue",
+  "emergencyAmbulance": "Ambulance",
+  "emergencyNumberCopied": "{label} number {number} copied",
+  "@emergencyNumberCopied": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "number": { "type": "String" }
+    }
+  },
+  "emergencyTipsTitle": "Safety tips",
+  "emergencyTipSafePlace": "Move to a safe place before making a call.",
+  "emergencyTipShareLocation": "Share your live location with someone you trust.",
+  "emergencyTipNoteDetails": "Note the vehicle plate, your location, and what happened.",
+
   "commonYes": "Yes",
   "vehicleTransmissionNone": "Not applicable",
 
@@ -537,6 +571,35 @@
     }
   },
   "settingsTermsPolicies": "Terms & policies",
+
+  "termsScreenTitle": "Terms & Policies",
+  "termsUpdatedLabel": "Last updated June 2026",
+  "termsIntroHeading": "1. Acceptance of terms",
+  "termsIntroBody": "By creating an account or using RideVN, you agree to these Terms & Policies. If you do not agree, please stop using the app. We may update these terms from time to time and will note the date of the latest revision above.",
+  "termsAccountHeading": "2. Your account",
+  "termsAccountBody": "You are responsible for keeping your login credentials secure and for all activity under your account. You must provide accurate information and complete identity verification (KYC) before renting or listing a vehicle. You may hold both renter and owner roles on one account.",
+  "termsBookingHeading": "3. Bookings & payments",
+  "termsBookingBody": "A booking is a contract between the renter and the vehicle owner; RideVN facilitates the transaction. Prices, deposits and any surge adjustments are shown before you confirm. Payments are processed through our supported gateways. Cancellation and refund eligibility depend on the timing of the cancellation and the owner's policy shown at checkout.",
+  "termsConductHeading": "4. Vehicle use & conduct",
+  "termsConductBody": "Renters must hold a valid licence, drive lawfully, and return the vehicle on time, in the agreed condition, and at the agreed location. Owners must keep their vehicles roadworthy, insured, and accurately described. Prohibited use includes illegal activity, subletting, and removing tracking or safety equipment.",
+  "termsPrivacyHeading": "5. Privacy & your data",
+  "termsPrivacyBody": "We collect the data needed to operate the service — account details, KYC documents, location used for nearby search, bookings and payments. KYC documents are stored privately and are never shared publicly. We do not sell your personal data. You can request access to or deletion of your account data from Settings.",
+  "termsContactHeading": "6. Contact us",
+  "termsContactBody": "Questions about these terms or your data? Reach our support team from the in-app chat, or email support@ridevn.app.",
+
+  "changePasswordCurrent": "Current password",
+  "changePasswordNew": "New password",
+  "changePasswordConfirm": "Confirm new password",
+  "changePasswordSubmit": "Update password",
+  "changePasswordSuccess": "Password updated",
+  "changePasswordFillAll": "Please fill in all fields",
+  "changePasswordTooShort": "New password must be at least 8 characters",
+  "changePasswordMismatch": "New passwords do not match",
+  "changePasswordSameAsCurrent": "New password must be different from the current one",
+
+  "deleteAccountWarning": "This permanently deletes your account and all related data — bookings, vehicles, reviews and messages. This cannot be undone.",
+  "deleteAccountConfirmCheckbox": "I understand this action is permanent.",
+  "deleteAccountConfirmButton": "Delete my account",
 
   "profileEditSubtitle": "Update your personal information",
   "profileUpdateSuccess": "Profile updated",

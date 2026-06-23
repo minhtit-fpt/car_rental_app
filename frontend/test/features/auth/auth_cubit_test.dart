@@ -4,6 +4,7 @@ import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/features/auth/domain/entities/auth_user.dart';
 import 'package:frontend/features/auth/domain/entities/user_role.dart';
 import 'package:frontend/features/auth/domain/repositories/auth_repository.dart';
+import 'package:frontend/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
@@ -24,6 +25,8 @@ class _FakeAuthRepository implements AuthRepository {
   Object? loginError;
   AuthUser? currentUserResult;
   bool loggedOut = false;
+  bool deleted = false;
+  Object? deleteError;
 
   @override
   Future<AuthUser> login({
@@ -53,6 +56,18 @@ class _FakeAuthRepository implements AuthRepository {
   @override
   Future<AuthUser> updateProfile({String? email}) async =>
       currentUserResult ?? loginResult!;
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {}
+
+  @override
+  Future<void> deleteAccount() async {
+    if (deleteError != null) throw deleteError!;
+    deleted = true;
+  }
 }
 
 AuthCubit _buildCubit(_FakeAuthRepository repo) => AuthCubit(
@@ -61,6 +76,7 @@ AuthCubit _buildCubit(_FakeAuthRepository repo) => AuthCubit(
       logout: LogoutUseCase(repo),
       getCurrentUser: GetCurrentUserUseCase(repo),
       updateProfile: UpdateProfileUseCase(repo),
+      deleteAccount: DeleteAccountUseCase(repo),
     );
 
 void main() {
@@ -148,6 +164,36 @@ void main() {
       expect: () => [
         isA<AuthState>()
             .having((s) => s.status, 'status', AuthStatus.unauthenticated),
+      ],
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'deleteAccount success ends the session (unauthenticated)',
+      build: () => _buildCubit(repo),
+      seed: () => const AuthState(status: AuthStatus.authenticated, user: _user),
+      act: (cubit) => cubit.deleteAccount(),
+      verify: (_) => expect(repo.deleted, isTrue),
+      expect: () => [
+        isA<AuthState>()
+            .having((s) => s.status, 'status', AuthStatus.unauthenticated),
+      ],
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'deleteAccount failure keeps the session and surfaces the error',
+      build: () {
+        repo.deleteError = const ApiException(
+          'Lỗi máy chủ',
+          code: 'INTERNAL_ERROR',
+        );
+        return _buildCubit(repo);
+      },
+      seed: () => const AuthState(status: AuthStatus.authenticated, user: _user),
+      act: (cubit) => cubit.deleteAccount(),
+      expect: () => [
+        isA<AuthState>()
+            .having((s) => s.status, 'status', AuthStatus.authenticated)
+            .having((s) => s.errorMessage, 'errorMessage', 'Lỗi máy chủ'),
       ],
     );
   });

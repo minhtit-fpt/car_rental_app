@@ -26,4 +26,15 @@ export const userRepository = {
   ): Promise<User> {
     return prisma.user.update({ where: { id }, data });
   },
+
+  updatePassword(id: string, passwordHash: string): Promise<User> {
+    return prisma.user.update({ where: { id }, data: { passwordHash } });
+  },
+
+  // Xoá cứng: các quan hệ của User đều onDelete: Cascade (refresh token, KYC,
+  // xe, booking, review, loyalty, chat…) nên DB tự dọn; AuditLog giữ lại với
+  // actorId = null (SetNull) để bảo toàn nhật ký.
+  delete(id: string): Promise<User> {
+    return prisma.user.delete({ where: { id } });
+  },
 };

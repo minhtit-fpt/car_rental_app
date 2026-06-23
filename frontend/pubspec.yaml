@@ -48,6 +48,7 @@ dependencies:
 
   # Chọn ảnh giấy tờ KYC (CCCD, bằng lái, selfie) từ thư viện/camera
   image_picker: ^1.1.2
+  share_plus: ^12.0.2
 
 dev_dependencies:
   flutter_test:

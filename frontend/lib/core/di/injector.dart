@@ -11,6 +11,7 @@ import 'package:frontend/core/storage/secure_storage.dart';
 import 'package:frontend/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:frontend/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:frontend/features/auth/domain/repositories/auth_repository.dart';
+import 'package:frontend/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
@@ -153,6 +154,7 @@ void setupAuth() {
         logout: LogoutUseCase(sl<AuthRepository>()),
         getCurrentUser: GetCurrentUserUseCase(sl<AuthRepository>()),
         updateProfile: UpdateProfileUseCase(sl<AuthRepository>()),
+        deleteAccount: DeleteAccountUseCase(sl<AuthRepository>()),
       ),
     );
 }
