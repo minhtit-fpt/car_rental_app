@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 
 /// Số khẩn cấp quốc gia Việt Nam (sự thật, không bịa). Chỉ hiển thị + copy —
@@ -17,7 +18,7 @@ Future<void> showEmergencySheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.surface,
+    backgroundColor: context.palette.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -67,10 +68,10 @@ class _EmergencySheet extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   l10n.emergencySheetTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
               ],
@@ -78,9 +79,9 @@ class _EmergencySheet extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               l10n.emergencySheetSubtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
               ),
             ),
             const SizedBox(height: 16),
@@ -91,10 +92,10 @@ class _EmergencySheet extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               l10n.emergencyTipsTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
             ),
             const SizedBox(height: 8),
@@ -139,9 +140,9 @@ class _HotlineRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.surfaceSunken,
+          color: context.palette.surfaceSunken,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.palette.border),
         ),
         child: Row(
           children: [
@@ -150,10 +151,10 @@ class _HotlineRow extends StatelessWidget {
             Expanded(
               child: Text(
                 hotline.label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
             ),
@@ -166,10 +167,10 @@ class _HotlineRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            const Icon(
+            Icon(
               Icons.copy_rounded,
               size: 16,
-              color: AppColors.mutedText,
+              color: context.palette.mutedText,
             ),
           ],
         ),
@@ -200,10 +201,10 @@ class _TipRow extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               height: 1.4,
-              color: AppColors.secondaryText,
+              color: context.palette.secondaryText,
             ),
           ),
         ),

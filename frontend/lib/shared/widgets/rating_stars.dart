@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 
 class RatingStars extends StatelessWidget {
   const RatingStars({
@@ -26,7 +27,7 @@ class RatingStars extends StatelessWidget {
             size: size,
             color: filled || half
                 ? AppColors.starYellow
-                : AppColors.border,
+                : context.palette.border,
           );
         }),
         if (showValue) ...[
@@ -36,7 +37,7 @@ class RatingStars extends StatelessWidget {
             style: TextStyle(
               fontSize: size * 0.8,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
         ],
@@ -86,7 +87,7 @@ class _InteractiveRatingStarsState extends State<InteractiveRatingStars> {
             child: Icon(
               Icons.star_rounded,
               size: widget.size,
-              color: filled ? AppColors.starYellow : AppColors.border,
+              color: filled ? AppColors.starYellow : context.palette.border,
             ),
           ),
         );

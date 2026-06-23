@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 
 /// Bottom sheet "Báo cáo sự cố" dùng chung cho quick action Báo hỏng / Chụp ảnh
@@ -13,7 +14,7 @@ Future<void> showReportSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.surface,
+    backgroundColor: context.palette.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -60,18 +61,18 @@ class _ReportSheetState extends State<_ReportSheet> {
           children: [
             Text(
               l10n.reportSheetTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               l10n.reportSheetSubtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
               ),
             ),
             const SizedBox(height: 16),
@@ -144,9 +145,9 @@ class _AttachButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceSunken,
+          color: context.palette.surfaceSunken,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.palette.border),
         ),
         child: Column(
           children: [
@@ -154,10 +155,10 @@ class _AttachButton extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
             ),
           ],
@@ -185,9 +186,9 @@ class _PhotoPreview extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceSunken,
+        color: context.palette.surfaceSunken,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.palette.border),
       ),
       child: Row(
         children: [
@@ -204,10 +205,10 @@ class _PhotoPreview extends StatelessWidget {
           Expanded(
             child: Text(
               attachedLabel,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
             ),
           ),

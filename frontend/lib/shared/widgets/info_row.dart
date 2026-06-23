@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 
 class InfoRow extends StatelessWidget {
   const InfoRow({super.key, required this.icon, required this.text});
@@ -11,13 +11,13 @@ class InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.mutedText),
+        Icon(icon, size: 16, color: context.palette.mutedText),
         const SizedBox(width: 8),
         Text(
           text,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: AppColors.secondaryText,
+            color: context.palette.secondaryText,
           ),
         ),
       ],
