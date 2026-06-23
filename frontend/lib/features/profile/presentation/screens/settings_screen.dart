@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/locale/locale_cubit.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/core/theme/theme_mode_cubit.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 
@@ -30,26 +32,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: dialogContext.palette.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           l10n.settingsLogout,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: AppColors.darkText,
+            color: dialogContext.palette.darkText,
           ),
         ),
         content: Text(
           l10n.settingsLogoutConfirm,
-          style: const TextStyle(fontSize: 14, color: AppColors.secondaryText),
+          style: TextStyle(
+            fontSize: 14,
+            color: dialogContext.palette.secondaryText,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(
               l10n.commonCancel,
-              style: const TextStyle(color: AppColors.mutedText),
+              style: TextStyle(color: dialogContext.palette.mutedText),
             ),
           ),
           TextButton(
@@ -86,7 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         var acknowledged = false;
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            backgroundColor: AppColors.surface,
+            backgroundColor: context.palette.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -104,9 +109,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Text(
                   l10n.deleteAccountWarning,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.secondaryText,
+                    color: context.palette.secondaryText,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -127,9 +132,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           padding: const EdgeInsets.only(top: 12),
                           child: Text(
                             l10n.deleteAccountConfirmCheckbox,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.darkText,
+                              color: context.palette.darkText,
                             ),
                           ),
                         ),
@@ -144,7 +149,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: () => Navigator.of(dialogContext).pop(false),
                 child: Text(
                   l10n.commonCancel,
-                  style: const TextStyle(color: AppColors.mutedText),
+                  style: TextStyle(color: context.palette.mutedText),
                 ),
               ),
               TextButton(
@@ -156,7 +161,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: TextStyle(
                     color: acknowledged
                         ? AppColors.danger
-                        : AppColors.mutedText,
+                        : context.palette.mutedText,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -192,7 +197,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.palette.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -205,14 +210,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: Text(
                 l10n.languagePickerTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.darkText,
+                  color: sheetContext.palette.darkText,
                 ),
               ),
             ),
-            _LanguageOption(
+            _PickerOption(
               label: l10n.languageVietnamese,
               selected: current == 'vi',
               onTap: () {
@@ -220,7 +225,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 localeCubit.setLocale(const Locale('vi'));
               },
             ),
-            _LanguageOption(
+            _PickerOption(
               label: l10n.languageEnglish,
               selected: current == 'en',
               onTap: () {
@@ -235,6 +240,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Bottom sheet chọn chế độ giao diện. Đổi qua [ThemeModeCubit]
+  /// (persist + rebuild app).
+  Future<void> _showThemePicker() async {
+    final l10n = AppLocalizations.of(context);
+    final themeCubit = context.read<ThemeModeCubit>();
+    final current = themeCubit.state;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: context.palette.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Text(
+                l10n.themePickerTitle,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: sheetContext.palette.darkText,
+                ),
+              ),
+            ),
+            for (final mode in ThemeMode.values)
+              _PickerOption(
+                label: _themeModeLabel(l10n, mode),
+                selected: current == mode,
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  themeCubit.setMode(mode);
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Nhãn hiển thị cho từng [ThemeMode] (theo hệ thống / sáng / tối).
+  String _themeModeLabel(AppLocalizations l10n, ThemeMode mode) =>
+      switch (mode) {
+        ThemeMode.system => l10n.settingsThemeSystem,
+        ThemeMode.light => l10n.settingsThemeLight,
+        ThemeMode.dark => l10n.settingsThemeDark,
+      };
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -246,7 +304,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             const _SettingsSliverAppBar(),
@@ -279,10 +337,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _SettingsRow(
                           icon: Icons.dark_mode_outlined,
                           title: l10n.settingsDarkMode,
-                          subtitle: l10n.settingsDarkModeSubtitle,
-                          trailing: const _ComingSoonChip(),
-                          // Disabled: chưa có hạ tầng đổi theme.
-                          onTap: null,
+                          subtitle: _themeModeLabel(
+                            l10n,
+                            context.watch<ThemeModeCubit>().state,
+                          ),
+                          onTap: _showThemePicker,
                         ),
                       ],
                     ),
@@ -398,23 +457,23 @@ class _SettingsSection extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: AppColors.mutedText,
+              color: context.palette.mutedText,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.palette.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border),
-            boxShadow: const [
+            border: Border.all(color: context.palette.border),
+            boxShadow: [
               BoxShadow(
-                color: AppColors.cardShadowColor,
+                color: context.palette.cardShadowColor,
                 blurRadius: 12,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -422,7 +481,11 @@ class _SettingsSection extends StatelessWidget {
             children: [
               for (var i = 0; i < rows.length; i++) ...[
                 if (i > 0)
-                  const Divider(height: 1, color: AppColors.border, indent: 56),
+                  Divider(
+                    height: 1,
+                    color: context.palette.border,
+                    indent: 56,
+                  ),
                 rows[i],
               ],
             ],
@@ -458,16 +521,16 @@ class _SettingsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDisabled = onTap == null && trailing is! Switch;
     final iconColor = danger ? AppColors.danger : AppColors.primary;
-    final titleColor = danger ? AppColors.danger : AppColors.darkText;
+    final titleColor = danger ? AppColors.danger : context.palette.darkText;
 
     // Trailing mặc định: chevron khi có hành vi và không có trailing tuỳ biến.
     final effectiveTrailing =
         trailing ??
         (onTap != null
-            ? const Icon(
+            ? Icon(
                 Icons.chevron_right_rounded,
                 size: 20,
-                color: AppColors.placeholderText,
+                color: context.palette.placeholderText,
               )
             : null);
 
@@ -498,9 +561,9 @@ class _SettingsRow extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.mutedText,
+                          color: context.palette.mutedText,
                         ),
                       ),
                     ],
@@ -519,9 +582,10 @@ class _SettingsRow extends StatelessWidget {
   }
 }
 
-/// Một lựa chọn ngôn ngữ trong bottom sheet (có dấu check khi đang chọn).
-class _LanguageOption extends StatelessWidget {
-  const _LanguageOption({
+/// Một lựa chọn trong bottom sheet picker (có dấu check khi đang chọn).
+/// Dùng chung cho cả picker ngôn ngữ và picker giao diện.
+class _PickerOption extends StatelessWidget {
+  const _PickerOption({
     required this.label,
     required this.selected,
     required this.onTap,
@@ -545,7 +609,7 @@ class _LanguageOption extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                  color: selected ? AppColors.primary : AppColors.darkText,
+                  color: selected ? AppColors.primary : context.palette.darkText,
                 ),
               ),
             ),
@@ -556,30 +620,6 @@ class _LanguageOption extends StatelessWidget {
                 color: AppColors.primary,
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Nhãn "Sắp có" cho các mục chưa nối backend/feature khác.
-class _ComingSoonChip extends StatelessWidget {
-  const _ComingSoonChip();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceSunken,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        AppLocalizations.of(context).commonComingSoon,
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: AppColors.mutedText,
         ),
       ),
     );

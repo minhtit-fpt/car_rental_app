@@ -1072,7 +1072,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String get settingsDarkMode => 'Giao diện tối';
 
   @override
-  String get settingsDarkModeSubtitle => 'Chế độ nền tối';
+  String get themePickerTitle => 'Chế độ hiển thị';
+
+  @override
+  String get settingsThemeSystem => 'Theo hệ thống';
+
+  @override
+  String get settingsThemeLight => 'Sáng';
+
+  @override
+  String get settingsThemeDark => 'Tối';
 
   @override
   String get settingsChangePassword => 'Đổi mật khẩu';

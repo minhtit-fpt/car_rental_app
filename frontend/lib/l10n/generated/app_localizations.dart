@@ -2102,11 +2102,29 @@ abstract class AppLocalizations {
   /// **'Dark mode'**
   String get settingsDarkMode;
 
-  /// No description provided for @settingsDarkModeSubtitle.
+  /// No description provided for @themePickerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Dark background mode'**
-  String get settingsDarkModeSubtitle;
+  /// **'Display mode'**
+  String get themePickerTitle;
+
+  /// No description provided for @settingsThemeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get settingsThemeSystem;
+
+  /// No description provided for @settingsThemeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsThemeLight;
+
+  /// No description provided for @settingsThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsThemeDark;
 
   /// No description provided for @settingsChangePassword.
   ///

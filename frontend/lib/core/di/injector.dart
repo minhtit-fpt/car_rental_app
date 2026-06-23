@@ -8,6 +8,7 @@ import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/storage/kv_storage.dart';
 import 'package:frontend/core/storage/secure_storage.dart';
+import 'package:frontend/core/theme/theme_mode_cubit.dart';
 import 'package:frontend/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:frontend/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:frontend/features/auth/domain/repositories/auth_repository.dart';
@@ -132,7 +133,8 @@ Future<void> setupStorage() async {
       const SecureStorage(FlutterSecureStorage()),
     )
     ..registerSingleton<KvStorage>(KvStorage(prefs))
-    ..registerSingleton<LocaleCubit>(LocaleCubit(sl<KvStorage>()));
+    ..registerSingleton<LocaleCubit>(LocaleCubit(sl<KvStorage>()))
+    ..registerSingleton<ThemeModeCubit>(ThemeModeCubit(sl<KvStorage>()));
 }
 
 /// Đăng ký network + auth (data → domain → presentation). Gọi sau [setupStorage].
