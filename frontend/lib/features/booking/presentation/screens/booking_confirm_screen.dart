@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
@@ -81,7 +82,7 @@ class _BookingConfirmView extends StatelessWidget {
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.palette.background,
           body: CustomScrollView(
             slivers: [
               RvSliverAppBar(
@@ -132,9 +133,9 @@ class _BookingConfirmView extends StatelessWidget {
                           Text(
                             l10n.bookingTermsNote,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.mutedText,
+                              color: context.palette.mutedText,
                               height: 1.5,
                             ),
                           ),
@@ -169,12 +170,12 @@ class _VehicleCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -201,18 +202,18 @@ class _VehicleCard extends StatelessWidget {
               children: [
                 Text(
                   vehicle.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   vehicle.typeSummaryL10n(l10n),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -225,12 +226,12 @@ class _VehicleCard extends StatelessWidget {
                       color: AppColors.primary,
                     ),
                     const SizedBox(width: 4),
-                    const Text(
+                    Text(
                       '15/06 → 17/06',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.secondaryText,
+                        color: context.palette.secondaryText,
                       ),
                     ),
                   ],
@@ -249,16 +250,16 @@ class _VehicleCard extends StatelessWidget {
                     const SizedBox(width: 3),
                     Text(
                       vehicle.rating?.toStringAsFixed(1) ?? '—',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.secondaryText,
+                        color: context.palette.secondaryText,
                       ),
                     ),
                     Text(
                       ' · ${vehicle.ownerName ?? l10n.vehicleOwnerFallback}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                   ],
@@ -282,12 +283,12 @@ class _TripDetailsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -298,10 +299,10 @@ class _TripDetailsCard extends StatelessWidget {
         children: [
           Text(
             l10n.bookingTripDetails,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(height: 14),
@@ -356,15 +357,15 @@ class _DetailRow extends StatelessWidget {
         const SizedBox(width: 10),
         Text(
           label,
-          style: const TextStyle(fontSize: 13, color: AppColors.mutedText),
+          style: TextStyle(fontSize: 13, color: context.palette.mutedText),
         ),
         const Spacer(),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
       ],
@@ -392,12 +393,12 @@ class _TotalCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -422,19 +423,19 @@ class _TotalCard extends StatelessWidget {
             label: l10n.bookingServiceFee,
             value: '${(rentalTotal * 0.03).toInt()}K',
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
-            child: Divider(color: AppColors.border, height: 1),
+            child: Divider(color: context.palette.border, height: 1),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 l10n.bookingTotalPayment,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               Text(
@@ -467,16 +468,16 @@ class _SummaryLine extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.secondaryText,
+              color: context.palette.secondaryText,
             ),
           ),
           Text(
             '$value VNĐ',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -512,18 +513,18 @@ class _InfoBanner extends StatelessWidget {
               children: [
                 Text(
                   l10n.bookingDepositTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   l10n.bookingDepositBody,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.secondaryText,
+                    color: context.palette.secondaryText,
                     height: 1.4,
                   ),
                 ),

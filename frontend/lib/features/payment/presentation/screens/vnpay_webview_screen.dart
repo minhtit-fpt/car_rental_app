@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 
 /// Mở cổng thanh toán VNPay trong WebView và bắt URL return.
@@ -44,7 +45,7 @@ class _VnpayWebViewScreenState extends State<VnpayWebViewScreen> {
       // Khi pop bằng nút back/hệ thống mà chưa có kết quả → trả null (huỷ).
       canPop: true,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         appBar: AppBar(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/core/locale/locale_cubit.dart';
 import 'package:frontend/core/storage/kv_storage.dart';
+import 'package:frontend/core/theme/theme_mode_cubit.dart';
 import 'package:frontend/features/profile/presentation/screens/settings_screen.dart';
 import 'package:frontend/features/profile/presentation/screens/terms_screen.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -50,8 +51,11 @@ void main() {
     );
 
     await tester.pumpWidget(
-      BlocProvider<LocaleCubit>(
-        create: (_) => LocaleCubit(kv),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<LocaleCubit>(create: (_) => LocaleCubit(kv)),
+          BlocProvider<ThemeModeCubit>(create: (_) => ThemeModeCubit(kv)),
+        ],
         child: MaterialApp.router(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,

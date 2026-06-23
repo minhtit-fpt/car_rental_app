@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
@@ -78,22 +79,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.dark,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.palette.background,
           appBar: AppBar(
-            backgroundColor: AppColors.background,
+            backgroundColor: context.palette.background,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_back_rounded,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
               onPressed: () => context.pop(),
             ),
             title: Text(
               l10n.authRegisterTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
             ),
           ),
@@ -107,10 +108,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Text(
                       l10n.authRegisterSectionAccount,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -193,7 +194,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         Text(
                           l10n.authAlreadyHaveAccount,
-                          style: const TextStyle(color: AppColors.mutedText),
+                          style: TextStyle(color: context.palette.mutedText),
                         ),
                         GestureDetector(
                           onTap: () => context.pop(),
@@ -247,10 +248,10 @@ class _LabeledField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
         const SizedBox(height: 8),
@@ -259,10 +260,10 @@ class _LabeledField extends StatelessWidget {
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
           obscureText: obscure,
-          style: const TextStyle(fontSize: 15, color: AppColors.darkText),
+          style: TextStyle(fontSize: 15, color: context.palette.darkText),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppColors.mutedText),
+            hintStyle: TextStyle(color: context.palette.mutedText),
             suffixIcon: onToggleObscure == null
                 ? null
                 : IconButton(
@@ -271,14 +272,14 @@ class _LabeledField extends StatelessWidget {
                       obscure
                           ? Icons.visibility_off_rounded
                           : Icons.visibility_rounded,
-                      color: AppColors.mutedText,
+                      color: context.palette.mutedText,
                       size: 20,
                     ),
                   ),
             filled: true,
-            fillColor: AppColors.surface,
-            border: _border(AppColors.border),
-            enabledBorder: _border(AppColors.border),
+            fillColor: context.palette.surface,
+            border: _border(context.palette.border),
+            enabledBorder: _border(context.palette.border),
             focusedBorder: _border(AppColors.primary, width: 2),
             errorBorder: _border(AppColors.danger),
           ),
@@ -321,9 +322,9 @@ class _TermsCheckbox extends StatelessWidget {
         Expanded(
           child: RichText(
             text: TextSpan(
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
               ),
               children: [
                 TextSpan(text: l10n.authTermsPrefix),

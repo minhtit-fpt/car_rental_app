@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
 import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
@@ -47,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _pickCity() async {
     final picked = await showModalBottomSheet<int>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.palette.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -70,10 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
           : null,
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(
+          colorScheme: ColorScheme.light(
             primary: AppColors.primary,
             onPrimary: Colors.white,
-            surface: AppColors.surface,
+            surface: context.palette.surface,
           ),
         ),
         child: child!,
@@ -103,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
@@ -160,7 +161,7 @@ class _TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
     return Container(
-      color: AppColors.surface,
+      color: context.palette.surface,
       padding: EdgeInsets.fromLTRB(16, top + 8, 16, 8),
       child: Row(
         children: [
@@ -251,10 +252,10 @@ class _NavIconButton extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.surfaceSunken,
+              color: context.palette.surfaceSunken,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 20, color: AppColors.darkText),
+            child: Icon(icon, size: 20, color: context.palette.darkText),
           ),
           if (badgeCount > 0)
             Positioned(
@@ -284,7 +285,7 @@ class _UnreadBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.danger,
         borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: AppColors.surface, width: 1.5),
+        border: Border.all(color: context.palette.surface, width: 1.5),
       ),
       alignment: Alignment.center,
       child: Text(
@@ -309,26 +310,26 @@ class _GreetingHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Container(
-      color: AppColors.surface,
+      color: context.palette.surface,
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l10n.homeGreeting,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: AppColors.mutedText,
+              color: context.palette.mutedText,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             l10n.homeGreetingQuestion,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w800,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
               letterSpacing: -0.02 * 26,
               height: 1.15,
             ),
@@ -367,12 +368,12 @@ class _SearchCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.palette.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-          boxShadow: const [
+          border: Border.all(color: context.palette.border),
+          boxShadow: [
             BoxShadow(
-              color: AppColors.cardShadowColor,
+              color: context.palette.cardShadowColor,
               blurRadius: 6,
               offset: Offset(0, 2),
             ),
@@ -402,35 +403,35 @@ class _SearchCard extends StatelessWidget {
                         children: [
                           Text(
                             l10n.homeLocationLabel,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.mutedText,
+                              color: context.palette.mutedText,
                               letterSpacing: 0.6,
                             ),
                           ),
                           const SizedBox(height: 1),
                           Text(
                             cityLabel,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.darkText,
+                              color: context.palette.darkText,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.keyboard_arrow_down_rounded,
                       size: 20,
-                      color: AppColors.mutedText,
+                      color: context.palette.mutedText,
                     ),
                   ],
                 ),
               ),
             ),
-            const Divider(height: 1, color: AppColors.inkLight),
+            Divider(height: 1, color: context.palette.inkLight),
             // Date row
             Row(
               children: [
@@ -516,7 +517,7 @@ class _DateField extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           border: borderRight
-              ? const Border(right: BorderSide(color: AppColors.inkLight))
+              ? Border(right: BorderSide(color: context.palette.inkLight))
               : null,
         ),
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
@@ -534,20 +535,20 @@ class _DateField extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.mutedText,
+                      color: context.palette.mutedText,
                       letterSpacing: 0.5,
                     ),
                   ),
                   const SizedBox(height: 1),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.darkText,
+                      color: context.palette.darkText,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -585,7 +586,7 @@ class _CityPickerSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: context.palette.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -593,10 +594,10 @@ class _CityPickerSheet extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context).homeCityPickerTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
             ),
             const SizedBox(height: 8),
@@ -607,7 +608,7 @@ class _CityPickerSheet extends StatelessWidget {
                   Icons.location_on_outlined,
                   color: i == selected
                       ? AppColors.primary
-                      : AppColors.mutedText,
+                      : context.palette.mutedText,
                 ),
                 title: Text(
                   cities[i],
@@ -616,7 +617,7 @@ class _CityPickerSheet extends StatelessWidget {
                     fontWeight: i == selected
                         ? FontWeight.w700
                         : FontWeight.w500,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
                 trailing: i == selected
@@ -659,10 +660,10 @@ class _CityChips extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
             AppLocalizations.of(context).homeExploreByCity,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
         ),
@@ -683,10 +684,10 @@ class _CityChips extends StatelessWidget {
                   curve: Curves.easeOut,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
-                    color: active ? AppColors.primary : AppColors.surface,
+                    color: active ? AppColors.primary : context.palette.surface,
                     borderRadius: BorderRadius.circular(9999),
                     border: Border.all(
-                      color: active ? AppColors.primary : AppColors.border,
+                      color: active ? AppColors.primary : context.palette.border,
                     ),
                   ),
                   alignment: Alignment.center,
@@ -695,7 +696,7 @@ class _CityChips extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: active ? Colors.white : AppColors.darkText,
+                      color: active ? Colors.white : context.palette.darkText,
                     ),
                   ),
                 ),
@@ -736,10 +737,10 @@ class _FeaturedCarsSection extends StatelessWidget {
             children: [
               Text(
                 l10n.homeFeaturedTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               GestureDetector(
@@ -766,9 +767,9 @@ class _FeaturedCarsSection extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
                 l10n.homeFeaturedError,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.secondaryText,
+                  color: context.palette.secondaryText,
                 ),
               ),
             ),

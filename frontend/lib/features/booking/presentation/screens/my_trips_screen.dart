@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/domain/entities/booking.dart';
 import 'package:frontend/features/booking/presentation/cubit/my_trips_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -30,7 +31,7 @@ class _MyTripsView extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: RefreshIndicator(
           onRefresh: () => context.read<MyTripsCubit>().load(),
           child: CustomScrollView(
@@ -88,7 +89,7 @@ class _Message extends StatelessWidget {
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 14, color: AppColors.secondaryText),
+        style: TextStyle(fontSize: 14, color: context.palette.secondaryText),
       ),
     );
   }
@@ -112,12 +113,12 @@ class _TripCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -133,10 +134,10 @@ class _TripCard extends StatelessWidget {
                 l10n.tripsOrderNumber(
                   booking.id.substring(0, booking.id.length.clamp(0, 8)),
                 ),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               _StatusBadge(status: booking.status),
@@ -223,14 +224,14 @@ class _InfoLine extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.mutedText),
+        Icon(icon, size: 16, color: context.palette.mutedText),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.secondaryText,
+              color: context.palette.secondaryText,
             ),
           ),
         ),
@@ -261,13 +262,13 @@ class _StatusBadge extends StatelessWidget {
       ),
       BookingStatus.completed => (
         l10n.bookingStatusCompleted,
-        AppColors.mutedText,
+        context.palette.mutedText,
       ),
       BookingStatus.cancelled => (
         l10n.bookingStatusCancelled,
         AppColors.danger,
       ),
-      BookingStatus.unknown => ('—', AppColors.mutedText),
+      BookingStatus.unknown => ('—', context.palette.mutedText),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

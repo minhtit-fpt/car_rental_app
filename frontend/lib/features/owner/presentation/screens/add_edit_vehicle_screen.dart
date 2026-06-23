@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/owner/presentation/cubit/vehicle_form_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -164,7 +165,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             RvSliverAppBar(
@@ -249,12 +250,12 @@ class _PhotoSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -295,7 +296,7 @@ class _PhotoSection extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             AppLocalizations.of(context).ownerVehiclePhotosHint,
-            style: const TextStyle(fontSize: 11, color: AppColors.mutedText),
+            style: TextStyle(fontSize: 11, color: context.palette.mutedText),
           ),
         ],
       ),
@@ -313,7 +314,7 @@ class _AddPhotoTile extends StatelessWidget {
         width: 100,
         height: 100,
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: context.palette.background,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: AppColors.primary.withAlpha(80),
@@ -365,12 +366,12 @@ class _BasicInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -433,10 +434,10 @@ class _FormField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondaryText,
+            color: context.palette.secondaryText,
           ),
         ),
         const SizedBox(height: 6),
@@ -445,19 +446,19 @@ class _FormField extends StatelessWidget {
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
+            hintStyle: TextStyle(
               fontSize: 13,
-              color: AppColors.mutedText,
+              color: context.palette.mutedText,
             ),
             filled: true,
-            fillColor: AppColors.background,
+            fillColor: context.palette.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -469,7 +470,7 @@ class _FormField extends StatelessWidget {
             ),
             isDense: true,
           ),
-          style: const TextStyle(fontSize: 13, color: AppColors.darkText),
+          style: TextStyle(fontSize: 13, color: context.palette.darkText),
         ),
       ],
     );
@@ -494,10 +495,10 @@ class _TypeDropdown extends StatelessWidget {
       children: [
         Text(
           AppLocalizations.of(context).ownerVehicleType,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondaryText,
+            color: context.palette.secondaryText,
           ),
         ),
         const SizedBox(height: 6),
@@ -505,14 +506,14 @@ class _TypeDropdown extends StatelessWidget {
           initialValue: value,
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppColors.background,
+            fillColor: context.palette.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -524,7 +525,7 @@ class _TypeDropdown extends StatelessWidget {
             ),
             isDense: true,
           ),
-          style: const TextStyle(fontSize: 13, color: AppColors.darkText),
+          style: TextStyle(fontSize: 13, color: context.palette.darkText),
           items: items.entries
               .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
               .toList(),
@@ -552,12 +553,12 @@ class _LocationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -598,7 +599,7 @@ class _LocationCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             l10n.ownerVehicleMapSoon,
-            style: const TextStyle(fontSize: 11, color: AppColors.mutedText),
+            style: TextStyle(fontSize: 11, color: context.palette.mutedText),
           ),
         ],
       ),
@@ -629,12 +630,12 @@ class _SpecsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -647,7 +648,7 @@ class _SpecsCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             l10n.ownerVehicleSpecsHint,
-            style: const TextStyle(fontSize: 11, color: AppColors.mutedText),
+            style: TextStyle(fontSize: 11, color: context.palette.mutedText),
           ),
           const SizedBox(height: 14),
           Row(
@@ -711,10 +712,10 @@ class _LabeledDropdown extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondaryText,
+            color: context.palette.secondaryText,
           ),
         ),
         const SizedBox(height: 6),
@@ -722,14 +723,14 @@ class _LabeledDropdown extends StatelessWidget {
           initialValue: value,
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppColors.background,
+            fillColor: context.palette.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -741,7 +742,7 @@ class _LabeledDropdown extends StatelessWidget {
             ),
             isDense: true,
           ),
-          style: const TextStyle(fontSize: 13, color: AppColors.darkText),
+          style: TextStyle(fontSize: 13, color: context.palette.darkText),
           items: items.entries
               .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
               .toList(),
@@ -763,12 +764,12 @@ class _DescriptionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -789,19 +790,19 @@ class _DescriptionCard extends StatelessWidget {
               hintText: AppLocalizations.of(
                 context,
               ).ownerVehicleDescriptionHint,
-              hintStyle: const TextStyle(
+              hintStyle: TextStyle(
                 fontSize: 13,
-                color: AppColors.mutedText,
+                color: context.palette.mutedText,
               ),
               filled: true,
-              fillColor: AppColors.background,
+              fillColor: context.palette.background,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: context.palette.border),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: context.palette.border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -809,7 +810,7 @@ class _DescriptionCard extends StatelessWidget {
               ),
               contentPadding: const EdgeInsets.all(12),
             ),
-            style: const TextStyle(fontSize: 13, color: AppColors.darkText),
+            style: TextStyle(fontSize: 13, color: context.palette.darkText),
           ),
         ],
       ),
@@ -836,12 +837,12 @@ class _OptionsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -859,7 +860,7 @@ class _OptionsCard extends StatelessWidget {
             value: isElectric,
             onChanged: onElectricChanged,
           ),
-          const Divider(color: AppColors.border, height: 20),
+          Divider(color: context.palette.border, height: 20),
           _ToggleRow(
             emoji: '📦',
             label: l10n.bookingDelivery,
@@ -900,17 +901,17 @@ class _ToggleRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               Text(
                 subtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
               ),
             ],

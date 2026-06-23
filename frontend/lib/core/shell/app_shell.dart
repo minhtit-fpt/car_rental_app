@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/booking/presentation/screens/my_trips_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/car_list_screen.dart';
@@ -55,9 +56,9 @@ class _BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.inkLight)),
+      decoration: BoxDecoration(
+        color: context.palette.surface,
+        border: Border(top: BorderSide(color: context.palette.inkLight)),
       ),
       child: BottomNavigationBar(
         currentIndex: currentIndex,
@@ -115,28 +116,28 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.palette.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.palette.surface,
         title: Text(
           l10n.shellAccountTitle,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
         actions: [
           IconButton(
             tooltip: l10n.settingsTitle,
-            icon: const Icon(
+            icon: Icon(
               Icons.settings_outlined,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
             onPressed: () => context.push('/settings'),
           ),
           IconButton(
             tooltip: l10n.settingsLogout,
-            icon: const Icon(Icons.logout_rounded, color: AppColors.darkText),
+            icon: Icon(Icons.logout_rounded, color: context.palette.darkText),
             onPressed: () => context.read<AuthCubit>().logout(),
           ),
         ],
@@ -144,7 +145,7 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(48),
                 child: Container(
-                  color: AppColors.surface,
+                  color: context.palette.surface,
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                   child: Row(
                     children: [
@@ -194,10 +195,10 @@ class _RoleChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : AppColors.background,
+          color: isActive ? AppColors.primary : context.palette.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isActive ? AppColors.primary : AppColors.border,
+            color: isActive ? AppColors.primary : context.palette.border,
           ),
         ),
         child: Text(
@@ -205,7 +206,7 @@ class _RoleChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: isActive ? Colors.white : AppColors.secondaryText,
+            color: isActive ? Colors.white : context.palette.secondaryText,
           ),
         ),
       ),
@@ -222,13 +223,13 @@ class _PlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.palette.background,
       appBar: AppBar(
         title: Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
       ),
@@ -240,9 +241,9 @@ class _PlaceholderScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               '$title coming soon',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
               ),
             ),
           ],

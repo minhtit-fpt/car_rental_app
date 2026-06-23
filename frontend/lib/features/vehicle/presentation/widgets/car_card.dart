@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -21,9 +22,9 @@ class _FavoriteHeartButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white.withAlpha(230),
           shape: BoxShape.circle,
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: AppColors.cardShadowColor,
+              color: context.palette.cardShadowColor,
               blurRadius: 6,
               offset: Offset(0, 2),
             ),
@@ -32,7 +33,7 @@ class _FavoriteHeartButton extends StatelessWidget {
         child: Icon(
           isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
           size: 17,
-          color: isFavorite ? AppColors.danger : AppColors.secondaryText,
+          color: isFavorite ? AppColors.danger : context.palette.secondaryText,
         ),
       ),
     );
@@ -63,12 +64,12 @@ class CarCard extends StatelessWidget {
       child: Container(
         width: width,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.palette.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
-          boxShadow: const [
+          border: Border.all(color: context.palette.border),
+          boxShadow: [
             BoxShadow(
-              color: AppColors.cardShadowColor,
+              color: context.palette.cardShadowColor,
               blurRadius: 16,
               offset: Offset(0, 2),
             ),
@@ -144,10 +145,10 @@ class _CardDetails extends StatelessWidget {
         children: [
           Text(
             vehicle.name,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
               height: 1.2,
             ),
             maxLines: 1,
@@ -156,7 +157,7 @@ class _CardDetails extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             vehicle.typeSummaryL10n(l10n),
-            style: const TextStyle(fontSize: 12, color: AppColors.mutedText),
+            style: TextStyle(fontSize: 12, color: context.palette.mutedText),
           ),
           const SizedBox(height: 8),
           Row(
@@ -176,9 +177,9 @@ class _CardDetails extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 1),
                 child: Text(
                   l10n.vehiclePerDay,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
               ),
@@ -227,9 +228,9 @@ class _VehicleMetaRow extends StatelessWidget {
             Expanded(
               child: Text(
                 '· ${vehicle.ownerName}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.secondaryText,
+                  color: context.palette.secondaryText,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -246,7 +247,7 @@ class _VehicleMetaRow extends StatelessWidget {
               ? Icons.check_circle_rounded
               : Icons.cancel_rounded,
           size: 13,
-          color: vehicle.isAvailable ? AppColors.teal : AppColors.mutedText,
+          color: vehicle.isAvailable ? AppColors.teal : context.palette.mutedText,
         ),
         const SizedBox(width: 4),
         Text(
@@ -254,7 +255,7 @@ class _VehicleMetaRow extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: vehicle.isAvailable ? AppColors.teal : AppColors.mutedText,
+            color: vehicle.isAvailable ? AppColors.teal : context.palette.mutedText,
           ),
         ),
         if (vehicle.deliveryAvailable) ...[
@@ -303,12 +304,12 @@ class CarListTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.palette.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-          boxShadow: const [
+          border: Border.all(color: context.palette.border),
+          boxShadow: [
             BoxShadow(
-              color: AppColors.cardShadowColor,
+              color: context.palette.cardShadowColor,
               blurRadius: 12,
               offset: Offset(0, 2),
             ),
@@ -378,10 +379,10 @@ class CarListTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             vehicle.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.darkText,
+                              color: context.palette.darkText,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -392,18 +393,18 @@ class CarListTile extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       vehicle.typeSummaryL10n(l10n),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                     if (vehicle.city != null) ...[
                       const SizedBox(height: 2),
                       Text(
                         '📍 ${vehicle.city}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.mutedText,
+                          color: context.palette.mutedText,
                         ),
                       ),
                     ],
@@ -428,9 +429,9 @@ class CarListTile extends StatelessWidget {
                               padding: const EdgeInsets.only(bottom: 1),
                               child: Text(
                                 l10n.vehiclePerDay,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
-                                  color: AppColors.mutedText,
+                                  color: context.palette.mutedText,
                                 ),
                               ),
                             ),
@@ -450,9 +451,9 @@ class CarListTile extends StatelessWidget {
                               const SizedBox(width: 3),
                               Text(
                                 '${vehicle.rating!.toStringAsFixed(1)} (${vehicle.reviewCount})',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.secondaryText,
+                                  color: context.palette.secondaryText,
                                 ),
                               ),
                             ],

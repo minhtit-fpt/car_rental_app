@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/kyc/domain/entities/kyc_status_info.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_status_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -33,7 +34,7 @@ class KycStatusScreen extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             RvSliverAppBar(
@@ -108,9 +109,9 @@ class _ErrorBlock extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.secondaryText,
+              color: context.palette.secondaryText,
             ),
           ),
           const SizedBox(height: 16),
@@ -130,17 +131,17 @@ class _StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final info = _statusInfo(status, AppLocalizations.of(context));
+    final info = _statusInfo(context, status, AppLocalizations.of(context));
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: info.color.withAlpha(60)),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -172,7 +173,7 @@ class _StatusCard extends StatelessWidget {
           Text(
             info.subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, color: AppColors.mutedText),
+            style: TextStyle(fontSize: 13, color: context.palette.mutedText),
           ),
         ],
       ),
@@ -180,6 +181,7 @@ class _StatusCard extends StatelessWidget {
   }
 
   ({String emoji, String title, String subtitle, Color color}) _statusInfo(
+    BuildContext context,
     KycStatus s,
     AppLocalizations l10n,
   ) {
@@ -188,7 +190,7 @@ class _StatusCard extends StatelessWidget {
         emoji: '📄',
         title: l10n.kycStatusUnverifiedTitle,
         subtitle: l10n.kycStatusUnverifiedSubtitle,
-        color: AppColors.mutedText,
+        color: context.palette.mutedText,
       ),
       KycStatus.pending => (
         emoji: '⏳',
@@ -255,12 +257,12 @@ class _TimelineCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -271,10 +273,10 @@ class _TimelineCard extends StatelessWidget {
         children: [
           Text(
             l10n.kycTimelineTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(height: 16),
@@ -316,7 +318,7 @@ class _TimelineRow extends StatelessWidget {
         ? AppColors.success
         : step.isActive
         ? AppColors.warning
-        : AppColors.border;
+        : context.palette.border;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,7 +331,7 @@ class _TimelineRow extends StatelessWidget {
               decoration: BoxDecoration(
                 color: step.isDone || step.isActive || step.isRejected
                     ? dotColor.withAlpha(26)
-                    : AppColors.background,
+                    : context.palette.background,
                 shape: BoxShape.circle,
                 border: Border.all(color: dotColor, width: 2),
               ),
@@ -358,7 +360,7 @@ class _TimelineRow extends StatelessWidget {
                 height: 32,
                 color: step.isDone
                     ? AppColors.success.withAlpha(60)
-                    : AppColors.border,
+                    : context.palette.border,
               ),
           ],
         ),
@@ -375,16 +377,16 @@ class _TimelineRow extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: step.isDone || step.isActive
-                        ? AppColors.darkText
-                        : AppColors.mutedText,
+                        ? context.palette.darkText
+                        : context.palette.mutedText,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   step.time,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
               ],
@@ -433,9 +435,9 @@ class _RejectionReasonCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             reason,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.secondaryText,
+              color: context.palette.secondaryText,
             ),
           ),
         ],

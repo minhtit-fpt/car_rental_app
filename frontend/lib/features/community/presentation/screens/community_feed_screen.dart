@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/community/domain/entities/trip_story.dart';
 import 'package:frontend/features/community/presentation/cubit/community_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -28,12 +29,12 @@ class _CommunityView extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: NestedScrollView(
           headerSliverBuilder: (context, _) => [
             SliverAppBar(
               pinned: true,
-              backgroundColor: AppColors.surface,
+              backgroundColor: context.palette.surface,
               elevation: 0,
               surfaceTintColor: Colors.transparent,
               title: Row(
@@ -49,10 +50,10 @@ class _CommunityView extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     AppLocalizations.of(context).communityTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.darkText,
+                      color: context.palette.darkText,
                     ),
                   ),
                 ],
@@ -68,7 +69,7 @@ class _CommunityView extends StatelessWidget {
               ],
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(1),
-                child: Container(height: 1, color: AppColors.border),
+                child: Container(height: 1, color: context.palette.border),
               ),
             ),
           ],
@@ -111,9 +112,9 @@ class _CommunityView extends StatelessWidget {
                             child: Center(
                               child: Text(
                                 AppLocalizations.of(context).communityEmpty,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
-                                  color: AppColors.mutedText,
+                                  color: context.palette.mutedText,
                                 ),
                               ),
                             ),
@@ -155,7 +156,7 @@ class _CommunityView extends StatelessWidget {
     final content = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.palette.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -172,10 +173,10 @@ class _CommunityView extends StatelessWidget {
           children: [
             Text(
               l10n.communityShareTrip,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
             ),
             const SizedBox(height: 12),
@@ -186,10 +187,10 @@ class _CommunityView extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: l10n.communityComposerHint,
                 filled: true,
-                fillColor: AppColors.background,
+                fillColor: context.palette.background,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: context.palette.border),
                 ),
               ),
             ),
@@ -232,9 +233,9 @@ class _ErrorView extends StatelessWidget {
             child: Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
               ),
             ),
           ),
@@ -260,12 +261,12 @@ class _WriteStoryBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.palette.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-          boxShadow: const [
+          border: Border.all(color: context.palette.border),
+          boxShadow: [
             BoxShadow(
-              color: AppColors.cardShadowColor,
+              color: context.palette.cardShadowColor,
               blurRadius: 8,
               offset: Offset(0, 2),
             ),
@@ -292,15 +293,15 @@ class _WriteStoryBanner extends StatelessWidget {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.background,
+                  color: context.palette.background,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.palette.border),
                 ),
                 child: Text(
                   AppLocalizations.of(context).communityBannerPrompt,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
               ),
@@ -327,12 +328,12 @@ class _StoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -376,17 +377,17 @@ class _StoryCard extends StatelessWidget {
                         children: [
                           Text(
                             story.authorName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.darkText,
+                              color: context.palette.darkText,
                             ),
                           ),
                           Text(
                             _relativeTime(story.createdAt),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.mutedText,
+                              color: context.palette.mutedText,
                             ),
                           ),
                         ],
@@ -397,9 +398,9 @@ class _StoryCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   story.content,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.secondaryText,
+                    color: context.palette.secondaryText,
                     height: 1.5,
                   ),
                 ),
@@ -417,14 +418,14 @@ class _StoryCard extends StatelessWidget {
                             size: 18,
                             color: isLiked
                                 ? AppColors.danger
-                                : AppColors.mutedText,
+                                : context.palette.mutedText,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '${story.likes}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.secondaryText,
+                              color: context.palette.secondaryText,
                             ),
                           ),
                         ],

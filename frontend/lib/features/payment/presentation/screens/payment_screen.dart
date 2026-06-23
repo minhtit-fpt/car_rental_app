@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/payment/presentation/cubit/payment_cubit.dart';
 import 'package:frontend/features/payment/presentation/screens/vnpay_webview_screen.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -119,7 +120,7 @@ class _PaymentViewState extends State<_PaymentView> {
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.palette.background,
           body: CustomScrollView(
             slivers: [
               RvSliverAppBar(
@@ -257,12 +258,12 @@ class _MethodSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -273,10 +274,10 @@ class _MethodSelector extends StatelessWidget {
         children: [
           Text(
             l10n.paymentMethod,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(height: 14),
@@ -291,10 +292,10 @@ class _MethodSelector extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.primary.withAlpha(13)
-                      : AppColors.background,
+                      : context.palette.background,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isSelected ? AppColors.primary : AppColors.border,
+                    color: isSelected ? AppColors.primary : context.palette.border,
                     width: isSelected ? 1.5 : 1,
                   ),
                 ),
@@ -313,14 +314,14 @@ class _MethodSelector extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                               color: isSelected
                                   ? AppColors.primary
-                                  : AppColors.darkText,
+                                  : context.palette.darkText,
                             ),
                           ),
                           Text(
                             m.desc,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.mutedText,
+                              color: context.palette.mutedText,
                             ),
                           ),
                         ],
@@ -335,7 +336,7 @@ class _MethodSelector extends StatelessWidget {
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primary
-                              : AppColors.border,
+                              : context.palette.border,
                           width: isSelected ? 6 : 2,
                         ),
                       ),
@@ -357,15 +358,15 @@ class _SecurityBadge extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(
+        Icon(
           Icons.verified_user_outlined,
           size: 14,
-          color: AppColors.mutedText,
+          color: context.palette.mutedText,
         ),
         const SizedBox(width: 6),
         Text(
           AppLocalizations.of(context).paymentSslEncryption,
-          style: const TextStyle(fontSize: 12, color: AppColors.mutedText),
+          style: TextStyle(fontSize: 12, color: context.palette.mutedText),
         ),
       ],
     );

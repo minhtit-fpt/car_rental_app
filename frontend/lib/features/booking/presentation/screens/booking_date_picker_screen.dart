@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
@@ -62,7 +63,7 @@ class _BookingDatePickerView extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             RvSliverAppBar(
@@ -121,12 +122,12 @@ class _VehicleSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -152,18 +153,18 @@ class _VehicleSummaryCard extends StatelessWidget {
               children: [
                 Text(
                   vehicle.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   vehicle.typeSummaryL10n(l10n),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
               ],
@@ -182,9 +183,9 @@ class _VehicleSummaryCard extends StatelessWidget {
               ),
               Text(
                 l10n.vehiclePerDay,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
               ),
             ],
@@ -228,10 +229,10 @@ class _DateRangePickerState extends State<_DateRangePicker> {
           : null,
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(
+          colorScheme: ColorScheme.light(
             primary: AppColors.primary,
             onPrimary: Colors.white,
-            surface: AppColors.surface,
+            surface: context.palette.surface,
           ),
         ),
         child: child!,
@@ -252,12 +253,12 @@ class _DateRangePickerState extends State<_DateRangePicker> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -268,10 +269,10 @@ class _DateRangePickerState extends State<_DateRangePicker> {
         children: [
           Text(
             l10n.bookingRentalPeriod,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(height: 14),
@@ -285,10 +286,10 @@ class _DateRangePickerState extends State<_DateRangePicker> {
                 ),
               ),
               const SizedBox(width: 10),
-              const Icon(
+              Icon(
                 Icons.arrow_forward_rounded,
                 size: 16,
-                color: AppColors.mutedText,
+                color: context.palette.mutedText,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -361,12 +362,12 @@ class _DateBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: date != null
             ? AppColors.primary.withAlpha(13)
-            : AppColors.background,
+            : context.palette.background,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: date != null
               ? AppColors.primary.withAlpha(80)
-              : AppColors.border,
+              : context.palette.border,
         ),
       ),
       child: Column(
@@ -374,7 +375,7 @@ class _DateBox extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 10, color: AppColors.mutedText),
+            style: TextStyle(fontSize: 10, color: context.palette.mutedText),
           ),
           const SizedBox(height: 4),
           Row(
@@ -382,7 +383,7 @@ class _DateBox extends StatelessWidget {
               Icon(
                 icon,
                 size: 13,
-                color: date != null ? AppColors.primary : AppColors.mutedText,
+                color: date != null ? AppColors.primary : context.palette.mutedText,
               ),
               const SizedBox(width: 4),
               Expanded(
@@ -392,8 +393,8 @@ class _DateBox extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: date != null
-                        ? AppColors.darkText
-                        : AppColors.mutedText,
+                        ? context.palette.darkText
+                        : context.palette.mutedText,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -415,12 +416,12 @@ class _DeliveryToggle extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.palette.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border),
-            boxShadow: const [
+            border: Border.all(color: context.palette.border),
+            boxShadow: [
               BoxShadow(
-                color: AppColors.cardShadowColor,
+                color: context.palette.cardShadowColor,
                 blurRadius: 12,
                 offset: Offset(0, 2),
               ),
@@ -448,17 +449,17 @@ class _DeliveryToggle extends StatelessWidget {
                       children: [
                         Text(
                           l10n.bookingDelivery,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.darkText,
+                            color: context.palette.darkText,
                           ),
                         ),
-                        const Text(
+                        Text(
                           '+50K VNĐ',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.mutedText,
+                            color: context.palette.mutedText,
                           ),
                         ),
                       ],
@@ -480,24 +481,24 @@ class _DeliveryToggle extends StatelessWidget {
                       context.read<BookingCubit>().setDeliveryAddress(v),
                   decoration: InputDecoration(
                     hintText: l10n.bookingDeliveryAddressHint,
-                    hintStyle: const TextStyle(
+                    hintStyle: TextStyle(
                       fontSize: 13,
-                      color: AppColors.mutedText,
+                      color: context.palette.mutedText,
                     ),
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.location_on_outlined,
                       size: 18,
-                      color: AppColors.mutedText,
+                      color: context.palette.mutedText,
                     ),
                     filled: true,
-                    fillColor: AppColors.background,
+                    fillColor: context.palette.background,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(color: context.palette.border),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(color: context.palette.border),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -509,9 +510,9 @@ class _DeliveryToggle extends StatelessWidget {
                     ),
                     isDense: true,
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
               ],
@@ -542,12 +543,12 @@ class _PriceSummary extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.palette.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border),
-            boxShadow: const [
+            border: Border.all(color: context.palette.border),
+            boxShadow: [
               BoxShadow(
-                color: AppColors.cardShadowColor,
+                color: context.palette.cardShadowColor,
                 blurRadius: 12,
                 offset: Offset(0, 2),
               ),
@@ -558,10 +559,10 @@ class _PriceSummary extends StatelessWidget {
             children: [
               Text(
                 l10n.bookingEstimatedCost,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               const SizedBox(height: 12),
@@ -575,19 +576,19 @@ class _PriceSummary extends StatelessWidget {
               if (state.withDelivery)
                 _PriceLine(label: l10n.bookingDeliveryFeeLabel, amount: 50),
               _PriceLine(label: l10n.bookingInsuranceLabel, amount: insurance),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 10),
-                child: Divider(color: AppColors.border, height: 1),
+                child: Divider(color: context.palette.border, height: 1),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     l10n.bookingTotal,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.darkText,
+                      color: context.palette.darkText,
                     ),
                   ),
                   Text(
@@ -622,16 +623,16 @@ class _PriceLine extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.secondaryText,
+              color: context.palette.secondaryText,
             ),
           ),
           Text(
             '${amount.toInt()}K VNĐ',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
               fontWeight: FontWeight.w500,
             ),
           ),

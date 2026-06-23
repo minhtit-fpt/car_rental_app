@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/owner/presentation/cubit/my_vehicles_cubit.dart';
 import 'package:frontend/features/owner/presentation/cubit/owner_revenue_cubit.dart';
@@ -45,7 +46,7 @@ class _DashboardView extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: RefreshIndicator(
           onRefresh: () async {
             final vehicles = context.read<MyVehiclesCubit>();
@@ -252,12 +253,12 @@ class _OwnerStatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -295,7 +296,7 @@ class _OwnerStatCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(fontSize: 9, color: AppColors.mutedText),
+            style: TextStyle(fontSize: 9, color: context.palette.mutedText),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -316,12 +317,12 @@ class _OwnerProfileCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -366,10 +367,10 @@ class _OwnerProfileCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             displayName,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(height: 16),
@@ -383,7 +384,7 @@ class _OwnerProfileCard extends StatelessWidget {
               Icon(
                 Icons.verified_user_outlined,
                 size: 16,
-                color: verified ? AppColors.success : AppColors.mutedText,
+                color: verified ? AppColors.success : context.palette.mutedText,
               ),
               const SizedBox(width: 8),
               Container(
@@ -391,14 +392,14 @@ class _OwnerProfileCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: verified
                       ? AppColors.successSoft
-                      : AppColors.surfaceSunken,
+                      : context.palette.surfaceSunken,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   verified ? l10n.kycVerified : l10n.kycUnverifiedShort,
                   style: TextStyle(
                     fontSize: 11,
-                    color: verified ? AppColors.success : AppColors.mutedText,
+                    color: verified ? AppColors.success : context.palette.mutedText,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -439,12 +440,12 @@ class _MyCarsCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -463,17 +464,17 @@ class _MyCarsCard extends StatelessWidget {
                   children: [
                     Text(
                       l10n.ownerMyCarsTitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.darkText,
+                        color: context.palette.darkText,
                       ),
                     ),
                     Text(
                       l10n.ownerMyCarsSubtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                   ],
@@ -501,7 +502,7 @@ class _MyCarsCard extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.border),
+          Divider(height: 1, color: context.palette.border),
           BlocBuilder<MyVehiclesCubit, MyVehiclesState>(
             builder: (context, state) => switch (state) {
               MyVehiclesLoading() => const Padding(
@@ -522,7 +523,7 @@ class _MyCarsCard extends StatelessWidget {
                         child: Center(
                           child: Text(
                             l10n.ownerNoCars,
-                            style: const TextStyle(color: AppColors.mutedText),
+                            style: TextStyle(color: context.palette.mutedText),
                           ),
                         ),
                       )
@@ -531,7 +532,7 @@ class _MyCarsCard extends StatelessWidget {
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: vehicles.length,
                         separatorBuilder: (_, _) =>
-                            const Divider(height: 1, color: AppColors.border),
+                            Divider(height: 1, color: context.palette.border),
                         itemBuilder: (_, i) =>
                             _OwnedCarRow(vehicle: vehicles[i]),
                       ),
@@ -559,7 +560,7 @@ class _OwnedCarRow extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: context.palette.background,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -573,18 +574,18 @@ class _OwnedCarRow extends StatelessWidget {
               children: [
                 Text(
                   vehicle.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   vehicle.typeLabelL10n(l10n),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -608,12 +609,12 @@ class _OwnedCarRow extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: available
                       ? AppColors.successSoft
-                      : AppColors.surfaceSunken,
+                      : context.palette.surfaceSunken,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: available
                         ? AppColors.success.withAlpha(77)
-                        : AppColors.border,
+                        : context.palette.border,
                   ),
                 ),
                 child: Text(
@@ -621,7 +622,7 @@ class _OwnedCarRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: available ? AppColors.success : AppColors.mutedText,
+                    color: available ? AppColors.success : context.palette.mutedText,
                   ),
                 ),
               ),
@@ -631,7 +632,7 @@ class _OwnedCarRow extends StatelessWidget {
                 children: [
                   _ActionChip(
                     label: l10n.commonEdit,
-                    color: AppColors.secondaryText,
+                    color: context.palette.secondaryText,
                     onTap: () => _onEdit(context),
                   ),
                   const SizedBox(width: 6),
@@ -706,9 +707,9 @@ class _ActionChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: context.palette.background,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.palette.border),
         ),
         child: Text(
           label,

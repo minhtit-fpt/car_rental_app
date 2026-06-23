@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
@@ -62,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.dark,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.palette.background,
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -76,18 +77,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 40),
                     Text(
                       l10n.authLoginTitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.darkText,
+                        color: context.palette.darkText,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       l10n.authLoginSubtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                     const SizedBox(height: 36),
@@ -114,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Text(
                           l10n.authNoAccount,
-                          style: const TextStyle(color: AppColors.mutedText),
+                          style: TextStyle(color: context.palette.mutedText),
                         ),
                         GestureDetector(
                           onTap: () => context.push('/register'),
@@ -153,12 +154,12 @@ class _Logo extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
-        const Text(
+        Text(
           'RideVN',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w800,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
       ],
@@ -179,10 +180,10 @@ class _PhoneField extends StatelessWidget {
       children: [
         Text(
           l10n.phoneLabel,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
         const SizedBox(height: 8),
@@ -190,29 +191,29 @@ class _PhoneField extends StatelessWidget {
           controller: controller,
           keyboardType: TextInputType.phone,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          style: const TextStyle(fontSize: 15, color: AppColors.darkText),
+          style: TextStyle(fontSize: 15, color: context.palette.darkText),
           decoration: InputDecoration(
             hintText: '0912 345 678',
-            hintStyle: const TextStyle(color: AppColors.mutedText),
+            hintStyle: TextStyle(color: context.palette.mutedText),
             prefixIcon: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               margin: const EdgeInsets.only(right: 8),
-              decoration: const BoxDecoration(
-                border: Border(right: BorderSide(color: AppColors.border)),
+              decoration: BoxDecoration(
+                border: Border(right: BorderSide(color: context.palette.border)),
               ),
-              child: const Text(
+              child: Text(
                 '🇻🇳 +84',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
             ),
             filled: true,
-            fillColor: AppColors.surface,
-            border: _border(AppColors.border),
-            enabledBorder: _border(AppColors.border),
+            fillColor: context.palette.surface,
+            border: _border(context.palette.border),
+            enabledBorder: _border(context.palette.border),
             focusedBorder: _border(AppColors.primary, width: 2),
             errorBorder: _border(AppColors.danger),
           ),
@@ -248,10 +249,10 @@ class _PasswordField extends StatelessWidget {
       children: [
         Text(
           l10n.passwordLabel,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
         const SizedBox(height: 8),
@@ -260,24 +261,24 @@ class _PasswordField extends StatelessWidget {
           obscureText: obscure,
           textInputAction: TextInputAction.done,
           onFieldSubmitted: onSubmitted,
-          style: const TextStyle(fontSize: 15, color: AppColors.darkText),
+          style: TextStyle(fontSize: 15, color: context.palette.darkText),
           decoration: InputDecoration(
             hintText: '••••••••',
-            hintStyle: const TextStyle(color: AppColors.mutedText),
+            hintStyle: TextStyle(color: context.palette.mutedText),
             suffixIcon: IconButton(
               onPressed: onToggle,
               icon: Icon(
                 obscure
                     ? Icons.visibility_off_rounded
                     : Icons.visibility_rounded,
-                color: AppColors.mutedText,
+                color: context.palette.mutedText,
                 size: 20,
               ),
             ),
             filled: true,
-            fillColor: AppColors.surface,
-            border: _border(AppColors.border),
-            enabledBorder: _border(AppColors.border),
+            fillColor: context.palette.surface,
+            border: _border(context.palette.border),
+            enabledBorder: _border(context.palette.border),
             focusedBorder: _border(AppColors.primary, width: 2),
             errorBorder: _border(AppColors.danger),
           ),

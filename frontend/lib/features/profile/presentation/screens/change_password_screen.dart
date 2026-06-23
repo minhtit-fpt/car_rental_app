@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/change_password_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
@@ -66,7 +67,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: BlocConsumer<ChangePasswordCubit, ChangePasswordState>(
           listener: (context, state) {
             if (state is ChangePasswordSuccess) {
@@ -191,10 +192,10 @@ class _PasswordFieldState extends State<_PasswordField> {
       children: [
         Text(
           widget.label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondaryText,
+            color: context.palette.secondaryText,
           ),
         ),
         const SizedBox(height: 6),
@@ -213,19 +214,19 @@ class _PasswordFieldState extends State<_PasswordField> {
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
                 size: 18,
-                color: AppColors.mutedText,
+                color: context.palette.mutedText,
               ),
               onPressed: () => setState(() => _obscured = !_obscured),
             ),
             filled: true,
-            fillColor: AppColors.background,
+            fillColor: context.palette.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -237,7 +238,7 @@ class _PasswordFieldState extends State<_PasswordField> {
             ),
             isDense: true,
           ),
-          style: const TextStyle(fontSize: 13, color: AppColors.darkText),
+          style: TextStyle(fontSize: 13, color: context.palette.darkText),
         ),
       ],
     );

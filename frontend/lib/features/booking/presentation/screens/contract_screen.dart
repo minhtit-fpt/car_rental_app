@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -49,7 +50,7 @@ class _ContractView extends StatelessWidget {
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.palette.background,
           body: CustomScrollView(
             slivers: [
               RvSliverAppBar(
@@ -144,12 +145,12 @@ class _ContractBody extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -162,17 +163,17 @@ class _ContractBody extends StatelessWidget {
             title: l10n.contractPartiesTitle,
             content: l10n.contractPartiesBody,
           ),
-          const Divider(color: AppColors.border, height: 24),
+          Divider(color: context.palette.border, height: 24),
           _ContractSection(
             title: l10n.contractVehicleTitle,
             content: l10n.contractVehicleBody,
           ),
-          const Divider(color: AppColors.border, height: 24),
+          Divider(color: context.palette.border, height: 24),
           _ContractSection(
             title: l10n.contractTermsTitle,
             content: l10n.contractTermsBody,
           ),
-          const Divider(color: AppColors.border, height: 24),
+          Divider(color: context.palette.border, height: 24),
           _ContractSection(
             title: l10n.contractCompensationTitle,
             content: l10n.contractCompensationBody,
@@ -195,19 +196,19 @@ class _ContractSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
             letterSpacing: 0.3,
           ),
         ),
         const SizedBox(height: 6),
         Text(
           content,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: AppColors.secondaryText,
+            color: context.palette.secondaryText,
             height: 1.6,
           ),
         ),
@@ -232,9 +233,9 @@ class _TermsSectionState extends State<_TermsSection> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.palette.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,9 +252,9 @@ class _TermsSectionState extends State<_TermsSection> {
               padding: const EdgeInsets.only(top: 10),
               child: Text(
                 l10n.contractAgree,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.secondaryText,
+                  color: context.palette.secondaryText,
                   height: 1.5,
                 ),
               ),
@@ -281,9 +282,9 @@ class _SignatureSectionState extends State<_SignatureSection> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.palette.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.palette.border),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,9 +301,9 @@ class _SignatureSectionState extends State<_SignatureSection> {
                   padding: const EdgeInsets.only(top: 10),
                   child: Text(
                     l10n.contractAgree,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.secondaryText,
+                      color: context.palette.secondaryText,
                       height: 1.5,
                     ),
                   ),

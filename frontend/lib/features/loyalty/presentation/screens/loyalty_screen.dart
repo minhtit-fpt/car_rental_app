@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/loyalty/domain/entities/loyalty.dart';
 import 'package:frontend/features/loyalty/presentation/cubit/loyalty_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -30,7 +31,7 @@ class _LoyaltyView extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             RvSliverAppBar(
@@ -92,9 +93,9 @@ class _ErrorView extends StatelessWidget {
             child: Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
               ),
             ),
           ),
@@ -201,12 +202,12 @@ class _TierCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -243,9 +244,9 @@ class _TierCard extends StatelessWidget {
                     summary.pointsToNextTier,
                     summary.nextTier!.label,
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
             ],
@@ -256,7 +257,7 @@ class _TierCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: AppColors.border,
+              backgroundColor: context.palette.border,
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppColors.warning,
               ),
@@ -268,9 +269,9 @@ class _TierCard extends StatelessWidget {
             children: [
               Text(
                 '${summary.totalPoints} / $nextThreshold',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
               ),
               if (summary.nextTier != null)
@@ -307,16 +308,16 @@ class _HistorySection extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 28),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.palette.surface,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.palette.border),
             ),
             child: Center(
               child: Text(
                 l10n.loyaltyNoHistory,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
               ),
             ),
@@ -324,12 +325,12 @@ class _HistorySection extends StatelessWidget {
         else
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.palette.surface,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border),
-              boxShadow: const [
+              border: Border.all(color: context.palette.border),
+              boxShadow: [
                 BoxShadow(
-                  color: AppColors.cardShadowColor,
+                  color: context.palette.cardShadowColor,
                   blurRadius: 12,
                   offset: Offset(0, 2),
                 ),
@@ -376,17 +377,17 @@ class _HistorySection extends StatelessWidget {
                               children: [
                                 Text(
                                   h.action,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
-                                    color: AppColors.darkText,
+                                    color: context.palette.darkText,
                                   ),
                                 ),
                                 Text(
                                   _shortDate(h.createdAt),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
-                                    color: AppColors.mutedText,
+                                    color: context.palette.mutedText,
                                   ),
                                 ),
                               ],
@@ -407,8 +408,8 @@ class _HistorySection extends StatelessWidget {
                       ),
                     ),
                     if (!isLast)
-                      const Divider(
-                        color: AppColors.border,
+                      Divider(
+                        color: context.palette.border,
                         height: 1,
                         indent: 64,
                       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
@@ -87,7 +88,7 @@ class _CarListScreenState extends State<CarListScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.palette.background,
       body: BlocBuilder<VehicleListCubit, VehicleListState>(
         builder: (context, state) {
           final all = switch (state) {
@@ -107,8 +108,8 @@ class _CarListScreenState extends State<CarListScreen> {
               // App bar
               SliverAppBar(
                 pinned: true,
-                backgroundColor: AppColors.surface,
-                foregroundColor: AppColors.darkText,
+                backgroundColor: context.palette.surface,
+                foregroundColor: context.palette.darkText,
                 elevation: 0,
                 shadowColor: Colors.transparent,
                 surfaceTintColor: Colors.transparent,
@@ -125,8 +126,8 @@ class _CarListScreenState extends State<CarListScreen> {
                     const SizedBox(width: 8),
                     Text(
                       l10n.vehicleFindCars,
-                      style: const TextStyle(
-                        color: AppColors.darkText,
+                      style: TextStyle(
+                        color: context.palette.darkText,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
@@ -179,10 +180,10 @@ class _CarListScreenState extends State<CarListScreen> {
                         isSavedFilter
                             ? l10n.vehicleCountSaved(vehicles.length)
                             : l10n.vehicleCountMatched(vehicles.length),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.darkText,
+                          color: context.palette.darkText,
                         ),
                       ),
                       _SortDropdown(
@@ -482,12 +483,12 @@ class _FrostedSearchCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -513,19 +514,19 @@ class _FrostedSearchCard extends StatelessWidget {
                       children: [
                         Text(
                           l10n.vehicleLocationLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.mutedText,
+                            color: context.palette.mutedText,
                             letterSpacing: 0.5,
                           ),
                         ),
                         Text(
                           l10n.vehicleLocationPlaceholder,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.darkText,
+                            color: context.palette.darkText,
                           ),
                         ),
                       ],
@@ -535,7 +536,7 @@ class _FrostedSearchCard extends StatelessWidget {
               ),
             ),
           ),
-          Container(width: 1, height: 36, color: AppColors.inkLight),
+          Container(width: 1, height: 36, color: context.palette.inkLight),
           // Dates
           Expanded(
             child: Padding(
@@ -554,19 +555,19 @@ class _FrostedSearchCard extends StatelessWidget {
                       children: [
                         Text(
                           l10n.vehicleTimeLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.mutedText,
+                            color: context.palette.mutedText,
                             letterSpacing: 0.5,
                           ),
                         ),
-                        const Text(
+                        Text(
                           '15/06 → 17/06',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.darkText,
+                            color: context.palette.darkText,
                           ),
                         ),
                       ],
@@ -611,10 +612,10 @@ class _FilterChips extends StatelessWidget {
               duration: const Duration(milliseconds: 150),
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: isActive ? AppColors.accent : AppColors.surface,
+                color: isActive ? AppColors.accent : context.palette.surface,
                 borderRadius: BorderRadius.circular(9999),
                 border: Border.all(
-                  color: isActive ? AppColors.accent : AppColors.border,
+                  color: isActive ? AppColors.accent : context.palette.border,
                 ),
               ),
               alignment: Alignment.center,
@@ -623,7 +624,7 @@ class _FilterChips extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isActive ? Colors.white : AppColors.secondaryText,
+                  color: isActive ? Colors.white : context.palette.secondaryText,
                 ),
               ),
             ),
@@ -651,15 +652,15 @@ class _SortDropdown extends StatelessWidget {
         value: value,
         onChanged: onChanged,
         isDense: true,
-        icon: const Icon(
+        icon: Icon(
           Icons.keyboard_arrow_down_rounded,
           size: 16,
-          color: AppColors.mutedText,
+          color: context.palette.mutedText,
         ),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: AppColors.secondaryText,
+          color: context.palette.secondaryText,
         ),
         items: [
           for (final option in _SortOption.values)
@@ -696,10 +697,10 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               saved ? l10n.vehicleEmptySavedTitle : l10n.vehicleEmptyTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
             ),
             const SizedBox(height: 6),
@@ -708,9 +709,9 @@ class _EmptyState extends StatelessWidget {
                   ? l10n.vehicleEmptySavedSubtitle
                   : l10n.vehicleEmptySubtitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
               ),
             ),
           ],
@@ -743,19 +744,19 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               l10n.vehicleListErrorTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
             ),
             const SizedBox(height: 6),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
               ),
             ),
             const SizedBox(height: 16),
@@ -821,7 +822,7 @@ class _FilterSheetState extends State<_FilterSheet> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.border,
+                color: context.palette.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -832,10 +833,10 @@ class _FilterSheetState extends State<_FilterSheet> {
             children: [
               Text(
                 l10n.vehicleFilterTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               TextButton(
@@ -857,10 +858,10 @@ class _FilterSheetState extends State<_FilterSheet> {
             children: [
               Text(
                 l10n.vehicleFilterMaxPrice,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               Text(
@@ -879,7 +880,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             max: _kMaxPrice,
             divisions: 17,
             activeColor: AppColors.accent,
-            inactiveColor: AppColors.border,
+            inactiveColor: context.palette.border,
             onChanged: (v) => setState(() => _maxPrice = v),
           ),
           const SizedBox(height: 8),
@@ -889,10 +890,10 @@ class _FilterSheetState extends State<_FilterSheet> {
             children: [
               Text(
                 l10n.vehicleFilterMinRating,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               Row(
@@ -922,7 +923,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             max: _kMaxRating,
             divisions: 20,
             activeColor: AppColors.starYellow,
-            inactiveColor: AppColors.border,
+            inactiveColor: context.palette.border,
             onChanged: (v) => setState(() => _minRating = v),
           ),
           const SizedBox(height: 16),

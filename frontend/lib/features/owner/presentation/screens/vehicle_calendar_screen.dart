@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/domain/entities/booking.dart';
 import 'package:frontend/features/owner/domain/entities/owner_booking.dart';
 import 'package:frontend/features/owner/presentation/cubit/owner_bookings_cubit.dart';
@@ -55,7 +56,7 @@ class _CalendarViewState extends State<_CalendarView> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             RvSliverAppBar(
@@ -110,7 +111,7 @@ class _Centered extends StatelessWidget {
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: const TextStyle(color: AppColors.mutedText),
+        style: TextStyle(color: context.palette.mutedText),
       ),
     ),
   );
@@ -253,12 +254,12 @@ class _VehiclePicker extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -284,18 +285,18 @@ class _VehiclePicker extends StatelessWidget {
               children: [
                 Text(
                   selected.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   selected.typeLabelL10n(l10n),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
               ],
@@ -303,9 +304,9 @@ class _VehiclePicker extends StatelessWidget {
           ),
           if (vehicles.length > 1)
             PopupMenuButton<String>(
-              icon: const Icon(
+              icon: Icon(
                 Icons.expand_more_rounded,
-                color: AppColors.mutedText,
+                color: context.palette.mutedText,
               ),
               onSelected: onSelect,
               itemBuilder: (context) => vehicles
@@ -382,12 +383,12 @@ class _CalendarCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -399,9 +400,9 @@ class _CalendarCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.chevron_left_rounded,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
                 onPressed: () => onMonthChanged(
                   DateTime(focusedMonth.year, focusedMonth.month - 1),
@@ -409,16 +410,16 @@ class _CalendarCard extends StatelessWidget {
               ),
               Text(
                 '${monthNames[focusedMonth.month - 1]} ${focusedMonth.year}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.chevron_right_rounded,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
                 onPressed: () => onMonthChanged(
                   DateTime(focusedMonth.year, focusedMonth.month + 1),
@@ -434,10 +435,10 @@ class _CalendarCard extends StatelessWidget {
                     child: Center(
                       child: Text(
                         d,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.mutedText,
+                          color: context.palette.mutedText,
                         ),
                       ),
                     ),
@@ -488,8 +489,8 @@ class _DayCell extends StatelessWidget {
         AppColors.warning.withAlpha(120),
       ),
       _DayStatus.available => (
-        AppColors.surface,
-        AppColors.darkText,
+        context.palette.surface,
+        context.palette.darkText,
         Colors.transparent,
       ),
     };
@@ -559,12 +560,12 @@ class _PendingRequests extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.palette.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-            boxShadow: const [
+            border: Border.all(color: context.palette.border),
+            boxShadow: [
               BoxShadow(
-                color: AppColors.cardShadowColor,
+                color: context.palette.cardShadowColor,
                 blurRadius: 6,
                 offset: Offset(0, 2),
               ),
@@ -577,10 +578,10 @@ class _PendingRequests extends StatelessWidget {
                 children: [
                   Text(
                     AppLocalizations.of(context).ownerNeedsResponse,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.darkText,
+                      color: context.palette.darkText,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -610,8 +611,8 @@ class _PendingRequests extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
                     AppLocalizations.of(context).ownerNoPendingRequests,
-                    style: const TextStyle(
-                      color: AppColors.mutedText,
+                    style: TextStyle(
+                      color: context.palette.mutedText,
                       fontSize: 13,
                     ),
                   ),
@@ -648,9 +649,9 @@ class _PendingBookingCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surfaceSunken,
+        color: context.palette.surfaceSunken,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.palette.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -675,17 +676,17 @@ class _PendingBookingCard extends StatelessWidget {
                   children: [
                     Text(
                       booking.renterDisplayName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.darkText,
+                        color: context.palette.darkText,
                       ),
                     ),
                     Text(
                       '${booking.vehicleTitle} · ${_fmt(booking.startTime)}–${_fmt(booking.endTime)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                   ],
@@ -708,7 +709,7 @@ class _PendingBookingCard extends StatelessWidget {
                           booking.id,
                         ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.border),
+                    side: BorderSide(color: context.palette.border),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

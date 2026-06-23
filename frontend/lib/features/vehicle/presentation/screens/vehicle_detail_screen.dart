@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/chat/presentation/cubit/start_conversation_cubit.dart';
 import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
@@ -59,7 +60,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             _DetailAppBar(
@@ -133,7 +134,7 @@ class _DetailAppBar extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 260,
       pinned: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.palette.surface,
       automaticallyImplyLeading: false,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       flexibleSpace: FlexibleSpaceBar(
@@ -159,9 +160,9 @@ class _DetailAppBar extends StatelessWidget {
               left: 12,
               child: _GlassCircleButton(
                 onTap: () => context.pop(),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_rounded,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                   size: 20,
                 ),
               ),
@@ -178,16 +179,16 @@ class _DetailAppBar extends StatelessWidget {
                       isFavorite
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
-                      color: isFavorite ? AppColors.danger : AppColors.darkText,
+                      color: isFavorite ? AppColors.danger : context.palette.darkText,
                       size: 20,
                     ),
                   ),
                   const SizedBox(width: 8),
                   _GlassCircleButton(
                     onTap: () => shareVehicle(context, vehicle),
-                    child: const Icon(
+                    child: Icon(
                       Icons.share_outlined,
-                      color: AppColors.darkText,
+                      color: context.palette.darkText,
                       size: 20,
                     ),
                   ),
@@ -249,9 +250,9 @@ class _GlassCircleButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white.withAlpha(210),
               shape: BoxShape.circle,
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: AppColors.cardShadowColor,
+                  color: context.palette.cardShadowColor,
                   blurRadius: 8,
                   offset: Offset(0, 2),
                 ),
@@ -277,7 +278,7 @@ class _BadgeStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Container(
-      color: AppColors.surface,
+      color: context.palette.surface,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Wrap(
         spacing: 8,
@@ -356,10 +357,10 @@ class _TitleSection extends StatelessWidget {
             Expanded(
               child: Text(
                 vehicle.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                   height: 1.2,
                   letterSpacing: -0.4,
                 ),
@@ -380,9 +381,9 @@ class _TitleSection extends StatelessWidget {
                 ),
                 Text(
                   l10n.vehiclePerDay,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
               ],
@@ -392,7 +393,7 @@ class _TitleSection extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           vehicle.typeSummaryL10n(l10n),
-          style: const TextStyle(fontSize: 13, color: AppColors.mutedText),
+          style: TextStyle(fontSize: 13, color: context.palette.mutedText),
         ),
         const SizedBox(height: 10),
         // Rating + location + status
@@ -403,9 +404,9 @@ class _TitleSection extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 '${vehicle.rating!.toStringAsFixed(1)} (${vehicle.reviewCount})',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.secondaryText,
+                  color: context.palette.secondaryText,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -417,17 +418,17 @@ class _TitleSection extends StatelessWidget {
                   : l10n.vehicleRented,
               color: vehicle.isAvailable
                   ? AppColors.success
-                  : AppColors.mutedText,
+                  : context.palette.mutedText,
             ),
           ],
         ),
         const SizedBox(height: 6),
         Row(
           children: [
-            const Icon(
+            Icon(
               Icons.location_on_rounded,
               size: 14,
-              color: AppColors.mutedText,
+              color: context.palette.mutedText,
             ),
             const SizedBox(width: 4),
             Expanded(
@@ -436,9 +437,9 @@ class _TitleSection extends StatelessWidget {
                     (vehicle.location.isNotEmpty
                         ? vehicle.location
                         : l10n.vehicleNoLocation),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -498,12 +499,12 @@ class _SpecCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 3),
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -515,9 +516,9 @@ class _SpecCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             spec.label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color: AppColors.secondaryText,
+              color: context.palette.secondaryText,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -541,12 +542,12 @@ class _OwnerCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -596,28 +597,28 @@ class _OwnerCard extends StatelessWidget {
               children: [
                 Text(
                   vehicle.ownerName ?? l10n.vehicleOwnerFallback,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    const Text(
+                    Text(
                       '⭐ 4.9',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                     Flexible(
                       child: Text(
                         l10n.vehicleOwnerMetaSample,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.mutedText,
+                          color: context.palette.mutedText,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -739,12 +740,12 @@ class _TripRulesCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -790,9 +791,9 @@ class _RuleItem extends StatelessWidget {
           Expanded(
             child: Text(
               rule,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
                 height: 1.4,
               ),
             ),
@@ -823,15 +824,15 @@ class _PickupMapBlock extends StatelessWidget {
         Container(
           height: 120,
           decoration: BoxDecoration(
-            color: AppColors.surfaceSunken,
+            color: context.palette.surfaceSunken,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.palette.border),
           ),
           child: Stack(
             children: [
               // Grid lines for map feel
               CustomPaint(
-                painter: _MapGridPainter(),
+                painter: _MapGridPainter(color: context.palette.border),
                 child: const SizedBox.expand(),
               ),
               // Location pin
@@ -881,10 +882,14 @@ class _PickupMapBlock extends StatelessWidget {
 }
 
 class _MapGridPainter extends CustomPainter {
+  const _MapGridPainter({required this.color});
+
+  final Color color;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.border.withAlpha(120)
+      ..color = color.withAlpha(120)
       ..strokeWidth = 1;
 
     const step = 24.0;
@@ -919,7 +924,7 @@ class _BottomBar extends StatelessWidget {
           padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPad),
           decoration: BoxDecoration(
             color: Colors.white.withAlpha(230),
-            border: const Border(top: BorderSide(color: AppColors.inkLight)),
+            border: Border(top: BorderSide(color: context.palette.inkLight)),
           ),
           child: Row(
             children: [
@@ -939,9 +944,9 @@ class _BottomBar extends StatelessWidget {
                   ),
                   Text(
                     l10n.vehiclePerDay,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.mutedText,
+                      color: context.palette.mutedText,
                     ),
                   ),
                 ],

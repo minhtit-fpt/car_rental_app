@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/otp_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/otp_input_field.dart';
@@ -95,14 +96,14 @@ class _OtpViewState extends State<_OtpView> {
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.dark,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.palette.background,
           appBar: AppBar(
-            backgroundColor: AppColors.background,
+            backgroundColor: context.palette.background,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_back_rounded,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
               onPressed: () => context.pop(),
             ),
@@ -116,26 +117,26 @@ class _OtpViewState extends State<_OtpView> {
                   const SizedBox(height: 16),
                   Text(
                     l10n.authOtpTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.darkText,
+                      color: context.palette.darkText,
                     ),
                   ),
                   const SizedBox(height: 8),
                   RichText(
                     text: TextSpan(
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                       children: [
                         TextSpan(text: l10n.authOtpSentToPrefix),
                         TextSpan(
                           text: '+84 ${widget.phone}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: AppColors.darkText,
+                            color: context.palette.darkText,
                           ),
                         ),
                       ],
@@ -160,9 +161,9 @@ class _OtpViewState extends State<_OtpView> {
                     child: _secondsLeft > 0
                         ? RichText(
                             text: TextSpan(
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.mutedText,
+                                color: context.palette.mutedText,
                               ),
                               children: [
                                 TextSpan(text: l10n.authOtpResendInPrefix),

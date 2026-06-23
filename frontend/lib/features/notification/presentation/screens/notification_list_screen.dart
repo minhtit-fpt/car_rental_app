@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/notification/domain/entities/notification.dart';
 import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -27,9 +28,9 @@ class _NotificationView extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.palette.surface,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
           title: BlocBuilder<NotificationCubit, NotificationState>(
@@ -50,10 +51,10 @@ class _NotificationView extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     AppLocalizations.of(context).settingsNotifications,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.darkText,
+                      color: context.palette.darkText,
                     ),
                   ),
                   if (unread > 0) ...[
@@ -96,7 +97,7 @@ class _NotificationView extends StatelessWidget {
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppColors.border),
+            child: Container(height: 1, color: context.palette.border),
           ),
         ),
         body: BlocBuilder<NotificationCubit, NotificationState>(
@@ -116,8 +117,8 @@ class _NotificationView extends StatelessWidget {
                       child: ListView.separated(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         itemCount: data.items.length,
-                        separatorBuilder: (_, _) => const Divider(
-                          color: AppColors.border,
+                        separatorBuilder: (_, _) => Divider(
+                          color: context.palette.border,
                           height: 1,
                           indent: 68,
                         ),
@@ -149,7 +150,7 @@ class _EmptyView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             AppLocalizations.of(context).notifEmpty,
-            style: const TextStyle(fontSize: 14, color: AppColors.mutedText),
+            style: TextStyle(fontSize: 14, color: context.palette.mutedText),
           ),
         ],
       ),
@@ -173,9 +174,9 @@ class _ErrorView extends StatelessWidget {
             child: Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
               ),
             ),
           ),
@@ -197,7 +198,7 @@ class _NotifTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final info = _typeInfo(notif.type);
+    final info = _typeInfo(context, notif.type);
 
     return InkWell(
       onTap: onTap,
@@ -234,16 +235,16 @@ class _NotifTile extends StatelessWidget {
                             fontWeight: notif.isRead
                                 ? FontWeight.w500
                                 : FontWeight.bold,
-                            color: AppColors.darkText,
+                            color: context.palette.darkText,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         _relativeTime(notif.createdAt),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.mutedText,
+                          color: context.palette.mutedText,
                         ),
                       ),
                     ],
@@ -252,9 +253,9 @@ class _NotifTile extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       notif.body!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.secondaryText,
+                        color: context.palette.secondaryText,
                         height: 1.4,
                       ),
                       maxLines: 2,
@@ -282,14 +283,17 @@ class _NotifTile extends StatelessWidget {
     );
   }
 
-  ({String emoji, Color color}) _typeInfo(NotificationType type) {
+  ({String emoji, Color color}) _typeInfo(
+    BuildContext context,
+    NotificationType type,
+  ) {
     return switch (type) {
       NotificationType.booking => (emoji: '🚗', color: AppColors.primary),
       NotificationType.payment => (emoji: '💳', color: AppColors.success),
       NotificationType.kyc => (emoji: '🛡️', color: AppColors.teal),
       NotificationType.chat => (emoji: '💬', color: AppColors.primary),
       NotificationType.promotion => (emoji: '🎁', color: AppColors.orange),
-      NotificationType.system => (emoji: '🔔', color: AppColors.mutedText),
+      NotificationType.system => (emoji: '🔔', color: context.palette.mutedText),
     };
   }
 }

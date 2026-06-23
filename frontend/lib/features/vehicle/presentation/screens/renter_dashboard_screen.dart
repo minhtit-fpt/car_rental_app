@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/domain/entities/auth_user.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/booking/domain/entities/booking.dart';
@@ -41,7 +42,7 @@ class _RenterDashboardView extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: RefreshIndicator(
           onRefresh: () async {
             await Future.wait([
@@ -237,12 +238,12 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border(left: BorderSide(color: color, width: 3)),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -276,7 +277,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(fontSize: 10, color: AppColors.mutedText),
+            style: TextStyle(fontSize: 10, color: context.palette.mutedText),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -301,12 +302,12 @@ class _ProfileCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -333,10 +334,10 @@ class _ProfileCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             _displayName(user, l10n),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(height: 6),
@@ -406,15 +407,15 @@ class _RoleBadges extends StatelessWidget {
             (label) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
               decoration: BoxDecoration(
-                color: AppColors.surfaceSunken,
+                color: context.palette.surfaceSunken,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryText,
+                  color: context.palette.secondaryText,
                 ),
               ),
             ),
@@ -431,14 +432,14 @@ class _KycBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final info = _kycInfo(status, AppLocalizations.of(context));
+    final info = _kycInfo(context, status, AppLocalizations.of(context));
 
     return Row(
       children: [
-        const Icon(
+        Icon(
           Icons.credit_card_outlined,
           size: 16,
-          color: AppColors.mutedText,
+          color: context.palette.mutedText,
         ),
         const SizedBox(width: 8),
         Container(
@@ -461,6 +462,7 @@ class _KycBadge extends StatelessWidget {
   }
 
   ({String label, Color bg, Color fg}) _kycInfo(
+    BuildContext context,
     String? status,
     AppLocalizations l10n,
   ) {
@@ -486,8 +488,8 @@ class _KycBadge extends StatelessWidget {
       default:
         return (
           label: l10n.kycUnverified,
-          bg: AppColors.surfaceSunken,
-          fg: AppColors.mutedText,
+          bg: context.palette.surfaceSunken,
+          fg: context.palette.mutedText,
         );
     }
   }

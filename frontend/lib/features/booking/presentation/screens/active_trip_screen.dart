@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -47,7 +48,7 @@ class ActiveTripScreen extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             RvSliverAppBar(
@@ -99,22 +100,22 @@ class ActiveTripScreen extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           l10n.activeTripReturnTitle,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
         content: Text(
           l10n.activeTripReturnBody,
-          style: const TextStyle(fontSize: 14, color: AppColors.secondaryText),
+          style: TextStyle(fontSize: 14, color: context.palette.secondaryText),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               l10n.activeTripNotYet,
-              style: const TextStyle(color: AppColors.mutedText),
+              style: TextStyle(color: context.palette.mutedText),
             ),
           ),
           ElevatedButton(
@@ -286,12 +287,12 @@ class _TripProgressCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -305,10 +306,10 @@ class _TripProgressCard extends StatelessWidget {
             children: [
               Text(
                 l10n.activeTripProgress,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               Text(
@@ -327,7 +328,7 @@ class _TripProgressCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: AppColors.border,
+              backgroundColor: context.palette.border,
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppColors.primary,
               ),
@@ -339,16 +340,16 @@ class _TripProgressCard extends StatelessWidget {
             children: [
               Text(
                 state.startDate != null ? _fmtDate(state.startDate!) : '—',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
               ),
               Text(
                 state.endDate != null ? _fmtDate(state.endDate!) : '—',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
               ),
             ],
@@ -369,12 +370,12 @@ class _VehicleInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -385,10 +386,10 @@ class _VehicleInfoCard extends StatelessWidget {
         children: [
           Text(
             l10n.activeTripVehicleInfo,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(height: 12),
@@ -428,17 +429,17 @@ class _VehicleInfoCard extends StatelessWidget {
                   children: [
                     Text(
                       vehicle.ownerName ?? l10n.vehicleOwnerFallback,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.darkText,
+                        color: context.palette.darkText,
                       ),
                     ),
                     Text(
                       l10n.roleOwner,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                   ],
@@ -489,9 +490,9 @@ class _InfoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: context.palette.background,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.palette.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -500,9 +501,9 @@ class _InfoChip extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color: AppColors.secondaryText,
+              color: context.palette.secondaryText,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -551,12 +552,12 @@ class _QuickActionsRow extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: context.palette.surface,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.border),
-                    boxShadow: const [
+                    border: Border.all(color: context.palette.border),
+                    boxShadow: [
                       BoxShadow(
-                        color: AppColors.cardShadowColor,
+                        color: context.palette.cardShadowColor,
                         blurRadius: 8,
                         offset: Offset(0, 2),
                       ),
@@ -568,9 +569,9 @@ class _QuickActionsRow extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         a.label,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
-                          color: AppColors.secondaryText,
+                          color: context.palette.secondaryText,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

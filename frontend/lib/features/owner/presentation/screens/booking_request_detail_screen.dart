@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/owner/domain/entities/owner_booking.dart';
 import 'package:frontend/features/owner/presentation/cubit/booking_action_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -40,7 +41,7 @@ class BookingRequestDetailScreen extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             RvSliverAppBar(
@@ -73,7 +74,7 @@ class _MissingBooking extends StatelessWidget {
       child: Center(
         child: Text(
           AppLocalizations.of(context).ownerNoRequestData,
-          style: const TextStyle(color: AppColors.mutedText),
+          style: TextStyle(color: context.palette.mutedText),
         ),
       ),
     );
@@ -140,13 +141,13 @@ class _DetailBody extends StatelessWidget {
   }
 }
 
-BoxDecoration _cardDecoration() => BoxDecoration(
-  color: AppColors.surface,
+BoxDecoration _cardDecoration(BuildContext context) => BoxDecoration(
+  color: context.palette.surface,
   borderRadius: BorderRadius.circular(20),
-  border: Border.all(color: AppColors.border),
-  boxShadow: const [
+  border: Border.all(color: context.palette.border),
+  boxShadow: [
     BoxShadow(
-      color: AppColors.cardShadowColor,
+      color: context.palette.cardShadowColor,
       blurRadius: 12,
       offset: Offset(0, 2),
     ),
@@ -162,7 +163,7 @@ class _RenterCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _cardDecoration(),
+      decoration: _cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -186,18 +187,18 @@ class _RenterCard extends StatelessWidget {
                   children: [
                     Text(
                       booking.renterDisplayName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.darkText,
+                        color: context.palette.darkText,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       booking.renterPhone,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                   ],
@@ -206,20 +207,20 @@ class _RenterCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Divider(color: AppColors.border, height: 1),
+          Divider(color: context.palette.border, height: 1),
           const SizedBox(height: 12),
           Row(
             children: [
               StatusChip(
                 label: _statusLabel(booking, l10n),
-                color: _statusColor(booking),
+                color: _statusColor(context, booking),
               ),
               const SizedBox(width: 8),
               Text(
                 l10n.ownerSentOn(_fmtDate(booking.createdAt)),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
               ),
             ],
@@ -240,16 +241,16 @@ class _TripCard extends StatelessWidget {
     final hours = booking.endTime.difference(booking.startTime).inHours;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _cardDecoration(),
+      decoration: _cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l10n.bookingTripDetails,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(height: 14),
@@ -300,15 +301,15 @@ class _InfoLine extends StatelessWidget {
         const SizedBox(width: 10),
         Text(
           label,
-          style: const TextStyle(fontSize: 13, color: AppColors.mutedText),
+          style: TextStyle(fontSize: 13, color: context.palette.mutedText),
         ),
         const Spacer(),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
       ],
@@ -335,7 +336,7 @@ class _VehicleCard extends StatelessWidget {
     };
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: _cardDecoration(),
+      decoration: _cardDecoration(context),
       child: Row(
         children: [
           Container(
@@ -356,18 +357,18 @@ class _VehicleCard extends StatelessWidget {
               children: [
                 Text(
                   booking.vehicleTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   typeLabel,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
               ],
@@ -409,10 +410,10 @@ class _EarningsCard extends StatelessWidget {
             children: [
               Text(
                 l10n.ownerYouReceive,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               Text(
@@ -443,14 +444,14 @@ class _EarnLine extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 13, color: AppColors.secondaryText),
+          style: TextStyle(fontSize: 13, color: context.palette.secondaryText),
         ),
         Text(
           '$value VNĐ',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
       ],
@@ -499,14 +500,14 @@ class _AlreadyHandled extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceSunken,
+        color: context.palette.surfaceSunken,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.palette.border),
       ),
       child: Text(
         AppLocalizations.of(context).ownerRequestHandled,
         textAlign: TextAlign.center,
-        style: const TextStyle(color: AppColors.secondaryText),
+        style: TextStyle(color: context.palette.secondaryText),
       ),
     );
   }
@@ -522,11 +523,12 @@ String _statusLabel(OwnerBooking b, AppLocalizations l10n) =>
       _ => l10n.ownerStatusUnknown,
     };
 
-Color _statusColor(OwnerBooking b) => switch (b.status.name) {
+Color _statusColor(BuildContext context, OwnerBooking b) =>
+    switch (b.status.name) {
   'pendingPayment' => AppColors.warning,
   'confirmed' => AppColors.success,
   'inProgress' => AppColors.primary,
   'completed' => AppColors.teal,
   'cancelled' => AppColors.danger,
-  _ => AppColors.mutedText,
+  _ => context.palette.mutedText,
 };

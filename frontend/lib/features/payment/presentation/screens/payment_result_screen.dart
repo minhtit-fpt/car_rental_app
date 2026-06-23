@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
@@ -34,7 +35,7 @@ class PaymentResultScreen extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -59,9 +60,9 @@ class PaymentResultScreen extends StatelessWidget {
                       ? l10n.paymentResultSuccessBody
                       : l10n.paymentResultFailBody,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.secondaryText,
+                    color: context.palette.secondaryText,
                     height: 1.6,
                   ),
                 ),
@@ -181,14 +182,14 @@ class _DetailRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 13, color: AppColors.secondaryText),
+          style: TextStyle(fontSize: 13, color: context.palette.secondaryText),
         ),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
       ],

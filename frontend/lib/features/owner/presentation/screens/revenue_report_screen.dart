@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/owner/domain/entities/owner_revenue.dart';
 import 'package:frontend/features/owner/presentation/cubit/owner_revenue_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -47,7 +48,7 @@ class _RevenueReportView extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             RvSliverAppBar(
@@ -100,7 +101,7 @@ class _ErrorView extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.secondaryText),
+            style: TextStyle(color: context.palette.secondaryText),
           ),
           const SizedBox(height: 16),
           OutlinedButton(
@@ -218,12 +219,12 @@ class _ChartCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -240,8 +241,8 @@ class _ChartCard extends StatelessWidget {
               child: Center(
                 child: Text(
                   AppLocalizations.of(context).ownerNoRevenue,
-                  style: const TextStyle(
-                    color: AppColors.mutedText,
+                  style: TextStyle(
+                    color: context.palette.mutedText,
                     fontSize: 13,
                   ),
                 ),
@@ -289,9 +290,9 @@ class _ChartCard extends StatelessWidget {
                           const SizedBox(height: 6),
                           Text(
                             _monthLabel(p.month),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.mutedText,
+                              color: context.palette.mutedText,
                             ),
                           ),
                         ],
@@ -316,12 +317,12 @@ class _TransactionList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -340,8 +341,8 @@ class _TransactionList extends StatelessWidget {
               child: Center(
                 child: Text(
                   AppLocalizations.of(context).ownerNoTransactions,
-                  style: const TextStyle(
-                    color: AppColors.mutedText,
+                  style: TextStyle(
+                    color: context.palette.mutedText,
                     fontSize: 13,
                   ),
                 ),
@@ -354,7 +355,7 @@ class _TransactionList extends StatelessWidget {
                 children: [
                   _TransactionRow(transaction: entry.value),
                   if (i < transactions.length - 1)
-                    const Divider(color: AppColors.border, height: 16),
+                    Divider(color: context.palette.border, height: 16),
                 ],
               );
             }),
@@ -395,17 +396,17 @@ class _TransactionRow extends StatelessWidget {
             children: [
               Text(
                 transaction.vehicleTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               Text(
                 '${transaction.renterDisplayName} · $dateLabel',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
               ),
             ],
