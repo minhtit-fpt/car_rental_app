@@ -518,11 +518,11 @@ class _QuickActionsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final actions = <({String icon, String label, VoidCallback onTap})>[
-      // Map (🗺️) chờ Phase C — vẫn báo "Sắp có" cho tới khi có Maps SDK.
+      // Map (🗺️) — mở bản đồ xe quanh đây (Phase C).
       (
         icon: '🗺️',
         label: l10n.activeTripMap,
-        onTap: () => showComingSoonSnack(context, l10n.activeTripMap),
+        onTap: () => context.push('/map'),
       ),
       (
         icon: '💬',

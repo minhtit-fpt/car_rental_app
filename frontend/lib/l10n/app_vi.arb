@@ -422,6 +422,19 @@
   "navMe": "Tôi",
   "shellAccountTitle": "Tài khoản",
 
+  "mapScreenTitle": "Xe quanh đây",
+  "mapNearbyCount": "{count, plural, =0{Không có xe quanh đây} =1{1 xe quanh đây} other{{count} xe quanh đây}}",
+  "@mapNearbyCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "mapEmptyTitle": "Chưa có xe quanh đây",
+  "mapEmptySubtitle": "Thử di chuyển bản đồ hoặc mở rộng khu vực tìm kiếm.",
+  "mapMyLocationTooltip": "Vị trí của tôi",
+  "mapRefreshTooltip": "Tải lại",
+  "mapOpenInTab": "Xem bản đồ đầy đủ",
+
   "notifMarkAllRead": "Đọc tất cả",
   "notifEmpty": "Chưa có thông báo nào",
 

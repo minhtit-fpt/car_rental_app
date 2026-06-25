@@ -5,6 +5,7 @@ import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/booking/presentation/screens/my_trips_screen.dart';
+import 'package:frontend/features/map/presentation/screens/map_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/car_list_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/home_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/owner_dashboard_screen.dart';
@@ -34,7 +35,7 @@ class _AppShellState extends State<AppShell> {
           HomeScreen(onCarsTap: () => _navigateTo(1)),
           const CarListScreen(),
           const MyTripsScreen(),
-          const _PlaceholderScreen(label: '🗺️', title: 'Map'),
+          const MapScreen(),
           const _DashboardSelectorScreen(),
         ],
       ),
@@ -208,45 +209,6 @@ class _RoleChip extends StatelessWidget {
             fontWeight: FontWeight.w500,
             color: isActive ? Colors.white : context.palette.secondaryText,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({required this.label, required this.title});
-
-  final String label;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.palette.background,
-      appBar: AppBar(
-        title: Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: context.palette.darkText,
-          ),
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 64)),
-            const SizedBox(height: 16),
-            Text(
-              '$title coming soon',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.palette.secondaryText,
-              ),
-            ),
-          ],
         ),
       ),
     );

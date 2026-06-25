@@ -19,6 +19,7 @@ Future<void> main() async {
   setupAuth(); // ApiClient + auth repository/usecases + AuthCubit
   setupAdmin(); // admin repository + AdminCubit factory
   setupVehicle(); // vehicle repository + VehicleListCubit factory
+  setupMap(); // location service + MapCubit factory (Phase C)
   setupBooking(); // booking repository + BookingCubit factory
   setupPayment(); // payment repository + PaymentCubit factory
   setupReview(); // review repository + ReviewCubit factory

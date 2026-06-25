@@ -4,6 +4,7 @@ import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
+import 'package:frontend/shared/utils/price_format.dart';
 
 /// Nút tim tròn nền trắng đặt trên ảnh xe (card / list tile). Bấm để lưu/bỏ.
 class _FavoriteHeartButton extends StatelessWidget {
@@ -41,14 +42,8 @@ class _FavoriteHeartButton extends StatelessWidget {
 }
 
 // pricePerDay is stored in K VNĐ (e.g. 890 = 890K VNĐ)
-String _fmtVnd(double kAmount) {
-  if (kAmount >= 1000) {
-    final m = kAmount / 1000;
-    if (m == m.truncateToDouble()) return '${m.truncate()}M VNĐ';
-    return '${m.toStringAsFixed(2).replaceAll(RegExp(r'0+$'), '')}M VNĐ';
-  }
-  return '${kAmount.toInt()}K VNĐ';
-}
+String _fmtVnd(double kAmount) =>
+    formatPricePerDayK(kAmount, withCurrency: true);
 
 class CarCard extends StatelessWidget {
   const CarCard({super.key, required this.vehicle, this.onTap, this.width});
@@ -247,7 +242,9 @@ class _VehicleMetaRow extends StatelessWidget {
               ? Icons.check_circle_rounded
               : Icons.cancel_rounded,
           size: 13,
-          color: vehicle.isAvailable ? AppColors.teal : context.palette.mutedText,
+          color: vehicle.isAvailable
+              ? AppColors.teal
+              : context.palette.mutedText,
         ),
         const SizedBox(width: 4),
         Text(
@@ -255,7 +252,9 @@ class _VehicleMetaRow extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: vehicle.isAvailable ? AppColors.teal : context.palette.mutedText,
+            color: vehicle.isAvailable
+                ? AppColors.teal
+                : context.palette.mutedText,
           ),
         ),
         if (vehicle.deliveryAvailable) ...[

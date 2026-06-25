@@ -2420,6 +2420,48 @@ abstract class AppLocalizations {
   /// **'Account'**
   String get shellAccountTitle;
 
+  /// No description provided for @mapScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby cars'**
+  String get mapScreenTitle;
+
+  /// No description provided for @mapNearbyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No cars nearby} =1{1 car nearby} other{{count} cars nearby}}'**
+  String mapNearbyCount(int count);
+
+  /// No description provided for @mapEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No cars nearby'**
+  String get mapEmptyTitle;
+
+  /// No description provided for @mapEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try moving the map or widening your search area.'**
+  String get mapEmptySubtitle;
+
+  /// No description provided for @mapMyLocationTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'My location'**
+  String get mapMyLocationTooltip;
+
+  /// No description provided for @mapRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get mapRefreshTooltip;
+
+  /// No description provided for @mapOpenInTab.
+  ///
+  /// In en, this message translates to:
+  /// **'View full map'**
+  String get mapOpenInTab;
+
   /// No description provided for @notifMarkAllRead.
   ///
   /// In en, this message translates to:

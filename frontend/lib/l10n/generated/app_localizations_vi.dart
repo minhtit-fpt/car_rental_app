@@ -1246,6 +1246,37 @@ class AppLocalizationsVi extends AppLocalizations {
   String get shellAccountTitle => 'Tài khoản';
 
   @override
+  String get mapScreenTitle => 'Xe quanh đây';
+
+  @override
+  String mapNearbyCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count xe quanh đây',
+      one: '1 xe quanh đây',
+      zero: 'Không có xe quanh đây',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mapEmptyTitle => 'Chưa có xe quanh đây';
+
+  @override
+  String get mapEmptySubtitle =>
+      'Thử di chuyển bản đồ hoặc mở rộng khu vực tìm kiếm.';
+
+  @override
+  String get mapMyLocationTooltip => 'Vị trí của tôi';
+
+  @override
+  String get mapRefreshTooltip => 'Tải lại';
+
+  @override
+  String get mapOpenInTab => 'Xem bản đồ đầy đủ';
+
+  @override
   String get notifMarkAllRead => 'Đọc tất cả';
 
   @override

@@ -14,6 +14,7 @@ import 'package:frontend/core/router/profile_routes.dart';
 import 'package:frontend/core/router/social_routes.dart';
 import 'package:frontend/core/router/vehicle_routes.dart';
 import 'package:frontend/core/shell/app_shell.dart';
+import 'package:frontend/features/map/presentation/screens/map_screen.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_users_cubit.dart';
@@ -98,6 +99,7 @@ GoRouter createAppRouter(AuthCubit authCubit) {
           child: const AdminDashboardScreen(),
         ),
       ),
+      GoRoute(path: '/map', builder: (context, state) => const MapScreen()),
       ...authRoutes,
       ...kycRoutes,
       ...vehicleRoutes,
