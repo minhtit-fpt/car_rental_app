@@ -6,6 +6,7 @@ import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/notification/domain/entities/notification.dart';
 import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
+import 'package:frontend/features/notification/presentation/screens/notification_detail_screen.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 
 class NotificationListScreen extends StatelessWidget {
@@ -22,6 +23,17 @@ class NotificationListScreen extends StatelessWidget {
 
 class _NotificationView extends StatelessWidget {
   const _NotificationView();
+
+  // Đánh dấu đã đọc rồi mở màn chi tiết. Dùng cubit gốc của list (giữ state khi quay lại).
+  void _openDetail(BuildContext context, AppNotification notif) {
+    final cubit = context.read<NotificationCubit>();
+    if (!notif.isRead) cubit.markRead(notif.id);
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => NotificationDetailScreen(notif: notif),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,9 +136,7 @@ class _NotificationView extends StatelessWidget {
                         ),
                         itemBuilder: (context, index) => _NotifTile(
                           notif: data.items[index],
-                          onTap: () => context
-                              .read<NotificationCubit>()
-                              .markRead(data.items[index].id),
+                          onTap: () => _openDetail(context, data.items[index]),
                         ),
                       ),
                     ),

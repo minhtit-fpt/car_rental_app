@@ -26,9 +26,20 @@ vi.mock("@/lib/repositories/vehicle.repository", () => ({
   },
 }));
 
+vi.mock("@/lib/services/notification.events", () => ({
+  notificationEvents: {
+    bookingCreated: vi.fn(),
+    bookingApproved: vi.fn(),
+    bookingRejected: vi.fn(),
+    paymentConfirmed: vi.fn(),
+    bookingCancelled: vi.fn(),
+  },
+}));
+
 import { bookingService } from "@/lib/services/booking.service";
 import { bookingRepository } from "@/lib/repositories/booking.repository";
 import { vehicleRepository } from "@/lib/repositories/vehicle.repository";
+import { notificationEvents } from "@/lib/services/notification.events";
 
 const RENTER = "renter-1";
 const VEHICLE_ID = "veh-1";
@@ -88,6 +99,9 @@ describe("bookingService.create", () => {
     );
     expect(result.status).toBe(BookingStatus.PENDING_PAYMENT);
     expect(result.totalPrice).toBe(400);
+    expect(notificationEvents.bookingCreated).toHaveBeenCalledWith(
+      expect.objectContaining({ renterId: RENTER, ownerId: "owner-1" }),
+    );
   });
 
   it("throws 409 when the vehicle has an overlapping active booking", async () => {
@@ -127,13 +141,17 @@ describe("bookingService.create", () => {
 });
 
 describe("bookingService.cancel", () => {
-  it("cancels a PENDING_PAYMENT booking owned by the renter", async () => {
+  it("cancels a PENDING_PAYMENT booking owned by the renter and notifies the owner", async () => {
     vi.mocked(bookingRepository.findById).mockResolvedValue(makeBooking());
     vi.mocked(bookingRepository.updateStatus).mockResolvedValue(
       makeBooking({ status: BookingStatus.CANCELLED }),
     );
+    vi.mocked(vehicleRepository.findById).mockResolvedValue(makeVehicle());
     const result = await bookingService.cancel(RENTER, "book-1");
     expect(result.status).toBe(BookingStatus.CANCELLED);
+    expect(notificationEvents.bookingCancelled).toHaveBeenCalledWith(
+      expect.objectContaining({ bookingId: "book-1", ownerId: "owner-1" }),
+    );
   });
 
   it("throws 403 when cancelling another renter's booking", async () => {

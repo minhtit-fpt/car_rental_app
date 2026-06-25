@@ -7,6 +7,8 @@ import {
   type ListBookingsParams,
 } from "@/lib/repositories/booking.repository";
 import { vehicleRepository } from "@/lib/repositories/vehicle.repository";
+import { userRepository } from "@/lib/repositories/user.repository";
+import { notificationEvents } from "@/lib/services/notification.events";
 import type { CreateBookingInput } from "@/lib/validators/booking.validator";
 
 const MS_PER_HOUR = 3_600_000;
@@ -152,6 +154,11 @@ export const bookingService = {
       totalPrice,
       deliveryRequested: input.deliveryRequested,
     });
+    await notificationEvents.bookingCreated({
+      bookingId: booking.id,
+      renterId,
+      ownerId: vehicle.ownerId,
+    });
     return toPublicBooking(booking);
   },
 
@@ -220,6 +227,10 @@ export const bookingService = {
       }
       throw error;
     }
+    await notificationEvents.bookingApproved({
+      bookingId: booking.id,
+      renterId: booking.renterId,
+    });
     return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
   },
 
@@ -234,6 +245,10 @@ export const bookingService = {
       );
     }
     await bookingRepository.updateStatus(id, BookingStatus.CANCELLED);
+    await notificationEvents.bookingRejected({
+      bookingId: booking.id,
+      renterId: booking.renterId,
+    });
     return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
   },
 
@@ -269,12 +284,12 @@ export const bookingService = {
         "Xe đã có người đặt trong khoảng thời gian này",
       );
     }
+    let updated: Booking;
     try {
-      const updated = await bookingRepository.updateStatus(
+      updated = await bookingRepository.updateStatus(
         bookingId,
         BookingStatus.CONFIRMED,
       );
-      return toPublicBooking(updated);
     } catch (error) {
       if (isOverlapViolation(error)) {
         throw new AppError(
@@ -285,6 +300,18 @@ export const bookingService = {
       }
       throw error;
     }
+
+    const vehicle = await vehicleRepository.findById(updated.vehicleId);
+    if (vehicle) {
+      const renter = await userRepository.findById(updated.renterId);
+      await notificationEvents.paymentConfirmed({
+        bookingId: updated.id,
+        renterId: updated.renterId,
+        ownerId: vehicle.ownerId,
+        renterEmail: renter?.email,
+      });
+    }
+    return toPublicBooking(updated);
   },
 
   async cancel(renterId: string, id: string): Promise<PublicBooking> {
@@ -300,6 +327,13 @@ export const bookingService = {
       id,
       BookingStatus.CANCELLED,
     );
+    const vehicle = await vehicleRepository.findById(updated.vehicleId);
+    if (vehicle) {
+      await notificationEvents.bookingCancelled({
+        bookingId: updated.id,
+        ownerId: vehicle.ownerId,
+      });
+    }
     return toPublicBooking(updated);
   },
 };

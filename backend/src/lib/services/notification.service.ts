@@ -1,6 +1,9 @@
 import { type Notification, type NotificationType } from "@prisma/client";
 import { AppError } from "@/lib/errors/app-error";
-import { notificationRepository } from "@/lib/repositories/notification.repository";
+import {
+  notificationRepository,
+  type CreateNotificationData,
+} from "@/lib/repositories/notification.repository";
 import type { ListNotificationsQuery } from "@/lib/validators/notification.validator";
 
 export interface PublicNotification {
@@ -34,6 +37,24 @@ function toPublic(n: Notification): PublicNotification {
 }
 
 export const notificationService = {
+  // Tạo 1 thông báo (ghi DB). Ném lỗi nếu thất bại — dùng cho nơi cần biết kết quả.
+  async create(data: CreateNotificationData): Promise<PublicNotification> {
+    return toPublic(await notificationRepository.create(data));
+  },
+
+  // Tạo thông báo nhưng KHÔNG bao giờ ném lỗi: lỗi noti không được làm hỏng luồng
+  // nghiệp vụ chính (đặt xe / thanh toán). Trả null nếu thất bại.
+  async safeCreate(
+    data: CreateNotificationData,
+  ): Promise<PublicNotification | null> {
+    try {
+      return await notificationService.create(data);
+    } catch (error) {
+      console.error("Failed to create notification:", error);
+      return null;
+    }
+  },
+
   async list(
     userId: string,
     query: ListNotificationsQuery,

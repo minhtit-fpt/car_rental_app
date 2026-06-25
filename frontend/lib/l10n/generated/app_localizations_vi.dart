@@ -1283,6 +1283,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get notifEmpty => 'Chưa có thông báo nào';
 
   @override
+  String get notifDetailTitle => 'Chi tiết thông báo';
+
+  @override
+  String get notifViewTrip => 'Xem chuyến của tôi';
+
+  @override
   String get loyaltySubtitle => 'Tích lũy điểm cho mỗi chuyến đi';
 
   @override

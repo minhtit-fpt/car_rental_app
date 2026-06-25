@@ -10,6 +10,7 @@ class AppNotification {
     required this.createdAt,
     this.body,
     this.readAt,
+    this.payload,
   });
 
   final String id;
@@ -19,7 +20,16 @@ class AppNotification {
   final DateTime createdAt;
   final DateTime? readAt;
 
+  /// Ngữ cảnh kèm theo (vd `{ "bookingId": "..." }`) — dùng để điều hướng.
+  final Map<String, dynamic>? payload;
+
   bool get isRead => readAt != null;
+
+  /// Mã chuyến đặt liên quan, nếu có.
+  String? get bookingId {
+    final value = payload?['bookingId'];
+    return value is String ? value : null;
+  }
 }
 
 /// Danh sách thông báo + số chưa đọc (`GET /api/notifications`).

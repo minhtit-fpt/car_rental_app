@@ -9,7 +9,27 @@ export interface ListNotificationsParams {
   limit: number;
 }
 
+export interface CreateNotificationData {
+  userId: string;
+  type: Notification["type"];
+  title: string;
+  body?: string | null;
+  payload?: Prisma.InputJsonValue;
+}
+
 export const notificationRepository = {
+  create(data: CreateNotificationData): Promise<Notification> {
+    return prisma.notification.create({
+      data: {
+        userId: data.userId,
+        type: data.type,
+        title: data.title,
+        body: data.body ?? null,
+        payload: data.payload,
+      },
+    });
+  },
+
   async findManyByUser(
     p: ListNotificationsParams,
   ): Promise<{ items: Notification[]; total: number }> {

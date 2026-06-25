@@ -647,6 +647,8 @@
 
   "notifMarkAllRead": "Mark all read",
   "notifEmpty": "No notifications yet",
+  "notifDetailTitle": "Notification details",
+  "notifViewTrip": "View my trips",
 
   "loyaltySubtitle": "Earn points for every trip",
   "loyaltyPointsUnit": "reward points",

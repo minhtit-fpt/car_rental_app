@@ -1289,6 +1289,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifEmpty => 'No notifications yet';
 
   @override
+  String get notifDetailTitle => 'Notification details';
+
+  @override
+  String get notifViewTrip => 'View my trips';
+
+  @override
   String get loyaltySubtitle => 'Earn points for every trip';
 
   @override

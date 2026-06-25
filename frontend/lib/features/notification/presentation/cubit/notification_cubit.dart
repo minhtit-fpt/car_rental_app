@@ -71,6 +71,7 @@ class NotificationCubit extends Cubit<NotificationState> {
                   body: n.body,
                   createdAt: n.createdAt,
                   readAt: now,
+                  payload: n.payload,
                 )
               : n,
         )
