@@ -6,6 +6,7 @@ import 'package:frontend/core/db/app_database.dart';
 import 'package:frontend/core/locale/locale_cubit.dart';
 import 'package:frontend/core/location/location_service.dart';
 import 'package:frontend/core/network/api_client.dart';
+import 'package:frontend/core/notifications/local_notification_service.dart';
 import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/storage/kv_storage.dart';
 import 'package:frontend/core/storage/secure_storage.dart';
@@ -338,13 +339,17 @@ void setupKyc() {
 }
 
 /// Đăng ký data layer + cubit cho thông báo. Gọi sau [setupAuth].
+///
+/// [NotificationCubit] là singleton: 1 vòng poll nền cấp dữ liệu cho badge ở
+/// mọi nơi và bắn local notification cho noti mới chưa đọc.
 void setupNotification() {
   sl
     ..registerSingleton<NotificationRepository>(
       NotificationRepositoryImpl(NotificationRemoteDataSource(sl<ApiClient>())),
     )
-    ..registerFactory<NotificationCubit>(
-      () => NotificationCubit(
+    ..registerSingleton<LocalNotificationService>(LocalNotificationService())
+    ..registerSingleton<NotificationCubit>(
+      NotificationCubit(
         listNotifications: ListNotificationsUseCase(
           sl<NotificationRepository>(),
         ),
@@ -352,6 +357,7 @@ void setupNotification() {
         markAllRead: MarkAllNotificationsReadUseCase(
           sl<NotificationRepository>(),
         ),
+        localNotifications: sl<LocalNotificationService>(),
       ),
     );
 }

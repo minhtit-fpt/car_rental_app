@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   BookingStatus,
   Prisma,
@@ -16,6 +16,7 @@ vi.mock("@/lib/repositories/booking.repository", () => ({
     findByIdForOwner: vi.fn(),
     findByVehicle: vi.fn(),
     hasActiveOverlap: vi.fn(),
+    findOverduePendingPayment: vi.fn(),
     updateStatus: vi.fn(),
   },
 }));
@@ -32,6 +33,7 @@ vi.mock("@/lib/services/notification.events", () => ({
     bookingApproved: vi.fn(),
     bookingRejected: vi.fn(),
     paymentConfirmed: vi.fn(),
+    paymentExpired: vi.fn(),
     bookingCancelled: vi.fn(),
   },
 }));
@@ -282,5 +284,90 @@ describe("bookingService.reject", () => {
       status: 409,
       code: "BOOKING_NOT_REJECTABLE",
     });
+  });
+});
+
+describe("bookingService.expireOverduePayments", () => {
+  const ORIGINAL_HOURS = process.env.PAYMENT_REMINDER_HOURS;
+
+  afterEach(() => {
+    if (ORIGINAL_HOURS === undefined) delete process.env.PAYMENT_REMINDER_HOURS;
+    else process.env.PAYMENT_REMINDER_HOURS = ORIGINAL_HOURS;
+  });
+
+  it("cancels each overdue booking and notifies its renter", async () => {
+    vi.mocked(bookingRepository.findOverduePendingPayment).mockResolvedValue([
+      makeBooking({ id: "book-1", renterId: "r1" }),
+      makeBooking({ id: "book-2", renterId: "r2" }),
+    ]);
+    vi.mocked(bookingRepository.updateStatus).mockResolvedValue(
+      makeBooking({ status: BookingStatus.CANCELLED }),
+    );
+
+    const result = await bookingService.expireOverduePayments();
+
+    expect(result.expired).toBe(2);
+    expect(bookingRepository.updateStatus).toHaveBeenNthCalledWith(
+      1,
+      "book-1",
+      BookingStatus.CANCELLED,
+    );
+    expect(bookingRepository.updateStatus).toHaveBeenNthCalledWith(
+      2,
+      "book-2",
+      BookingStatus.CANCELLED,
+    );
+    expect(notificationEvents.paymentExpired).toHaveBeenCalledWith({
+      bookingId: "book-1",
+      renterId: "r1",
+    });
+    expect(notificationEvents.paymentExpired).toHaveBeenCalledWith({
+      bookingId: "book-2",
+      renterId: "r2",
+    });
+  });
+
+  it("uses PAYMENT_REMINDER_HOURS to compute the cutoff", async () => {
+    process.env.PAYMENT_REMINDER_HOURS = "3";
+    vi.mocked(bookingRepository.findOverduePendingPayment).mockResolvedValue([]);
+    const now = Date.now();
+
+    await bookingService.expireOverduePayments();
+
+    const before = vi.mocked(bookingRepository.findOverduePendingPayment).mock
+      .calls[0][0] as Date;
+    const elapsedHours = (now - before.getTime()) / 3_600_000;
+    expect(elapsedHours).toBeCloseTo(3, 1);
+  });
+
+  it("keeps going when one booking fails and counts only the cancelled ones", async () => {
+    vi.mocked(bookingRepository.findOverduePendingPayment).mockResolvedValue([
+      makeBooking({ id: "book-1", renterId: "r1" }),
+      makeBooking({ id: "book-2", renterId: "r2" }),
+    ]);
+    vi.mocked(bookingRepository.updateStatus)
+      .mockRejectedValueOnce(new Error("db down"))
+      .mockResolvedValueOnce(makeBooking({ status: BookingStatus.CANCELLED }));
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const result = await bookingService.expireOverduePayments();
+
+    expect(result.expired).toBe(1);
+    expect(notificationEvents.paymentExpired).toHaveBeenCalledTimes(1);
+    expect(notificationEvents.paymentExpired).toHaveBeenCalledWith({
+      bookingId: "book-2",
+      renterId: "r2",
+    });
+    errorSpy.mockRestore();
+  });
+
+  it("returns zero when there are no overdue bookings", async () => {
+    vi.mocked(bookingRepository.findOverduePendingPayment).mockResolvedValue([]);
+
+    const result = await bookingService.expireOverduePayments();
+
+    expect(result.expired).toBe(0);
+    expect(bookingRepository.updateStatus).not.toHaveBeenCalled();
+    expect(notificationEvents.paymentExpired).not.toHaveBeenCalled();
   });
 });

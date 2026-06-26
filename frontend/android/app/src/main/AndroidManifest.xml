@@ -2,6 +2,8 @@
     <!-- Vị trí hiện tại cho bản đồ xe quanh đây (Phase C) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Thông báo cục bộ (Android 13+ yêu cầu xin quyền runtime) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="frontend"
         android:name="${applicationName}"

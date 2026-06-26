@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/notification/domain/entities/notification.dart';
@@ -9,16 +8,23 @@ import 'package:frontend/features/notification/presentation/cubit/notification_c
 import 'package:frontend/features/notification/presentation/screens/notification_detail_screen.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 
-class NotificationListScreen extends StatelessWidget {
+/// Dùng [NotificationCubit] singleton (cấp ở gốc app); nạp mới khi mở màn.
+class NotificationListScreen extends StatefulWidget {
   const NotificationListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider<NotificationCubit>(
-      create: (_) => sl<NotificationCubit>()..load(),
-      child: const _NotificationView(),
-    );
+  State<NotificationListScreen> createState() => _NotificationListScreenState();
+}
+
+class _NotificationListScreenState extends State<NotificationListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<NotificationCubit>().load();
   }
+
+  @override
+  Widget build(BuildContext context) => const _NotificationView();
 }
 
 class _NotificationView extends StatelessWidget {

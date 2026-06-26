@@ -99,6 +99,18 @@ export const notificationEvents = {
     ]);
   },
 
+  // Đơn tự huỷ do quá hạn thanh toán (cron). Chỉ noti in-app cho renter —
+  // KHÔNG gửi email (chốt: hết hạn thanh toán thì chỉ báo trong app).
+  async paymentExpired(p: RenterEvent): Promise<void> {
+    await notificationService.safeCreate({
+      userId: p.renterId,
+      type: NotificationType.PAYMENT,
+      title: "Đơn đã bị huỷ do quá hạn thanh toán",
+      body: "Bạn chưa hoàn tất thanh toán trong thời gian quy định nên đơn đã tự động huỷ.",
+      payload: { bookingId: p.bookingId },
+    });
+  },
+
   // Renter huỷ đơn — báo cho owner.
   async bookingCancelled(p: OwnerEvent): Promise<void> {
     await notificationService.safeCreate({

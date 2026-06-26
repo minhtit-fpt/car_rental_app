@@ -133,6 +133,20 @@ export const bookingRepository = {
     return count > 0;
   },
 
+  // Đơn còn PENDING_PAYMENT nhưng đã tạo trước mốc `before` (quá hạn thanh toán).
+  // Dùng cho cron tự huỷ. Không cần cờ "đã nhắc": sau khi huỷ, đơn chuyển sang
+  // CANCELLED nên lần quét sau không còn khớp → tránh xử lý trùng.
+  findOverduePendingPayment(before: Date, limit: number): Promise<Booking[]> {
+    return prisma.booking.findMany({
+      where: {
+        status: BookingStatus.PENDING_PAYMENT,
+        createdAt: { lt: before },
+      },
+      orderBy: { createdAt: "asc" },
+      take: limit,
+    });
+  },
+
   updateStatus(id: string, status: BookingStatus): Promise<Booking> {
     return prisma.booking.update({ where: { id }, data: { status } });
   },
