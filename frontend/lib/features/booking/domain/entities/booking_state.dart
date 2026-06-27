@@ -46,6 +46,7 @@ class BookingFormState {
     bool? submitted,
     Booking? booking,
     String? errorMessage,
+    bool resetSubmission = false,
   }) => BookingFormState(
     startDate: startDate ?? this.startDate,
     endDate: endDate ?? this.endDate,
@@ -53,8 +54,8 @@ class BookingFormState {
     deliveryAddress: deliveryAddress ?? this.deliveryAddress,
     isSubmitting: isSubmitting ?? this.isSubmitting,
     contractSigned: contractSigned ?? this.contractSigned,
-    submitted: submitted ?? this.submitted,
-    booking: booking ?? this.booking,
+    submitted: resetSubmission ? false : (submitted ?? this.submitted),
+    booking: resetSubmission ? null : (booking ?? this.booking),
     errorMessage: errorMessage,
   );
 }

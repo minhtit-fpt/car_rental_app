@@ -12,16 +12,18 @@ class BookingCubit extends Cubit<BookingFormState> {
 
   final CreateBookingUseCase _createBooking;
 
+  // Mọi thay đổi lựa chọn đều huỷ bản nháp đơn đã tạo (resetSubmission) để lần
+  // xác nhận sau tạo đơn mới đúng lựa chọn, không dùng lại đơn cũ.
   void setDates(DateTime start, DateTime end) {
-    emit(state.copyWith(startDate: start, endDate: end));
+    emit(state.copyWith(startDate: start, endDate: end, resetSubmission: true));
   }
 
   void toggleDelivery({required bool value}) {
-    emit(state.copyWith(withDelivery: value));
+    emit(state.copyWith(withDelivery: value, resetSubmission: true));
   }
 
   void setDeliveryAddress(String address) {
-    emit(state.copyWith(deliveryAddress: address));
+    emit(state.copyWith(deliveryAddress: address, resetSubmission: true));
   }
 
   void signContract() {
@@ -32,6 +34,16 @@ class BookingCubit extends Cubit<BookingFormState> {
   /// thành công để màn xác nhận điều hướng sang bước hợp đồng.
   Future<void> confirmBooking({required String vehicleId}) async {
     if (!state.datesSelected || state.isSubmitting) return;
+
+    // Đã tạo đơn cho đúng lựa chọn này rồi → KHÔNG tạo trùng. Chỉ phát lại
+    // chuyển `submitted` (false→true) để màn xác nhận điều hướng tiếp bằng đơn
+    // cũ. Ngăn lỗi "bấm bao nhiêu lần đặt bấy nhiêu lần" khi quay lại bấm lại.
+    if (state.booking != null) {
+      emit(state.copyWith(submitted: false));
+      emit(state.copyWith(submitted: true));
+      return;
+    }
+
     emit(state.copyWith(isSubmitting: true, errorMessage: null));
 
     // endTime phải sau startTime (validator backend). Suy ra từ số ngày đã chọn
