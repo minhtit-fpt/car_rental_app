@@ -10,6 +10,11 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Localization (i18n) — gen-l10n + ARB
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+
   # Navigation
   go_router: ^14.0.0
 
@@ -43,6 +48,11 @@ dependencies:
 
   # Chọn ảnh giấy tờ KYC (CCCD, bằng lái, selfie) từ thư viện/camera
   image_picker: ^1.1.2
+  share_plus: ^12.0.2
+
+  # Bản đồ trực tiếp (Phase C) — Google Maps SDK + vị trí hiện tại
+  google_maps_flutter: ^2.10.0
+  geolocator: ^13.0.2
 
 dev_dependencies:
   flutter_test:
@@ -63,3 +73,4 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
+  generate: true

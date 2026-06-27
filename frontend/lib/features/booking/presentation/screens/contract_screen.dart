@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
@@ -29,6 +31,7 @@ class _ContractView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocListener<BookingCubit, BookingFormState>(
       listenWhen: (p, c) => c.contractSigned && !p.contractSigned,
       listener: (context, state) {
@@ -47,12 +50,12 @@ class _ContractView extends StatelessWidget {
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.palette.background,
           body: CustomScrollView(
             slivers: [
-              const RvSliverAppBar(
-                title: 'Hợp đồng điện tử',
-                subtitle: 'Đọc kỹ và ký hợp đồng',
+              RvSliverAppBar(
+                title: l10n.contractTitle,
+                subtitle: l10n.contractSubtitle,
                 role: RvRole.renter,
               ),
               SliverToBoxAdapter(
@@ -87,6 +90,7 @@ class _ContractHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -97,9 +101,9 @@ class _ContractHeader extends StatelessWidget {
         children: [
           const Text('📋', style: TextStyle(fontSize: 36)),
           const SizedBox(height: 10),
-          const Text(
-            'Hợp đồng thuê xe',
-            style: TextStyle(
+          Text(
+            l10n.contractHeading,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -117,9 +121,9 @@ class _ContractHeader extends StatelessWidget {
               color: Colors.white.withAlpha(30),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
-              'Mã hợp đồng: HĐ-2025-08472',
-              style: TextStyle(
+            child: Text(
+              l10n.contractCode('HĐ-2025-08472'),
+              style: const TextStyle(
                 fontSize: 12,
                 color: Colors.white,
                 fontFamily: 'monospace',
@@ -137,15 +141,16 @@ class _ContractBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -154,34 +159,24 @@ class _ContractBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _ContractSection(
-            title: 'I. CÁC BÊN THAM GIA',
-            content:
-                '• Bên A (Chủ xe): Được xác minh qua hệ thống KYC RideVN\n'
-                '• Bên B (Người thuê): Đã hoàn tất xác minh danh tính',
+          _ContractSection(
+            title: l10n.contractPartiesTitle,
+            content: l10n.contractPartiesBody,
           ),
-          const Divider(color: AppColors.border, height: 24),
-          const _ContractSection(
-            title: 'II. THÔNG TIN XE',
-            content:
-                'Xe được giao đúng tình trạng đã mô tả. Người thuê có '
-                'trách nhiệm kiểm tra xe trước khi nhận và xác nhận trong ứng dụng.',
+          Divider(color: context.palette.border, height: 24),
+          _ContractSection(
+            title: l10n.contractVehicleTitle,
+            content: l10n.contractVehicleBody,
           ),
-          const Divider(color: AppColors.border, height: 24),
-          const _ContractSection(
-            title: 'III. ĐIỀU KHOẢN SỬ DỤNG',
-            content:
-                '• Không sử dụng xe vào mục đích trái pháp luật\n'
-                '• Không cho người khác lái xe khi chưa được chủ xe đồng ý\n'
-                '• Trả xe đúng thời hạn, đúng địa điểm thỏa thuận\n'
-                '• Bảo quản xe cẩn thận, không tự ý sửa chữa',
+          Divider(color: context.palette.border, height: 24),
+          _ContractSection(
+            title: l10n.contractTermsTitle,
+            content: l10n.contractTermsBody,
           ),
-          const Divider(color: AppColors.border, height: 24),
-          const _ContractSection(
-            title: 'IV. BỒI THƯỜNG THIỆT HẠI',
-            content:
-                'Mọi thiệt hại nằm ngoài phạm vi bảo hiểm sẽ do Bên B '
-                'chịu trách nhiệm bồi thường theo định giá của bên thứ ba được chỉ định.',
+          Divider(color: context.palette.border, height: 24),
+          _ContractSection(
+            title: l10n.contractCompensationTitle,
+            content: l10n.contractCompensationBody,
           ),
         ],
       ),
@@ -201,19 +196,19 @@ class _ContractSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
             letterSpacing: 0.3,
           ),
         ),
         const SizedBox(height: 6),
         Text(
           content,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: AppColors.secondaryText,
+            color: context.palette.secondaryText,
             height: 1.6,
           ),
         ),
@@ -234,12 +229,13 @@ class _TermsSectionState extends State<_TermsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.palette.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,14 +247,14 @@ class _TermsSectionState extends State<_TermsSection> {
             visualDensity: VisualDensity.compact,
           ),
           const SizedBox(width: 4),
-          const Expanded(
+          Expanded(
             child: Padding(
-              padding: EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.only(top: 10),
               child: Text(
-                'Tôi đã đọc kỹ và đồng ý với tất cả điều khoản trong hợp đồng thuê xe này.',
+                l10n.contractAgree,
                 style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.secondaryText,
+                  color: context.palette.secondaryText,
                   height: 1.5,
                 ),
               ),
@@ -280,14 +276,15 @@ class _SignatureSectionState extends State<_SignatureSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.palette.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.palette.border),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,14 +296,14 @@ class _SignatureSectionState extends State<_SignatureSection> {
                 visualDensity: VisualDensity.compact,
               ),
               const SizedBox(width: 4),
-              const Expanded(
+              Expanded(
                 child: Padding(
-                  padding: EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.only(top: 10),
                   child: Text(
-                    'Tôi đã đọc kỹ và đồng ý với tất cả điều khoản trong hợp đồng thuê xe này.',
+                    l10n.contractAgree,
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.secondaryText,
+                      color: context.palette.secondaryText,
                       height: 1.5,
                     ),
                   ),
@@ -317,7 +314,7 @@ class _SignatureSectionState extends State<_SignatureSection> {
         ),
         const SizedBox(height: 16),
         PrimaryButton(
-          label: 'Ký hợp đồng',
+          label: l10n.contractSign,
           onPressed: _agreed
               ? () => context.read<BookingCubit>().signContract()
               : null,

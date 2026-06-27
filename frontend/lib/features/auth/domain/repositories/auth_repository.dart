@@ -21,4 +21,13 @@ abstract interface class AuthRepository {
 
   /// Cập nhật hồ sơ (MVP: email) qua `/api/users/me`, trả user mới.
   Future<AuthUser> updateProfile({String? email});
+
+  /// Đổi mật khẩu qua `/api/auth/change-password`.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
+  /// Xoá cứng tài khoản qua `/api/users/me` rồi xoá token cục bộ (kết thúc phiên).
+  Future<void> deleteAccount();
 }

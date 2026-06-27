@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
+import 'package:frontend/shared/utils/price_format.dart';
 
 /// Nút tim tròn nền trắng đặt trên ảnh xe (card / list tile). Bấm để lưu/bỏ.
 class _FavoriteHeartButton extends StatelessWidget {
@@ -19,20 +23,18 @@ class _FavoriteHeartButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white.withAlpha(230),
           shape: BoxShape.circle,
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: AppColors.cardShadowColor,
+              color: context.palette.cardShadowColor,
               blurRadius: 6,
               offset: Offset(0, 2),
             ),
           ],
         ),
         child: Icon(
-          isFavorite
-              ? Icons.favorite_rounded
-              : Icons.favorite_border_rounded,
+          isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
           size: 17,
-          color: isFavorite ? AppColors.danger : AppColors.secondaryText,
+          color: isFavorite ? AppColors.danger : context.palette.secondaryText,
         ),
       ),
     );
@@ -40,14 +42,8 @@ class _FavoriteHeartButton extends StatelessWidget {
 }
 
 // pricePerDay is stored in K VNĐ (e.g. 890 = 890K VNĐ)
-String _fmtVnd(double kAmount) {
-  if (kAmount >= 1000) {
-    final m = kAmount / 1000;
-    if (m == m.truncateToDouble()) return '${m.truncate()}M VNĐ';
-    return '${m.toStringAsFixed(2).replaceAll(RegExp(r'0+$'), '')}M VNĐ';
-  }
-  return '${kAmount.toInt()}K VNĐ';
-}
+String _fmtVnd(double kAmount) =>
+    formatPricePerDayK(kAmount, withCurrency: true);
 
 class CarCard extends StatelessWidget {
   const CarCard({super.key, required this.vehicle, this.onTap, this.width});
@@ -63,12 +59,12 @@ class CarCard extends StatelessWidget {
       child: Container(
         width: width,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.palette.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
-          boxShadow: const [
+          border: Border.all(color: context.palette.border),
+          boxShadow: [
             BoxShadow(
-              color: AppColors.cardShadowColor,
+              color: context.palette.cardShadowColor,
               blurRadius: 16,
               offset: Offset(0, 2),
             ),
@@ -136,6 +132,7 @@ class _CardDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       child: Column(
@@ -143,10 +140,10 @@ class _CardDetails extends StatelessWidget {
         children: [
           Text(
             vehicle.name,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
               height: 1.2,
             ),
             maxLines: 1,
@@ -154,10 +151,8 @@ class _CardDetails extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            vehicle.isElectric
-                ? 'Điện · ${vehicle.typeLabel}'
-                : vehicle.typeLabel,
-            style: const TextStyle(fontSize: 12, color: AppColors.mutedText),
+            vehicle.typeSummaryL10n(l10n),
+            style: TextStyle(fontSize: 12, color: context.palette.mutedText),
           ),
           const SizedBox(height: 8),
           Row(
@@ -173,11 +168,14 @@ class _CardDetails extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 3),
-              const Padding(
-                padding: EdgeInsets.only(bottom: 1),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 1),
                 child: Text(
-                  '/ngày',
-                  style: TextStyle(fontSize: 11, color: AppColors.mutedText),
+                  l10n.vehiclePerDay,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: context.palette.mutedText,
+                  ),
                 ),
               ),
             ],
@@ -199,6 +197,7 @@ class _VehicleMetaRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (vehicle.hasRating) {
       return Row(
         children: [
@@ -224,9 +223,9 @@ class _VehicleMetaRow extends StatelessWidget {
             Expanded(
               child: Text(
                 '· ${vehicle.ownerName}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.secondaryText,
+                  color: context.palette.secondaryText,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -243,15 +242,19 @@ class _VehicleMetaRow extends StatelessWidget {
               ? Icons.check_circle_rounded
               : Icons.cancel_rounded,
           size: 13,
-          color: vehicle.isAvailable ? AppColors.teal : AppColors.mutedText,
+          color: vehicle.isAvailable
+              ? AppColors.teal
+              : context.palette.mutedText,
         ),
         const SizedBox(width: 4),
         Text(
-          vehicle.isAvailable ? 'Còn trống' : 'Đã thuê',
+          vehicle.isAvailable ? l10n.vehicleAvailable : l10n.vehicleRented,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: vehicle.isAvailable ? AppColors.teal : AppColors.mutedText,
+            color: vehicle.isAvailable
+                ? AppColors.teal
+                : context.palette.mutedText,
           ),
         ),
         if (vehicle.deliveryAvailable) ...[
@@ -262,9 +265,9 @@ class _VehicleMetaRow extends StatelessWidget {
             color: AppColors.primary,
           ),
           const SizedBox(width: 3),
-          const Text(
-            'Giao tận nơi',
-            style: TextStyle(
+          Text(
+            l10n.vehicleDelivery,
+            style: const TextStyle(
               fontSize: 11,
               color: AppColors.primary,
               fontWeight: FontWeight.w500,
@@ -295,16 +298,17 @@ class CarListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.palette.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-          boxShadow: const [
+          border: Border.all(color: context.palette.border),
+          boxShadow: [
             BoxShadow(
-              color: AppColors.cardShadowColor,
+              color: context.palette.cardShadowColor,
               blurRadius: 12,
               offset: Offset(0, 2),
             ),
@@ -374,10 +378,10 @@ class CarListTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             vehicle.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.darkText,
+                              color: context.palette.darkText,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -387,21 +391,19 @@ class CarListTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      vehicle.isElectric
-                          ? 'Điện · ${vehicle.typeLabel}'
-                          : vehicle.typeLabel,
-                      style: const TextStyle(
+                      vehicle.typeSummaryL10n(l10n),
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                     if (vehicle.city != null) ...[
                       const SizedBox(height: 2),
                       Text(
                         '📍 ${vehicle.city}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.mutedText,
+                          color: context.palette.mutedText,
                         ),
                       ),
                     ],
@@ -422,13 +424,13 @@ class CarListTile extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 2),
-                            const Padding(
-                              padding: EdgeInsets.only(bottom: 1),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 1),
                               child: Text(
-                                '/ngày',
+                                l10n.vehiclePerDay,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: AppColors.mutedText,
+                                  color: context.palette.mutedText,
                                 ),
                               ),
                             ),
@@ -448,25 +450,25 @@ class CarListTile extends StatelessWidget {
                               const SizedBox(width: 3),
                               Text(
                                 '${vehicle.rating!.toStringAsFixed(1)} (${vehicle.reviewCount})',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.secondaryText,
+                                  color: context.palette.secondaryText,
                                 ),
                               ),
                             ],
                           )
                         else if (vehicle.deliveryAvailable)
                           Row(
-                            children: const [
-                              Icon(
+                            children: [
+                              const Icon(
                                 Icons.local_shipping_outlined,
                                 size: 13,
                                 color: AppColors.primary,
                               ),
-                              SizedBox(width: 3),
+                              const SizedBox(width: 3),
                               Text(
-                                'Giao tận nơi',
-                                style: TextStyle(
+                                l10n.vehicleDelivery,
+                                style: const TextStyle(
                                   fontSize: 11,
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w500,

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/injector.dart';
-import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/review/domain/entities/review.dart';
 import 'package:frontend/features/review/presentation/cubit/user_reviews_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
@@ -31,17 +32,18 @@ class _UserReviewsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             RvSliverAppBar(
-              title: 'Đánh giá',
+              title: l10n.reviewsTitle,
               subtitle: userName != null && userName!.isNotEmpty
-                  ? 'Đánh giá về $userName'
-                  : 'Tất cả đánh giá nhận được',
+                  ? l10n.reviewsAboutUser(userName!)
+                  : l10n.reviewsAllReceived,
             ),
             BlocBuilder<UserReviewsCubit, UserReviewsState>(
               builder: (context, state) => switch (state) {
@@ -54,9 +56,9 @@ class _UserReviewsView extends StatelessWidget {
                   child: _Message(text: message),
                 ),
                 UserReviewsLoaded(:final summary) when summary.total == 0 =>
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     hasScrollBody: false,
-                    child: _Message(text: 'Chưa có đánh giá nào'),
+                    child: _Message(text: l10n.reviewsEmpty),
                   ),
                 UserReviewsLoaded(:final summary) => _ReviewsSliver(
                   summary: summary,
@@ -101,12 +103,12 @@ class _SummaryHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -116,10 +118,10 @@ class _SummaryHeader extends StatelessWidget {
         children: [
           Text(
             summary.average.toStringAsFixed(1),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 36,
               fontWeight: FontWeight.w800,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(width: 16),
@@ -129,10 +131,10 @@ class _SummaryHeader extends StatelessWidget {
               RatingStars(rating: summary.average, size: 18),
               const SizedBox(height: 4),
               Text(
-                '${summary.total} đánh giá',
-                style: const TextStyle(
+                AppLocalizations.of(context).reviewsCount(summary.total),
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
               ),
             ],
@@ -153,12 +155,12 @@ class _ReviewTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -173,9 +175,9 @@ class _ReviewTile extends StatelessWidget {
               RatingStars(rating: review.rating.toDouble(), size: 14),
               Text(
                 _formatDate(review.createdAt),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
               ),
             ],
@@ -184,9 +186,9 @@ class _ReviewTile extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               review.comment!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
                 height: 1.4,
               ),
             ),
@@ -215,7 +217,7 @@ class _Message extends StatelessWidget {
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 14, color: AppColors.secondaryText),
+        style: TextStyle(fontSize: 14, color: context.palette.secondaryText),
       ),
     );
   }

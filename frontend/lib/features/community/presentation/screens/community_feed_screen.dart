@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/community/domain/entities/trip_story.dart';
 import 'package:frontend/features/community/presentation/cubit/community_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 
 class CommunityFeedScreen extends StatelessWidget {
@@ -27,12 +29,12 @@ class _CommunityView extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: NestedScrollView(
           headerSliverBuilder: (context, _) => [
             SliverAppBar(
               pinned: true,
-              backgroundColor: AppColors.surface,
+              backgroundColor: context.palette.surface,
               elevation: 0,
               surfaceTintColor: Colors.transparent,
               title: Row(
@@ -46,37 +48,40 @@ class _CommunityView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Cộng đồng',
+                  Text(
+                    AppLocalizations.of(context).communityTitle,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.darkText,
+                      color: context.palette.darkText,
                     ),
                   ),
                 ],
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.add_circle_outline_rounded,
-                      color: AppColors.primary),
+                  icon: const Icon(
+                    Icons.add_circle_outline_rounded,
+                    color: AppColors.primary,
+                  ),
                   onPressed: () => _openComposer(context),
                 ),
               ],
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(1),
-                child: Container(height: 1, color: AppColors.border),
+                child: Container(height: 1, color: context.palette.border),
               ),
             ),
           ],
           body: BlocBuilder<CommunityCubit, CommunityState>(
             builder: (context, state) => switch (state) {
-              CommunityLoading() =>
-                const Center(child: CircularProgressIndicator()),
+              CommunityLoading() => const Center(
+                child: CircularProgressIndicator(),
+              ),
               CommunityError(:final message) => _ErrorView(
-                  message: message,
-                  onRetry: () => context.read<CommunityCubit>().load(),
-                ),
+                message: message,
+                onRetry: () => context.read<CommunityCubit>().load(),
+              ),
               CommunityLoaded(:final stories, :final likedIds) =>
                 RefreshIndicator(
                   onRefresh: () => context.read<CommunityCubit>().load(),
@@ -91,20 +96,27 @@ class _CommunityView extends StatelessWidget {
                                 onTap: () => _openComposer(context),
                               ),
                               const SizedBox(height: 16),
-                              const SectionHeader(title: 'Câu chuyện mới nhất'),
+                              SectionHeader(
+                                title: AppLocalizations.of(
+                                  context,
+                                ).communityLatestStories,
+                              ),
                             ],
                           ),
                         ),
                       ),
                       if (stories.isEmpty)
-                        const SliverToBoxAdapter(
+                        SliverToBoxAdapter(
                           child: Padding(
-                            padding: EdgeInsets.only(top: 60),
+                            padding: const EdgeInsets.only(top: 60),
                             child: Center(
-                              child: Text('Chưa có câu chuyện nào',
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.mutedText)),
+                              child: Text(
+                                AppLocalizations.of(context).communityEmpty,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: context.palette.mutedText,
+                                ),
+                              ),
                             ),
                           ),
                         )
@@ -138,12 +150,13 @@ class _CommunityView extends StatelessWidget {
   }
 
   Future<void> _openComposer(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final cubit = context.read<CommunityCubit>();
     final controller = TextEditingController();
     final content = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.palette.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -158,23 +171,26 @@ class _CommunityView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Chia sẻ chuyến đi',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkText)),
+            Text(
+              l10n.communityShareTrip,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: context.palette.darkText,
+              ),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
               maxLines: 4,
               maxLength: 2000,
               decoration: InputDecoration(
-                hintText: 'Kể về chuyến đi của bạn...',
+                hintText: l10n.communityComposerHint,
                 filled: true,
-                fillColor: AppColors.background,
+                fillColor: context.palette.background,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: context.palette.border),
                 ),
               ),
             ),
@@ -184,7 +200,7 @@ class _CommunityView extends StatelessWidget {
                 final text = controller.text.trim();
                 if (text.isNotEmpty) Navigator.pop(sheetContext, text);
               },
-              child: const Text('Đăng'),
+              child: Text(l10n.communityPost),
             ),
           ],
         ),
@@ -194,8 +210,9 @@ class _CommunityView extends StatelessWidget {
     if (content == null || !context.mounted) return;
     final error = await cubit.createStory(content);
     if (error != null && context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
     }
   }
 }
@@ -213,13 +230,20 @@ class _ErrorView extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 14, color: AppColors.secondaryText)),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: context.palette.secondaryText,
+              ),
+            ),
           ),
           const SizedBox(height: 12),
-          ElevatedButton(onPressed: onRetry, child: const Text('Thử lại')),
+          ElevatedButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context).commonRetry),
+          ),
         ],
       ),
     );
@@ -237,12 +261,12 @@ class _WriteStoryBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.palette.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-          boxShadow: const [
+          border: Border.all(color: context.palette.border),
+          boxShadow: [
             BoxShadow(
-              color: AppColors.cardShadowColor,
+              color: context.palette.cardShadowColor,
               blurRadius: 8,
               offset: Offset(0, 2),
             ),
@@ -264,16 +288,21 @@ class _WriteStoryBanner extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
                 ),
-                child: const Text(
-                  'Chia sẻ chuyến đi của bạn...',
-                  style: TextStyle(fontSize: 13, color: AppColors.mutedText),
+                decoration: BoxDecoration(
+                  color: context.palette.background,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: context.palette.border),
+                ),
+                child: Text(
+                  AppLocalizations.of(context).communityBannerPrompt,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.palette.mutedText,
+                  ),
                 ),
               ),
             ),
@@ -299,12 +328,12 @@ class _StoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -348,16 +377,18 @@ class _StoryCard extends StatelessWidget {
                         children: [
                           Text(
                             story.authorName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.darkText,
+                              color: context.palette.darkText,
                             ),
                           ),
                           Text(
                             _relativeTime(story.createdAt),
-                            style: const TextStyle(
-                                fontSize: 11, color: AppColors.mutedText),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: context.palette.mutedText,
+                            ),
                           ),
                         ],
                       ),
@@ -367,9 +398,9 @@ class _StoryCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   story.content,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.secondaryText,
+                    color: context.palette.secondaryText,
                     height: 1.5,
                   ),
                 ),
@@ -385,14 +416,17 @@ class _StoryCard extends StatelessWidget {
                                 ? Icons.favorite_rounded
                                 : Icons.favorite_border_rounded,
                             size: 18,
-                            color:
-                                isLiked ? AppColors.danger : AppColors.mutedText,
+                            color: isLiked
+                                ? AppColors.danger
+                                : context.palette.mutedText,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '${story.likes}',
-                            style: const TextStyle(
-                                fontSize: 13, color: AppColors.secondaryText),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: context.palette.secondaryText,
+                            ),
                           ),
                         ],
                       ),

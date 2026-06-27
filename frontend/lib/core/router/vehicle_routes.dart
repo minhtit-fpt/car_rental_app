@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/network/api_exception.dart';
-import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
 import 'package:frontend/features/vehicle/domain/usecases/get_vehicle_usecase.dart';
@@ -44,8 +44,8 @@ class _VehicleDetailLoaderState extends State<_VehicleDetailLoader> {
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Scaffold(
-            backgroundColor: AppColors.background,
+          return Scaffold(
+            backgroundColor: context.palette.background,
             body: Center(child: CircularProgressIndicator()),
           );
         }
@@ -55,17 +55,17 @@ class _VehicleDetailLoaderState extends State<_VehicleDetailLoader> {
               ? error.message
               : 'Không tải được thông tin xe';
           return Scaffold(
-            backgroundColor: AppColors.background,
-            appBar: AppBar(backgroundColor: AppColors.surface),
+            backgroundColor: context.palette.background,
+            appBar: AppBar(backgroundColor: context.palette.surface),
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.secondaryText,
+                    color: context.palette.secondaryText,
                   ),
                 ),
               ),

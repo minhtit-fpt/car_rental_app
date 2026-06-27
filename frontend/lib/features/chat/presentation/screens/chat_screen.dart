@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/chat/domain/entities/message.dart';
 import 'package:frontend/features/chat/presentation/cubit/chat_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({
@@ -22,10 +24,7 @@ class ChatScreen extends StatelessWidget {
     final currentUserId = context.read<AuthCubit>().state.user?.id ?? '';
     return BlocProvider<ChatCubit>(
       create: (_) => sl<ChatCubit>()..start(conversationId),
-      child: _ChatView(
-        partnerName: partnerName,
-        currentUserId: currentUserId,
-      ),
+      child: _ChatView(partnerName: partnerName, currentUserId: currentUserId),
     );
   }
 }
@@ -57,8 +56,9 @@ class _ChatViewState extends State<_ChatView> {
     _controller.clear();
     final error = await context.read<ChatCubit>().send(text);
     if (error != null && mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
     }
     _scrollToBottom();
   }
@@ -80,14 +80,16 @@ class _ChatViewState extends State<_ChatView> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.palette.surface,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
           leading: IconButton(
-            icon:
-                const Icon(Icons.arrow_back_rounded, color: AppColors.darkText),
+            icon: Icon(
+              Icons.arrow_back_rounded,
+              color: context.palette.darkText,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           title: Row(
@@ -106,17 +108,17 @@ class _ChatViewState extends State<_ChatView> {
               const SizedBox(width: 10),
               Text(
                 widget.partnerName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
             ],
           ),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppColors.border),
+            child: Container(height: 1, color: context.palette.border),
           ),
         ),
         body: Column(
@@ -129,35 +131,47 @@ class _ChatViewState extends State<_ChatView> {
                     b.messages.length > a.messages.length,
                 listener: (_, _) => _scrollToBottom(),
                 builder: (context, state) => switch (state) {
-                  ChatLoading() =>
-                    const Center(child: CircularProgressIndicator()),
+                  ChatLoading() => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
                   ChatError(:final message) => Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Text(message,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontSize: 14,
-                                color: AppColors.secondaryText)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: context.palette.secondaryText,
+                        ),
                       ),
                     ),
-                  ChatLoaded(:final messages) => messages.isEmpty
-                      ? const Center(
-                          child: Text('Chưa có tin nhắn nào',
+                  ),
+                  ChatLoaded(:final messages) =>
+                    messages.isEmpty
+                        ? Center(
+                            child: Text(
+                              AppLocalizations.of(context).chatNoMessages,
                               style: TextStyle(
-                                  fontSize: 14, color: AppColors.mutedText)),
-                        )
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          itemCount: messages.length,
-                          itemBuilder: (context, index) => _MessageBubble(
-                            message: messages[index],
-                            isMe: messages[index].senderId ==
-                                widget.currentUserId,
+                                fontSize: 14,
+                                color: context.palette.mutedText,
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            itemCount: messages.length,
+                            itemBuilder: (context, index) => _MessageBubble(
+                              message: messages[index],
+                              isMe:
+                                  messages[index].senderId ==
+                                  widget.currentUserId,
+                            ),
                           ),
-                        ),
                 },
               ),
             ),
@@ -176,13 +190,15 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final time = '${message.sentAt.hour.toString().padLeft(2, '0')}:'
+    final time =
+        '${message.sentAt.hour.toString().padLeft(2, '0')}:'
         '${message.sentAt.minute.toString().padLeft(2, '0')}';
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
-        mainAxisAlignment:
-            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -201,17 +217,20 @@ class _MessageBubble extends StatelessWidget {
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment:
-                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isMe
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   constraints: BoxConstraints(
                     maxWidth: MediaQuery.of(context).size.width * 0.72,
                   ),
                   decoration: BoxDecoration(
-                    color: isMe ? AppColors.primary : AppColors.surface,
+                    color: isMe ? AppColors.primary : context.palette.surface,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(18),
                       topRight: const Radius.circular(18),
@@ -222,7 +241,7 @@ class _MessageBubble extends StatelessWidget {
                       BoxShadow(
                         color: isMe
                             ? AppColors.primary.withAlpha(40)
-                            : AppColors.cardShadowColor,
+                            : context.palette.cardShadowColor,
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -232,7 +251,7 @@ class _MessageBubble extends StatelessWidget {
                     message.body,
                     style: TextStyle(
                       fontSize: 14,
-                      color: isMe ? Colors.white : AppColors.darkText,
+                      color: isMe ? Colors.white : context.palette.darkText,
                       height: 1.4,
                     ),
                   ),
@@ -240,8 +259,10 @@ class _MessageBubble extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   time,
-                  style: const TextStyle(
-                      fontSize: 10, color: AppColors.mutedText),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: context.palette.mutedText,
+                  ),
                 ),
               ],
             ),
@@ -267,34 +288,37 @@ class _InputBar extends StatelessWidget {
         12,
         8 + MediaQuery.of(context).padding.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: context.palette.surface,
+        border: Border(top: BorderSide(color: context.palette.border)),
       ),
       child: Row(
         children: [
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: context.palette.background,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: context.palette.border),
               ),
               child: TextField(
                 controller: controller,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onSend(),
-                decoration: const InputDecoration(
-                  hintText: 'Nhắn tin...',
-                  hintStyle:
-                      TextStyle(fontSize: 14, color: AppColors.mutedText),
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context).chatInputHint,
+                  hintStyle: TextStyle(
+                    fontSize: 14,
+                    color: context.palette.mutedText,
+                  ),
                   border: InputBorder.none,
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   isDense: true,
                 ),
-                style:
-                    const TextStyle(fontSize: 14, color: AppColors.darkText),
+                style: TextStyle(fontSize: 14, color: context.palette.darkText),
                 maxLines: null,
               ),
             ),
@@ -309,8 +333,11 @@ class _InputBar extends StatelessWidget {
                 color: AppColors.primary,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.send_rounded,
-                  color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.send_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
         ],

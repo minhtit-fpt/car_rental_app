@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/review/domain/entities/review.dart';
 import 'package:frontend/features/review/presentation/cubit/user_reviews_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 
@@ -43,11 +45,13 @@ class UserReviewsSection extends StatelessWidget {
                 ),
               ),
             ),
-            UserReviewsError() => const _ReviewsShell(
-              child: _EmptyText('Không tải được đánh giá. Thử lại sau.'),
+            UserReviewsError() => _ReviewsShell(
+              child: _EmptyText(AppLocalizations.of(context).reviewsLoadError),
             ),
             UserReviewsLoaded(:final summary) when summary.total == 0 =>
-              const _ReviewsShell(child: _EmptyText('Chưa có đánh giá nào.')),
+              _ReviewsShell(
+                child: _EmptyText(AppLocalizations.of(context).reviewsEmpty),
+              ),
             UserReviewsLoaded(:final summary) => _ReviewsCard(
               summary: summary,
               maxItems: maxItems,
@@ -72,12 +76,12 @@ class _ReviewsShell extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -86,7 +90,7 @@ class _ReviewsShell extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Đánh giá'),
+          SectionHeader(title: AppLocalizations.of(context).reviewsTitle),
           const SizedBox(height: 8),
           child,
         ],
@@ -104,7 +108,7 @@ class _EmptyText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(fontSize: 13, color: AppColors.mutedText),
+      style: TextStyle(fontSize: 13, color: context.palette.mutedText),
     );
   }
 }
@@ -124,17 +128,18 @@ class _ReviewsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final shown = summary.items.take(maxItems).toList(growable: false);
     final hasMore = summary.total > shown.length;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -144,7 +149,7 @@ class _ReviewsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(
-            title: 'Đánh giá',
+            title: l10n.reviewsTitle,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -156,10 +161,10 @@ class _ReviewsCard extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   '${summary.average.toStringAsFixed(1)} · ${summary.total}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
               ],
@@ -176,7 +181,7 @@ class _ReviewsCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Xem tất cả ${summary.total} đánh giá',
+                    l10n.reviewsViewAll(summary.total),
                     style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.primary,
@@ -209,8 +214,8 @@ class _ReviewRow extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.only(top: 12),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: context.palette.border)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,21 +234,21 @@ class _ReviewRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Người thuê',
+                  AppLocalizations.of(context).roleRenter,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
               ),
               Text(
                 _formatDate(review.createdAt),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
               ),
             ],
@@ -254,9 +259,9 @@ class _ReviewRow extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               review.comment!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
                 height: 1.4,
               ),
             ),

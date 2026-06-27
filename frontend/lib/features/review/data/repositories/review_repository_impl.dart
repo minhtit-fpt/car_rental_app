@@ -14,7 +14,11 @@ class ReviewRepositoryImpl implements ReviewRepository {
     required int rating,
     String? comment,
   }) async => ReviewModel.fromJson(
-    await _remote.create(bookingId: bookingId, rating: rating, comment: comment),
+    await _remote.create(
+      bookingId: bookingId,
+      rating: rating,
+      comment: comment,
+    ),
   );
 
   @override

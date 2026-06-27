@@ -50,4 +50,16 @@ class AuthRemoteDataSource {
     final data = await _client.patch('/api/users/me', data: {'email': email});
     return data as Map<String, dynamic>;
   }
+
+  /// PATCH `/api/auth/change-password` — đổi mật khẩu của chính mình.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) => _client.patch(
+    '/api/auth/change-password',
+    data: {'currentPassword': currentPassword, 'newPassword': newPassword},
+  );
+
+  /// DELETE `/api/users/me` — xoá cứng tài khoản của chính mình.
+  Future<void> deleteAccount() => _client.delete('/api/users/me');
 }

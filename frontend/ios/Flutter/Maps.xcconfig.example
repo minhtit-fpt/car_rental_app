@@ -1,0 +1,5 @@
+// Google Maps key cho iOS (Phase C). KHÔNG commit khoá thật.
+// Cách dùng:
+//   1. cp Maps.xcconfig.example Maps.xcconfig
+//   2. Điền khoá vào dòng dưới (Maps.xcconfig đã được .gitignore).
+MAPS_API_KEY=

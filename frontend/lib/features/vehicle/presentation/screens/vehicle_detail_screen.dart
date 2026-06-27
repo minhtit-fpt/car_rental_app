@@ -4,27 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/di/injector.dart';
+import 'package:frontend/core/location/app_geo.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/chat/presentation/cubit/start_conversation_cubit.dart';
 import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
 import 'package:frontend/features/review/presentation/widgets/user_reviews_section.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
-import 'package:frontend/shared/utils/coming_soon.dart';
+import 'package:frontend/shared/utils/price_format.dart';
+import 'package:frontend/shared/utils/share_helper.dart';
 
 // pricePerDay stored in K VNĐ
-String _fmtVnd(double kAmount) {
-  if (kAmount >= 1000) {
-    final m = kAmount / 1000;
-    if (m == m.truncateToDouble()) return '${m.truncate()}M';
-    return '${m.toStringAsFixed(2).replaceAll(RegExp(r'0+$'), '')}M';
-  }
-  return '${kAmount.toInt()}K';
-}
+String _fmtVnd(double kAmount) => formatPricePerDayK(kAmount);
 
 class VehicleDetailScreen extends StatefulWidget {
   const VehicleDetailScreen({super.key, required this.vehicle});
@@ -43,8 +42,8 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     final ok = await context.read<FavoriteCubit>().toggle(widget.vehicle);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Không cập nhật được yêu thích, thử lại sau'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).vehicleFavoriteError),
         ),
       );
     }
@@ -57,7 +56,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             _DetailAppBar(
@@ -131,7 +130,7 @@ class _DetailAppBar extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 260,
       pinned: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.palette.surface,
       automaticallyImplyLeading: false,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       flexibleSpace: FlexibleSpaceBar(
@@ -157,9 +156,9 @@ class _DetailAppBar extends StatelessWidget {
               left: 12,
               child: _GlassCircleButton(
                 onTap: () => context.pop(),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_rounded,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                   size: 20,
                 ),
               ),
@@ -176,16 +175,18 @@ class _DetailAppBar extends StatelessWidget {
                       isFavorite
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
-                      color: isFavorite ? AppColors.danger : AppColors.darkText,
+                      color: isFavorite
+                          ? AppColors.danger
+                          : context.palette.darkText,
                       size: 20,
                     ),
                   ),
                   const SizedBox(width: 8),
                   _GlassCircleButton(
-                    onTap: () => showComingSoonSnack(context, 'Chia sẻ'),
-                    child: const Icon(
+                    onTap: () => shareVehicle(context, vehicle),
+                    child: Icon(
                       Icons.share_outlined,
-                      color: AppColors.darkText,
+                      color: context.palette.darkText,
                       size: 20,
                     ),
                   ),
@@ -247,9 +248,9 @@ class _GlassCircleButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white.withAlpha(210),
               shape: BoxShape.circle,
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: AppColors.cardShadowColor,
+                  color: context.palette.cardShadowColor,
                   blurRadius: 8,
                   offset: Offset(0, 2),
                 ),
@@ -273,26 +274,27 @@ class _BadgeStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
-      color: AppColors.surface,
+      color: context.palette.surface,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
         children: [
           _Badge(
-            label: '⚡ Đặt nhanh',
+            label: l10n.vehicleBadgeInstant,
             bg: AppColors.navySoft,
             textColor: AppColors.primary,
           ),
           if (vehicle.isElectric)
             _Badge(
-              label: '🔋 Xe điện',
+              label: l10n.vehicleBadgeElectric,
               bg: AppColors.tealSoft,
               textColor: AppColors.tealDark,
             ),
           _Badge(
-            label: '🏷 −15% cuối tuần',
+            label: l10n.vehicleBadgeWeekendDiscount,
             bg: AppColors.warningSoft,
             textColor: AppColors.warning,
           ),
@@ -342,6 +344,7 @@ class _TitleSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -352,10 +355,10 @@ class _TitleSection extends StatelessWidget {
             Expanded(
               child: Text(
                 vehicle.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                   height: 1.2,
                   letterSpacing: -0.4,
                 ),
@@ -374,9 +377,12 @@ class _TitleSection extends StatelessWidget {
                     height: 1,
                   ),
                 ),
-                const Text(
-                  '/ngày',
-                  style: TextStyle(fontSize: 12, color: AppColors.mutedText),
+                Text(
+                  l10n.vehiclePerDay,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.palette.mutedText,
+                  ),
                 ),
               ],
             ),
@@ -384,10 +390,8 @@ class _TitleSection extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          vehicle.isElectric
-              ? 'Điện · ${vehicle.typeLabel}'
-              : vehicle.typeLabel,
-          style: const TextStyle(fontSize: 13, color: AppColors.mutedText),
+          vehicle.typeSummaryL10n(l10n),
+          style: TextStyle(fontSize: 13, color: context.palette.mutedText),
         ),
         const SizedBox(height: 10),
         // Rating + location + status
@@ -398,29 +402,31 @@ class _TitleSection extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 '${vehicle.rating!.toStringAsFixed(1)} (${vehicle.reviewCount})',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.secondaryText,
+                  color: context.palette.secondaryText,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(width: 10),
             ],
             StatusChip(
-              label: vehicle.isAvailable ? 'Còn xe' : 'Đã thuê',
+              label: vehicle.isAvailable
+                  ? l10n.vehicleInStock
+                  : l10n.vehicleRented,
               color: vehicle.isAvailable
                   ? AppColors.success
-                  : AppColors.mutedText,
+                  : context.palette.mutedText,
             ),
           ],
         ),
         const SizedBox(height: 6),
         Row(
           children: [
-            const Icon(
+            Icon(
               Icons.location_on_rounded,
               size: 14,
-              color: AppColors.mutedText,
+              color: context.palette.mutedText,
             ),
             const SizedBox(width: 4),
             Expanded(
@@ -428,10 +434,10 @@ class _TitleSection extends StatelessWidget {
                 vehicle.city ??
                     (vehicle.location.isNotEmpty
                         ? vehicle.location
-                        : 'Chưa cập nhật vị trí'),
-                style: const TextStyle(
+                        : l10n.vehicleNoLocation),
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.mutedText,
+                  color: context.palette.mutedText,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -453,18 +459,20 @@ class _SpecsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     // Chỉ hiển thị thông số có dữ liệu thật; nhiên liệu suy từ isElectric.
+    final transmissionLabel = vehicle.transmissionLabelL10n(l10n);
     final specs = <_SpecItem>[
       if (vehicle.seats != null)
-        _SpecItem(icon: '🪑', label: '${vehicle.seats} chỗ'),
-      if (vehicle.transmissionLabel != null)
-        _SpecItem(icon: '⚙️', label: vehicle.transmissionLabel!),
+        _SpecItem(icon: '🪑', label: l10n.vehicleSeats(vehicle.seats!)),
+      if (transmissionLabel != null)
+        _SpecItem(icon: '⚙️', label: transmissionLabel),
       _SpecItem(
         icon: vehicle.isElectric ? '⚡' : '⛽',
-        label: vehicle.isElectric ? 'Điện' : 'Xăng',
+        label: vehicle.isElectric ? l10n.vehicleElectric : l10n.vehicleFuelGas,
       ),
       if (vehicle.doors != null)
-        _SpecItem(icon: '🚪', label: '${vehicle.doors} cửa'),
+        _SpecItem(icon: '🚪', label: l10n.vehicleDoors(vehicle.doors!)),
     ];
 
     return Row(
@@ -489,12 +497,12 @@ class _SpecCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 3),
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -506,9 +514,9 @@ class _SpecCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             spec.label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color: AppColors.secondaryText,
+              color: context.palette.secondaryText,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -528,15 +536,16 @@ class _OwnerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -585,29 +594,29 @@ class _OwnerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  vehicle.ownerName ?? 'Chủ xe',
-                  style: const TextStyle(
+                  vehicle.ownerName ?? l10n.vehicleOwnerFallback,
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
                 const SizedBox(height: 2),
-                const Row(
+                Row(
                   children: [
                     Text(
                       '⭐ 4.9',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                     Flexible(
                       child: Text(
-                        ' · 36 chuyến · Phản hồi nhanh',
+                        l10n.vehicleOwnerMetaSample,
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.mutedText,
+                          color: context.palette.mutedText,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -653,13 +662,14 @@ class _MessageOwnerButtonView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocConsumer<StartConversationCubit, StartConversationState>(
       listener: (context, state) {
         switch (state) {
           case StartConversationReady(:final conversationId):
             context.push(
               '/chat/$conversationId',
-              extra: vehicle.ownerName ?? 'Chủ xe',
+              extra: vehicle.ownerName ?? l10n.vehicleOwnerFallback,
             );
           case StartConversationError(:final message):
             ScaffoldMessenger.of(
@@ -695,9 +705,9 @@ class _MessageOwnerButtonView extends StatelessWidget {
                     color: AppColors.primary,
                   ),
                 )
-              : const Text(
-                  'Nhắn tin',
-                  style: TextStyle(
+              : Text(
+                  l10n.vehicleMessage,
+                  style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
@@ -716,24 +726,24 @@ class _MessageOwnerButtonView extends StatelessWidget {
 class _TripRulesCard extends StatelessWidget {
   const _TripRulesCard();
 
-  static const _rules = [
-    'Không hút thuốc trong xe',
-    'Không chở hàng hoá cồng kềnh',
-    'Trả xe đúng giờ, đúng địa điểm',
-    'Vệ sinh xe trước khi trả',
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final rules = [
+      l10n.vehicleRuleNoSmoking,
+      l10n.vehicleRuleNoBulkyGoods,
+      l10n.vehicleRuleReturnOnTime,
+      l10n.vehicleRuleCleanBeforeReturn,
+    ];
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -742,9 +752,9 @@ class _TripRulesCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Quy định chuyến đi'),
+          SectionHeader(title: l10n.vehicleTripRulesTitle),
           const SizedBox(height: 12),
-          ..._rules.map((r) => _RuleItem(rule: r)),
+          ...rules.map((r) => _RuleItem(rule: r)),
         ],
       ),
     );
@@ -779,9 +789,9 @@ class _RuleItem extends StatelessWidget {
           Expanded(
             child: Text(
               rule,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
                 height: 1.4,
               ),
             ),
@@ -803,89 +813,99 @@ class _PickupMapBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(title: 'Địa điểm nhận xe'),
+        SectionHeader(title: l10n.vehiclePickupLocationTitle),
         const SizedBox(height: 10),
-        Container(
-          height: 120,
-          decoration: BoxDecoration(
-            color: AppColors.surfaceSunken,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Stack(
-            children: [
-              // Grid lines for map feel
-              CustomPaint(
-                painter: _MapGridPainter(),
-                child: const SizedBox.expand(),
-              ),
-              // Location pin
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: AppColors.brandShadow,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.location_on_rounded,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            city ?? 'Chưa cập nhật',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        _PickupMiniMap(city: city),
       ],
     );
   }
 }
 
-class _MapGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.border.withAlpha(120)
-      ..strokeWidth = 1;
+/// Mini bản đồ thật cho điểm nhận xe. Chi tiết xe chưa kèm toạ độ chính xác, nên
+/// căn theo tâm thành phố ([AppGeo.cityCenterOf]); bấm để mở bản đồ đầy đủ.
+class _PickupMiniMap extends StatelessWidget {
+  const _PickupMiniMap({this.city});
 
-    const step = 24.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
+  final String? city;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final center = AppGeo.cityCenterOf(city);
+    final target = LatLng(center.latitude, center.longitude);
+    return GestureDetector(
+      onTap: () => context.push('/map'),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 120,
+          decoration: BoxDecoration(
+            border: Border.all(color: context.palette.border),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              GoogleMap(
+                initialCameraPosition: CameraPosition(target: target, zoom: 13),
+                liteModeEnabled: true,
+                markers: {
+                  Marker(markerId: const MarkerId('pickup'), position: target),
+                },
+                zoomControlsEnabled: false,
+                mapToolbarEnabled: false,
+                myLocationButtonEnabled: false,
+                // Mini preview — không cho thao tác, tap mở bản đồ đầy đủ.
+                scrollGesturesEnabled: false,
+                zoomGesturesEnabled: false,
+                rotateGesturesEnabled: false,
+                tiltGesturesEnabled: false,
+              ),
+              // Nhãn thành phố nổi ở góc.
+              Positioned(
+                left: 10,
+                top: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: AppColors.brandShadow,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.location_on_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        city ?? l10n.vehicleNotUpdated,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(_MapGridPainter oldDelegate) => false;
 }
 
 // ─────────────────────────────────────────────
@@ -898,6 +918,7 @@ class _BottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final bottomPad = MediaQuery.of(context).padding.bottom;
     return ClipRect(
       child: BackdropFilter(
@@ -906,7 +927,7 @@ class _BottomBar extends StatelessWidget {
           padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPad),
           decoration: BoxDecoration(
             color: Colors.white.withAlpha(230),
-            border: const Border(top: BorderSide(color: AppColors.inkLight)),
+            border: Border(top: BorderSide(color: context.palette.inkLight)),
           ),
           child: Row(
             children: [
@@ -924,9 +945,12 @@ class _BottomBar extends StatelessWidget {
                       height: 1,
                     ),
                   ),
-                  const Text(
-                    '/ngày',
-                    style: TextStyle(fontSize: 12, color: AppColors.mutedText),
+                  Text(
+                    l10n.vehiclePerDay,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.palette.mutedText,
+                    ),
                   ),
                 ],
               ),
@@ -946,9 +970,9 @@ class _BottomBar extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Đặt xe ngay',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.vehicleBookNow,
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),

@@ -53,6 +53,22 @@ class AuthRepositoryImpl implements AuthRepository {
       AuthUserModel.fromJson(await _remote.updateProfile(email: email));
 
   @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) => _remote.changePassword(
+    currentPassword: currentPassword,
+    newPassword: newPassword,
+  );
+
+  @override
+  Future<void> deleteAccount() async {
+    await _remote.deleteAccount();
+    // Tài khoản đã mất ở server → xoá token cục bộ để phiên kết thúc ngay.
+    await _secureStorage.clear();
+  }
+
+  @override
   Future<void> logout() async {
     final refreshToken = await _secureStorage.readRefreshToken();
     try {

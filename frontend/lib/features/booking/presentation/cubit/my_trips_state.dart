@@ -17,10 +17,7 @@ final class MyTripsLoaded extends MyTripsState {
   final String? cancellingId;
 
   MyTripsLoaded copyWith({List<Booking>? bookings, String? cancellingId}) =>
-      MyTripsLoaded(
-        bookings ?? this.bookings,
-        cancellingId: cancellingId,
-      );
+      MyTripsLoaded(bookings ?? this.bookings, cancellingId: cancellingId);
 }
 
 final class MyTripsError extends MyTripsState {

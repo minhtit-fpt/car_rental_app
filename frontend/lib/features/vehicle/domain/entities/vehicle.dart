@@ -23,6 +23,8 @@ class Vehicle {
     this.ownerName,
     this.location = '',
     this.distanceMeters,
+    this.latitude,
+    this.longitude,
   });
 
   final String id;
@@ -51,6 +53,14 @@ class Vehicle {
   /// Chỉ có khi gọi `/api/vehicles/nearby` (mét). Null ở list/detail thường.
   final int? distanceMeters;
 
+  /// Toạ độ điểm nhận xe — chỉ endpoint `nearby` trả về (PostGIS `ST_Y/ST_X`).
+  /// Null ở list/detail thường nên marker bản đồ phải tự lọc xe thiếu toạ độ.
+  final double? latitude;
+  final double? longitude;
+
+  /// Có đủ toạ độ để đặt marker lên bản đồ hay không.
+  bool get hasCoordinates => latitude != null && longitude != null;
+
   // ── Thông tin tổng hợp backend chưa trả → null tới khi nối slice tương ứng.
   final double? rating;
   final int? reviewCount;
@@ -69,23 +79,9 @@ class Vehicle {
   /// Có dữ liệu đánh giá thật để hiển thị hay không.
   bool get hasRating => rating != null && (reviewCount ?? 0) > 0;
 
-  /// Nhãn hộp số tiếng Việt, null nếu chưa có dữ liệu.
-  String? get transmissionLabel => switch (transmission) {
-    'AUTOMATIC' => 'Tự động',
-    'MANUAL' => 'Số sàn',
-    _ => null,
-  };
-
   String get emoji => switch (type) {
     'MOTORBIKE' => '🏍️',
     'BICYCLE' => '🚲',
     _ => '🚗',
-  };
-
-  /// Nhãn loại xe tiếng Việt.
-  String get typeLabel => switch (type) {
-    'MOTORBIKE' => 'Xe máy',
-    'BICYCLE' => 'Xe đạp',
-    _ => 'Ô tô',
   };
 }

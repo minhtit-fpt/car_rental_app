@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:frontend/core/locale/locale_cubit.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/core/theme/theme_mode_cubit.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:frontend/shared/utils/coming_soon.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
 /// Phiên bản hiển thị ở mục "Về ứng dụng". Đồng bộ thủ công với `pubspec.yaml`
 /// (chưa thêm package_info_plus để tránh dependency mới ở plan này).
@@ -24,36 +28,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
 
   Future<void> _confirmLogout() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: dialogContext.palette.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Đăng xuất',
+        title: Text(
+          l10n.settingsLogout,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: AppColors.darkText,
+            color: dialogContext.palette.darkText,
           ),
         ),
-        content: const Text(
-          'Bạn có chắc muốn đăng xuất khỏi tài khoản này?',
-          style: TextStyle(fontSize: 14, color: AppColors.secondaryText),
+        content: Text(
+          l10n.settingsLogoutConfirm,
+          style: TextStyle(
+            fontSize: 14,
+            color: dialogContext.palette.secondaryText,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text(
-              'Huỷ',
-              style: TextStyle(color: AppColors.mutedText),
+            child: Text(
+              l10n.commonCancel,
+              style: TextStyle(color: dialogContext.palette.mutedText),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text(
-              'Đăng xuất',
-              style: TextStyle(
+            child: Text(
+              l10n.settingsLogout,
+              style: const TextStyle(
                 color: AppColors.danger,
                 fontWeight: FontWeight.w600,
               ),
@@ -70,12 +78,233 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  /// Xác nhận xoá tài khoản — yêu cầu tick checkbox "tôi hiểu" trước khi cho xoá.
+  /// Thành công → AuthCubit phát unauthenticated → router về /login.
+  Future<void> _confirmDeleteAccount() async {
+    final l10n = AppLocalizations.of(context);
+    final authCubit = context.read<AuthCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        var acknowledged = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            backgroundColor: context.palette.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text(
+              l10n.settingsDeleteAccount,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.danger,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.deleteAccountWarning,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: context.palette.secondaryText,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: () =>
+                      setDialogState(() => acknowledged = !acknowledged),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Checkbox(
+                        value: acknowledged,
+                        activeColor: AppColors.danger,
+                        onChanged: (v) =>
+                            setDialogState(() => acknowledged = v ?? false),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Text(
+                            l10n.deleteAccountConfirmCheckbox,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: context.palette.darkText,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(
+                  l10n.commonCancel,
+                  style: TextStyle(color: context.palette.mutedText),
+                ),
+              ),
+              TextButton(
+                onPressed: acknowledged
+                    ? () => Navigator.of(dialogContext).pop(true)
+                    : null,
+                child: Text(
+                  l10n.deleteAccountConfirmButton,
+                  style: TextStyle(
+                    color: acknowledged
+                        ? AppColors.danger
+                        : context.palette.mutedText,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+    final success = await authCubit.deleteAccount();
+    if (!success) {
+      final message = authCubit.state.errorMessage;
+      if (message != null) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(message),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      }
+    }
+  }
+
+  /// Bottom sheet chọn ngôn ngữ. Đổi qua [LocaleCubit] (persist + rebuild app).
+  Future<void> _showLanguagePicker() async {
+    final l10n = AppLocalizations.of(context);
+    final localeCubit = context.read<LocaleCubit>();
+    final current = localeCubit.state.languageCode;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: context.palette.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Text(
+                l10n.languagePickerTitle,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: sheetContext.palette.darkText,
+                ),
+              ),
+            ),
+            _PickerOption(
+              label: l10n.languageVietnamese,
+              selected: current == 'vi',
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                localeCubit.setLocale(const Locale('vi'));
+              },
+            ),
+            _PickerOption(
+              label: l10n.languageEnglish,
+              selected: current == 'en',
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                localeCubit.setLocale(const Locale('en'));
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Bottom sheet chọn chế độ giao diện. Đổi qua [ThemeModeCubit]
+  /// (persist + rebuild app).
+  Future<void> _showThemePicker() async {
+    final l10n = AppLocalizations.of(context);
+    final themeCubit = context.read<ThemeModeCubit>();
+    final current = themeCubit.state;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: context.palette.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Text(
+                l10n.themePickerTitle,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: sheetContext.palette.darkText,
+                ),
+              ),
+            ),
+            for (final mode in ThemeMode.values)
+              _PickerOption(
+                label: _themeModeLabel(l10n, mode),
+                selected: current == mode,
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  themeCubit.setMode(mode);
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Nhãn hiển thị cho từng [ThemeMode] (theo hệ thống / sáng / tối).
+  String _themeModeLabel(AppLocalizations l10n, ThemeMode mode) =>
+      switch (mode) {
+        ThemeMode.system => l10n.settingsThemeSystem,
+        ThemeMode.light => l10n.settingsThemeLight,
+        ThemeMode.dark => l10n.settingsThemeDark,
+      };
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    // Hiển thị autonym của ngôn ngữ đang chọn; rebuild khi LocaleCubit đổi.
+    final currentLanguageLabel =
+        context.watch<LocaleCubit>().state.languageCode == 'en'
+        ? l10n.languageEnglish
+        : l10n.languageVietnamese;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             const _SettingsSliverAppBar(),
@@ -86,20 +315,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _SettingsSection(
-                      label: 'Tuỳ chỉnh',
+                      label: l10n.settingsSectionPreferences,
                       rows: [
                         _SettingsRow(
                           icon: Icons.language_outlined,
-                          title: 'Ngôn ngữ',
-                          subtitle: 'Tiếng Việt',
-                          trailing: const _ComingSoonChip(),
-                          onTap: () =>
-                              showComingSoonSnack(context, 'Đổi ngôn ngữ'),
+                          title: l10n.settingsLanguage,
+                          subtitle: currentLanguageLabel,
+                          onTap: _showLanguagePicker,
                         ),
                         _SettingsRow(
                           icon: Icons.notifications_outlined,
-                          title: 'Thông báo',
-                          subtitle: 'Nhận thông báo đẩy',
+                          title: l10n.settingsNotifications,
+                          subtitle: l10n.settingsNotificationsSubtitle,
                           trailing: Switch.adaptive(
                             value: _notificationsEnabled,
                             activeThumbColor: AppColors.primary,
@@ -109,59 +336,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         _SettingsRow(
                           icon: Icons.dark_mode_outlined,
-                          title: 'Giao diện tối',
-                          subtitle: 'Chế độ nền tối',
-                          trailing: const _ComingSoonChip(),
-                          // Disabled: chưa có hạ tầng đổi theme.
-                          onTap: null,
+                          title: l10n.settingsDarkMode,
+                          subtitle: _themeModeLabel(
+                            l10n,
+                            context.watch<ThemeModeCubit>().state,
+                          ),
+                          onTap: _showThemePicker,
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     _SettingsSection(
-                      label: 'Tài khoản',
+                      label: l10n.settingsSectionAccount,
                       rows: [
                         _SettingsRow(
                           icon: Icons.lock_outline_rounded,
-                          title: 'Đổi mật khẩu',
-                          trailing: const _ComingSoonChip(),
-                          onTap: null,
+                          title: l10n.settingsChangePassword,
+                          onTap: () => context.push('/change-password'),
                         ),
                         _SettingsRow(
                           icon: Icons.logout_rounded,
-                          title: 'Đăng xuất',
+                          title: l10n.settingsLogout,
                           danger: true,
                           onTap: _confirmLogout,
                         ),
                         _SettingsRow(
                           icon: Icons.delete_outline_rounded,
-                          title: 'Xoá tài khoản',
+                          title: l10n.settingsDeleteAccount,
                           danger: true,
-                          trailing: const _ComingSoonChip(),
-                          onTap: null,
+                          onTap: _confirmDeleteAccount,
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     _SettingsSection(
-                      label: 'Khác',
+                      label: l10n.settingsSectionOther,
                       rows: [
                         _SettingsRow(
                           icon: Icons.info_outline_rounded,
-                          title: 'Về ứng dụng',
-                          subtitle: 'RideVN · Phiên bản $_appVersion',
+                          title: l10n.settingsAbout,
+                          subtitle: l10n.settingsAboutSubtitle(_appVersion),
                           onTap: () => showAboutDialog(
                             context: context,
                             applicationName: 'RideVN',
-                            applicationVersion: 'Phiên bản $_appVersion',
+                            applicationVersion: l10n.settingsVersionLabel(
+                              _appVersion,
+                            ),
                             applicationLegalese: '© 2026 RideVN',
                           ),
                         ),
                         _SettingsRow(
                           icon: Icons.description_outlined,
-                          title: 'Điều khoản & chính sách',
-                          trailing: const _ComingSoonChip(),
-                          onTap: null,
+                          title: l10n.settingsTermsPolicies,
+                          onTap: () => context.push('/terms'),
                         ),
                       ],
                     ),
@@ -195,9 +422,9 @@ class _SettingsSliverAppBar extends StatelessWidget {
       systemOverlayStyle: SystemUiOverlayStyle.light,
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsetsDirectional.only(start: 56, bottom: 16),
-        title: const Text(
-          'Cài đặt',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context).settingsTitle,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w800,
@@ -230,23 +457,23 @@ class _SettingsSection extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: AppColors.mutedText,
+              color: context.palette.mutedText,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.palette.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border),
-            boxShadow: const [
+            border: Border.all(color: context.palette.border),
+            boxShadow: [
               BoxShadow(
-                color: AppColors.cardShadowColor,
+                color: context.palette.cardShadowColor,
                 blurRadius: 12,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -254,7 +481,11 @@ class _SettingsSection extends StatelessWidget {
             children: [
               for (var i = 0; i < rows.length; i++) ...[
                 if (i > 0)
-                  const Divider(height: 1, color: AppColors.border, indent: 56),
+                  Divider(
+                    height: 1,
+                    color: context.palette.border,
+                    indent: 56,
+                  ),
                 rows[i],
               ],
             ],
@@ -290,16 +521,16 @@ class _SettingsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDisabled = onTap == null && trailing is! Switch;
     final iconColor = danger ? AppColors.danger : AppColors.primary;
-    final titleColor = danger ? AppColors.danger : AppColors.darkText;
+    final titleColor = danger ? AppColors.danger : context.palette.darkText;
 
     // Trailing mặc định: chevron khi có hành vi và không có trailing tuỳ biến.
     final effectiveTrailing =
         trailing ??
         (onTap != null
-            ? const Icon(
+            ? Icon(
                 Icons.chevron_right_rounded,
                 size: 20,
-                color: AppColors.placeholderText,
+                color: context.palette.placeholderText,
               )
             : null);
 
@@ -330,9 +561,9 @@ class _SettingsRow extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.mutedText,
+                          color: context.palette.mutedText,
                         ),
                       ),
                     ],
@@ -351,24 +582,44 @@ class _SettingsRow extends StatelessWidget {
   }
 }
 
-/// Nhãn "Sắp có" cho các mục chưa nối backend/feature khác.
-class _ComingSoonChip extends StatelessWidget {
-  const _ComingSoonChip();
+/// Một lựa chọn trong bottom sheet picker (có dấu check khi đang chọn).
+/// Dùng chung cho cả picker ngôn ngữ và picker giao diện.
+class _PickerOption extends StatelessWidget {
+  const _PickerOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceSunken,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Text(
-        'Sắp có',
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: AppColors.mutedText,
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  color: selected ? AppColors.primary : context.palette.darkText,
+                ),
+              ),
+            ),
+            if (selected)
+              const Icon(
+                Icons.check_rounded,
+                size: 20,
+                color: AppColors.primary,
+              ),
+          ],
         ),
       ),
     );

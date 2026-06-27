@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 
@@ -29,10 +31,11 @@ class PaymentResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -42,24 +45,24 @@ class PaymentResultScreen extends StatelessWidget {
                 _ResultIcon(success: success),
                 const SizedBox(height: 24),
                 Text(
-                  success ? 'Thanh toán thành công!' : 'Thanh toán thất bại',
+                  success
+                      ? l10n.paymentResultSuccessTitle
+                      : l10n.paymentResultFailTitle,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: success
-                        ? AppColors.success
-                        : AppColors.danger,
+                    color: success ? AppColors.success : AppColors.danger,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   success
-                      ? 'Chuyến đi của bạn đã được xác nhận.\nChúc bạn có chuyến đi vui vẻ!'
-                      : 'Giao dịch không thành công.\nVui lòng thử lại hoặc chọn phương thức khác.',
+                      ? l10n.paymentResultSuccessBody
+                      : l10n.paymentResultFailBody,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.secondaryText,
+                    color: context.palette.secondaryText,
                     height: 1.6,
                   ),
                 ),
@@ -68,25 +71,25 @@ class PaymentResultScreen extends StatelessWidget {
                 const Spacer(),
                 if (success) ...[
                   PrimaryButton(
-                    label: 'Xem chuyến đi',
+                    label: l10n.paymentViewTrip,
                     onPressed: () => context.go('/'),
                     icon: Icons.directions_car_rounded,
                   ),
                   const SizedBox(height: 12),
                   SecondaryButton(
-                    label: 'Về trang chủ',
+                    label: l10n.paymentBackHome,
                     onPressed: () => context.go('/'),
                     icon: Icons.home_outlined,
                   ),
                 ] else ...[
                   PrimaryButton(
-                    label: 'Thử lại',
+                    label: l10n.commonRetry,
                     onPressed: () => context.pop(),
                     icon: Icons.refresh_rounded,
                   ),
                   const SizedBox(height: 12),
                   SecondaryButton(
-                    label: 'Về trang chủ',
+                    label: l10n.paymentBackHome,
                     onPressed: () => context.go('/'),
                     icon: Icons.home_outlined,
                   ),
@@ -107,8 +110,7 @@ class _ResultIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        success ? AppColors.success : AppColors.danger;
+    final color = success ? AppColors.success : AppColors.danger;
 
     return Container(
       width: 100,
@@ -118,10 +120,7 @@ class _ResultIcon extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Center(
-        child: Text(
-          success ? '✅' : '❌',
-          style: const TextStyle(fontSize: 48),
-        ),
+        child: Text(success ? '✅' : '❌', style: const TextStyle(fontSize: 48)),
       ),
     );
   }
@@ -133,6 +132,7 @@ class _SuccessDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final timeStr =
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
@@ -148,13 +148,22 @@ class _SuccessDetails extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _DetailRow(label: 'Số tiền', value: '${_fmtVnd(amount)} VNĐ'),
+          _DetailRow(
+            label: l10n.paymentAmountLabel,
+            value: '${_fmtVnd(amount)} VNĐ',
+          ),
           const SizedBox(height: 10),
-          _DetailRow(label: 'Mã giao dịch', value: 'TXN${now.millisecondsSinceEpoch ~/ 1000}'),
+          _DetailRow(
+            label: l10n.paymentTxnId,
+            value: 'TXN${now.millisecondsSinceEpoch ~/ 1000}',
+          ),
           const SizedBox(height: 10),
-          _DetailRow(label: 'Thời gian', value: '$timeStr · $dateStr'),
+          _DetailRow(label: l10n.paymentTime, value: '$timeStr · $dateStr'),
           const SizedBox(height: 10),
-          _DetailRow(label: 'Trạng thái', value: '✅ Thành công'),
+          _DetailRow(
+            label: l10n.paymentStatusLabel,
+            value: l10n.paymentStatusSuccess,
+          ),
         ],
       ),
     );
@@ -171,14 +180,18 @@ class _DetailRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.secondaryText)),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.darkText)),
+        Text(
+          label,
+          style: TextStyle(fontSize: 13, color: context.palette.secondaryText),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: context.palette.darkText,
+          ),
+        ),
       ],
     );
   }

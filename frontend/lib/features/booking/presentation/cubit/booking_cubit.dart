@@ -47,11 +47,7 @@ class BookingCubit extends Cubit<BookingFormState> {
         deliveryRequested: state.withDelivery,
       );
       emit(
-        state.copyWith(
-          isSubmitting: false,
-          submitted: true,
-          booking: booking,
-        ),
+        state.copyWith(isSubmitting: false, submitted: true, booking: booking),
       );
     } on ApiException catch (e) {
       emit(state.copyWith(isSubmitting: false, errorMessage: e.message));

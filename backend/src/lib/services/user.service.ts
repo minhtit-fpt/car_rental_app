@@ -44,4 +44,20 @@ export const userService = {
       throw error;
     }
   },
+
+  // Xoá cứng tài khoản của chính mình. Cascade DB dọn các bản ghi liên quan;
+  // refresh token bị xoá theo nên mọi phiên cũng mất hiệu lực.
+  async deleteAccount(userId: string): Promise<void> {
+    try {
+      await userRepository.delete(userId);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        throw new AppError(404, "USER_NOT_FOUND", "Không tìm thấy người dùng");
+      }
+      throw error;
+    }
+  },
 };

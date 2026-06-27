@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_upload_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
@@ -33,20 +35,20 @@ class _KycUploadView extends StatelessWidget {
         if (state.submitted) {
           context.pushReplacement('/kyc/status');
         } else if (state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.errorMessage!)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
         }
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.palette.background,
           body: CustomScrollView(
             slivers: [
-              const RvSliverAppBar(
-                title: 'Xác minh danh tính',
-                subtitle: 'Hoàn thành KYC để thuê và đăng xe',
+              RvSliverAppBar(
+                title: AppLocalizations.of(context).kycTitle,
+                subtitle: AppLocalizations.of(context).kycSubtitle,
                 role: RvRole.neutral,
               ),
               SliverToBoxAdapter(
@@ -57,9 +59,9 @@ class _KycUploadView extends StatelessWidget {
                     children: [
                       _InfoBanner(),
                       const SizedBox(height: 20),
-                      const _StepLabel(
+                      _StepLabel(
                         step: '1',
-                        title: 'CCCD / Căn cước công dân',
+                        title: AppLocalizations.of(context).kycStepCccd,
                       ),
                       const SizedBox(height: 10),
                       _DocTile(
@@ -67,27 +69,30 @@ class _KycUploadView extends StatelessWidget {
                         icon: Icons.credit_card_rounded,
                       ),
                       const SizedBox(height: 20),
-                      const _StepLabel(step: '2', title: 'Bằng lái xe'),
+                      _StepLabel(
+                        step: '2',
+                        title: AppLocalizations.of(context).kycStepLicense,
+                      ),
                       const SizedBox(height: 10),
                       _DocTile(
                         docType: 'license',
                         icon: Icons.drive_eta_rounded,
                       ),
                       const SizedBox(height: 20),
-                      const _StepLabel(
+                      _StepLabel(
                         step: '3',
-                        title: 'Ảnh chân dung (selfie)',
+                        title: AppLocalizations.of(context).kycStepSelfie,
                       ),
                       const SizedBox(height: 10),
                       _DocTile(
                         docType: 'selfie',
                         icon: Icons.face_rounded,
-                        hint: 'Chụp thẳng mặt, ánh sáng đầy đủ',
+                        hint: AppLocalizations.of(context).kycSelfieHint,
                       ),
                       const SizedBox(height: 28),
                       BlocBuilder<KycUploadCubit, KycUploadState>(
                         builder: (context, state) => PrimaryButton(
-                          label: 'Gửi xác minh',
+                          label: AppLocalizations.of(context).kycSubmit,
                           onPressed: state.allUploaded
                               ? () => context.read<KycUploadCubit>().submit()
                               : null,
@@ -117,14 +122,14 @@ class _InfoBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.primary.withAlpha(40)),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.shield_outlined, size: 20, color: AppColors.primary),
-          SizedBox(width: 10),
+          const Icon(Icons.shield_outlined, size: 20, color: AppColors.primary),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Thông tin của bạn được mã hoá và bảo mật. Chỉ dùng để xác minh danh tính.',
-              style: TextStyle(fontSize: 12, color: AppColors.primary),
+              AppLocalizations.of(context).kycInfoBanner,
+              style: const TextStyle(fontSize: 12, color: AppColors.primary),
             ),
           ),
         ],
@@ -163,10 +168,10 @@ class _StepLabel extends StatelessWidget {
         const SizedBox(width: 10),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
       ],
@@ -204,19 +209,19 @@ class _DocTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: isUploaded
                   ? AppColors.success.withAlpha(13)
-                  : AppColors.surface,
+                  : context.palette.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isUploaded
                     ? AppColors.success.withAlpha(80)
                     : isUploading
                     ? AppColors.primary.withAlpha(80)
-                    : AppColors.border,
+                    : context.palette.border,
                 width: isUploaded || isUploading ? 1.5 : 1,
               ),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: AppColors.cardShadowColor,
+                  color: context.palette.cardShadowColor,
                   blurRadius: 8,
                   offset: Offset(0, 2),
                 ),
@@ -230,7 +235,7 @@ class _DocTile extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isUploaded
                         ? AppColors.successSoft
-                        : AppColors.background,
+                        : context.palette.background,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: isUploading
@@ -248,7 +253,7 @@ class _DocTile extends StatelessWidget {
                           isUploaded ? Icons.check_circle_rounded : icon,
                           color: isUploaded
                               ? AppColors.success
-                              : AppColors.mutedText,
+                              : context.palette.mutedText,
                           size: 24,
                         ),
                 ),
@@ -259,16 +264,16 @@ class _DocTile extends StatelessWidget {
                     children: [
                       Text(
                         isUploaded
-                            ? 'Đã tải lên'
+                            ? AppLocalizations.of(context).kycUploaded
                             : isUploading
-                            ? 'Đang tải...'
-                            : 'Chạm để tải ảnh',
+                            ? AppLocalizations.of(context).kycUploading
+                            : AppLocalizations.of(context).kycTapToUpload,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: isUploaded
                               ? AppColors.success
-                              : AppColors.darkText,
+                              : context.palette.darkText,
                         ),
                       ),
                       if (hint != null && !isUploaded)
@@ -276,9 +281,9 @@ class _DocTile extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
                             hint!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.mutedText,
+                              color: context.palette.mutedText,
                             ),
                           ),
                         ),
@@ -287,9 +292,9 @@ class _DocTile extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
                             doc.fileName!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.mutedText,
+                              color: context.palette.mutedText,
                             ),
                           ),
                         ),
@@ -299,7 +304,7 @@ class _DocTile extends StatelessWidget {
                 Icon(
                   isUploaded ? Icons.edit_outlined : Icons.upload_rounded,
                   size: 18,
-                  color: isUploaded ? AppColors.mutedText : AppColors.primary,
+                  color: isUploaded ? context.palette.mutedText : AppColors.primary,
                 ),
               ],
             ),

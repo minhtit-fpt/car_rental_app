@@ -23,10 +23,7 @@ final class OwnerBookingsLoaded extends OwnerBookingsState {
   OwnerBookingsLoaded copyWith({
     List<OwnerBooking>? bookings,
     String? actingId,
-  }) => OwnerBookingsLoaded(
-    bookings ?? this.bookings,
-    actingId: actingId,
-  );
+  }) => OwnerBookingsLoaded(bookings ?? this.bookings, actingId: actingId);
 }
 
 final class OwnerBookingsError extends OwnerBookingsState {

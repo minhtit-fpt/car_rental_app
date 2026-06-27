@@ -5,8 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
@@ -56,15 +59,16 @@ class _BookingDatePickerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
-            const RvSliverAppBar(
-              title: 'Chọn ngày thuê',
-              subtitle: 'Chọn thời gian bắt đầu và kết thúc',
+            RvSliverAppBar(
+              title: l10n.bookingPickDatesTitle,
+              subtitle: l10n.bookingPickDatesSubtitle,
               role: RvRole.renter,
             ),
             SliverToBoxAdapter(
@@ -83,7 +87,7 @@ class _BookingDatePickerView extends StatelessWidget {
                     const SizedBox(height: 20),
                     BlocBuilder<BookingCubit, BookingFormState>(
                       builder: (context, state) => PrimaryButton(
-                        label: 'Tiếp tục',
+                        label: l10n.commonContinue,
                         onPressed: state.datesSelected
                             ? () => context.push(
                                 '/booking/confirm',
@@ -114,15 +118,16 @@ class _VehicleSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -148,20 +153,18 @@ class _VehicleSummaryCard extends StatelessWidget {
               children: [
                 Text(
                   vehicle.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  vehicle.isElectric
-                      ? 'Điện · ${vehicle.typeLabel}'
-                      : vehicle.typeLabel,
-                  style: const TextStyle(
+                  vehicle.typeSummaryL10n(l10n),
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
               ],
@@ -178,9 +181,12 @@ class _VehicleSummaryCard extends StatelessWidget {
                   color: AppColors.primary,
                 ),
               ),
-              const Text(
-                '/ngày',
-                style: TextStyle(fontSize: 11, color: AppColors.mutedText),
+              Text(
+                l10n.vehiclePerDay,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: context.palette.mutedText,
+                ),
               ),
             ],
           ),
@@ -223,10 +229,10 @@ class _DateRangePickerState extends State<_DateRangePicker> {
           : null,
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(
+          colorScheme: ColorScheme.light(
             primary: AppColors.primary,
             onPrimary: Colors.white,
-            surface: AppColors.surface,
+            surface: context.palette.surface,
           ),
         ),
         child: child!,
@@ -243,15 +249,16 @@ class _DateRangePickerState extends State<_DateRangePicker> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -260,12 +267,12 @@ class _DateRangePickerState extends State<_DateRangePicker> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Thời gian thuê',
+          Text(
+            l10n.bookingRentalPeriod,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(height: 14),
@@ -273,21 +280,21 @@ class _DateRangePickerState extends State<_DateRangePicker> {
             children: [
               Expanded(
                 child: _DateBox(
-                  label: 'Ngày nhận xe',
+                  label: l10n.bookingPickupDateLabel,
                   date: _start,
                   icon: Icons.calendar_today_rounded,
                 ),
               ),
               const SizedBox(width: 10),
-              const Icon(
+              Icon(
                 Icons.arrow_forward_rounded,
                 size: 16,
-                color: AppColors.mutedText,
+                color: context.palette.mutedText,
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _DateBox(
-                  label: 'Ngày trả xe',
+                  label: l10n.bookingReturnDateLabel,
                   date: _end,
                   icon: Icons.event_rounded,
                 ),
@@ -305,7 +312,7 @@ class _DateRangePickerState extends State<_DateRangePicker> {
                 color: AppColors.primary,
               ),
               label: Text(
-                _start == null ? 'Chọn ngày' : 'Thay đổi ngày',
+                _start == null ? l10n.homeSelectDate : l10n.bookingChangeDate,
                 style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
@@ -324,7 +331,9 @@ class _DateRangePickerState extends State<_DateRangePicker> {
             const SizedBox(height: 10),
             Center(
               child: Text(
-                '${_end!.difference(_start!).inDays.clamp(1, 365)} ngày',
+                l10n.bookingDays(
+                  _end!.difference(_start!).inDays.clamp(1, 365),
+                ),
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.primary,
@@ -353,12 +362,12 @@ class _DateBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: date != null
             ? AppColors.primary.withAlpha(13)
-            : AppColors.background,
+            : context.palette.background,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: date != null
               ? AppColors.primary.withAlpha(80)
-              : AppColors.border,
+              : context.palette.border,
         ),
       ),
       child: Column(
@@ -366,7 +375,7 @@ class _DateBox extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 10, color: AppColors.mutedText),
+            style: TextStyle(fontSize: 10, color: context.palette.mutedText),
           ),
           const SizedBox(height: 4),
           Row(
@@ -374,7 +383,7 @@ class _DateBox extends StatelessWidget {
               Icon(
                 icon,
                 size: 13,
-                color: date != null ? AppColors.primary : AppColors.mutedText,
+                color: date != null ? AppColors.primary : context.palette.mutedText,
               ),
               const SizedBox(width: 4),
               Expanded(
@@ -384,8 +393,8 @@ class _DateBox extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: date != null
-                        ? AppColors.darkText
-                        : AppColors.mutedText,
+                        ? context.palette.darkText
+                        : context.palette.mutedText,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -401,17 +410,18 @@ class _DateBox extends StatelessWidget {
 class _DeliveryToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocBuilder<BookingCubit, BookingFormState>(
       builder: (context, state) {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.palette.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border),
-            boxShadow: const [
+            border: Border.all(color: context.palette.border),
+            boxShadow: [
               BoxShadow(
-                color: AppColors.cardShadowColor,
+                color: context.palette.cardShadowColor,
                 blurRadius: 12,
                 offset: Offset(0, 2),
               ),
@@ -433,23 +443,23 @@ class _DeliveryToggle extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Giao xe tận nơi',
+                          l10n.bookingDelivery,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.darkText,
+                            color: context.palette.darkText,
                           ),
                         ),
                         Text(
                           '+50K VNĐ',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.mutedText,
+                            color: context.palette.mutedText,
                           ),
                         ),
                       ],
@@ -470,25 +480,25 @@ class _DeliveryToggle extends StatelessWidget {
                   onChanged: (v) =>
                       context.read<BookingCubit>().setDeliveryAddress(v),
                   decoration: InputDecoration(
-                    hintText: 'Nhập địa chỉ nhận xe...',
-                    hintStyle: const TextStyle(
+                    hintText: l10n.bookingDeliveryAddressHint,
+                    hintStyle: TextStyle(
                       fontSize: 13,
-                      color: AppColors.mutedText,
+                      color: context.palette.mutedText,
                     ),
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.location_on_outlined,
                       size: 18,
-                      color: AppColors.mutedText,
+                      color: context.palette.mutedText,
                     ),
                     filled: true,
-                    fillColor: AppColors.background,
+                    fillColor: context.palette.background,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(color: context.palette.border),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(color: context.palette.border),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -500,9 +510,9 @@ class _DeliveryToggle extends StatelessWidget {
                     ),
                     isDense: true,
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.darkText,
+                    color: context.palette.darkText,
                   ),
                 ),
               ],
@@ -520,6 +530,7 @@ class _PriceSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocBuilder<BookingCubit, BookingFormState>(
       builder: (context, state) {
         if (!state.datesSelected) return const SizedBox.shrink();
@@ -532,12 +543,12 @@ class _PriceSummary extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.palette.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border),
-            boxShadow: const [
+            border: Border.all(color: context.palette.border),
+            boxShadow: [
               BoxShadow(
-                color: AppColors.cardShadowColor,
+                color: context.palette.cardShadowColor,
                 blurRadius: 12,
                 offset: Offset(0, 2),
               ),
@@ -546,35 +557,38 @@ class _PriceSummary extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Chi phí dự kiến',
+              Text(
+                l10n.bookingEstimatedCost,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               const SizedBox(height: 12),
               _PriceLine(
-                label: '${vehicle.pricePerDay.toInt()}K × $days ngày',
+                label: l10n.bookingRentalLine(
+                  vehicle.pricePerDay.toInt().toString(),
+                  days,
+                ),
                 amount: rentalTotal,
               ),
               if (state.withDelivery)
-                const _PriceLine(label: 'Phí giao xe', amount: 50),
-              _PriceLine(label: 'Bảo hiểm (5%)', amount: insurance),
-              const Padding(
+                _PriceLine(label: l10n.bookingDeliveryFeeLabel, amount: 50),
+              _PriceLine(label: l10n.bookingInsuranceLabel, amount: insurance),
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 10),
-                child: Divider(color: AppColors.border, height: 1),
+                child: Divider(color: context.palette.border, height: 1),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Tổng cộng',
+                  Text(
+                    l10n.bookingTotal,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.darkText,
+                      color: context.palette.darkText,
                     ),
                   ),
                   Text(
@@ -609,16 +623,16 @@ class _PriceLine extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.secondaryText,
+              color: context.palette.secondaryText,
             ),
           ),
           Text(
             '${amount.toInt()}K VNĐ',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
               fontWeight: FontWeight.w500,
             ),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:frontend/core/network/api_exception.dart';
+import 'package:frontend/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
@@ -19,11 +20,13 @@ class AuthCubit extends Cubit<AuthState> {
     required LogoutUseCase logout,
     required GetCurrentUserUseCase getCurrentUser,
     required UpdateProfileUseCase updateProfile,
+    required DeleteAccountUseCase deleteAccount,
   }) : _login = login,
        _register = register,
        _logout = logout,
        _getCurrentUser = getCurrentUser,
        _updateProfile = updateProfile,
+       _deleteAccount = deleteAccount,
        super(const AuthState.unknown());
 
   final LoginUseCase _login;
@@ -31,6 +34,7 @@ class AuthCubit extends Cubit<AuthState> {
   final LogoutUseCase _logout;
   final GetCurrentUserUseCase _getCurrentUser;
   final UpdateProfileUseCase _updateProfile;
+  final DeleteAccountUseCase _deleteAccount;
 
   /// Gọi 1 lần lúc khởi động: token còn hạn → authenticated, ngược lại → unauthenticated.
   Future<void> checkSession() async {
@@ -95,5 +99,24 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> logout() async {
     await _logout();
     emit(const AuthState(status: AuthStatus.unauthenticated));
+  }
+
+  /// Xoá cứng tài khoản rồi kết thúc phiên (router tự redirect về /login).
+  /// Trả `false` và giữ phiên nếu server lỗi.
+  Future<bool> deleteAccount() async {
+    try {
+      await _deleteAccount();
+      emit(const AuthState(status: AuthStatus.unauthenticated));
+      return true;
+    } on ApiException catch (e) {
+      emit(
+        AuthState(
+          status: AuthStatus.authenticated,
+          user: state.user,
+          errorMessage: e.message,
+        ),
+      );
+      return false;
+    }
   }
 }

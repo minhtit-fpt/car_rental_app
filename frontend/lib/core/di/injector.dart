@@ -3,13 +3,17 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:frontend/core/db/app_database.dart';
+import 'package:frontend/core/locale/locale_cubit.dart';
+import 'package:frontend/core/location/location_service.dart';
 import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/search/search_session.dart';
 import 'package:frontend/core/storage/kv_storage.dart';
 import 'package:frontend/core/storage/secure_storage.dart';
+import 'package:frontend/core/theme/theme_mode_cubit.dart';
 import 'package:frontend/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:frontend/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:frontend/features/auth/domain/repositories/auth_repository.dart';
+import 'package:frontend/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/login_usecase.dart';
 import 'package:frontend/features/auth/domain/usecases/logout_usecase.dart';
@@ -40,6 +44,7 @@ import 'package:frontend/features/vehicle/domain/usecases/update_vehicle_usecase
 import 'package:frontend/features/vehicle/domain/usecases/get_vehicle_availability_usecase.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_availability_cubit.dart';
+import 'package:frontend/features/map/presentation/cubit/map_cubit.dart';
 import 'package:frontend/features/owner/presentation/cubit/vehicle_form_cubit.dart';
 import 'package:frontend/features/owner/data/datasources/owner_remote_datasource.dart';
 import 'package:frontend/features/owner/data/repositories/owner_repository_impl.dart';
@@ -129,7 +134,9 @@ Future<void> setupStorage() async {
     ..registerSingleton<SecureStorage>(
       const SecureStorage(FlutterSecureStorage()),
     )
-    ..registerSingleton<KvStorage>(KvStorage(prefs));
+    ..registerSingleton<KvStorage>(KvStorage(prefs))
+    ..registerSingleton<LocaleCubit>(LocaleCubit(sl<KvStorage>()))
+    ..registerSingleton<ThemeModeCubit>(ThemeModeCubit(sl<KvStorage>()));
 }
 
 /// Đăng ký network + auth (data → domain → presentation). Gọi sau [setupStorage].
@@ -151,6 +158,7 @@ void setupAuth() {
         logout: LogoutUseCase(sl<AuthRepository>()),
         getCurrentUser: GetCurrentUserUseCase(sl<AuthRepository>()),
         updateProfile: UpdateProfileUseCase(sl<AuthRepository>()),
+        deleteAccount: DeleteAccountUseCase(sl<AuthRepository>()),
       ),
     );
 }
@@ -208,6 +216,19 @@ void setupVehicle() {
     ..registerFactory<VehicleAvailabilityCubit>(
       () => VehicleAvailabilityCubit(
         getAvailability: GetVehicleAvailabilityUseCase(sl<VehicleRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký bản đồ trực tiếp (Phase C). Gọi sau [setupVehicle]
+/// (cần [VehicleRepository] cho xe quanh đây). [MapCubit] là factory.
+void setupMap() {
+  sl
+    ..registerSingleton<LocationService>(const GeolocatorLocationService())
+    ..registerFactory<MapCubit>(
+      () => MapCubit(
+        locationService: sl<LocationService>(),
+        listNearbyVehicles: ListNearbyVehiclesUseCase(sl<VehicleRepository>()),
       ),
     );
 }

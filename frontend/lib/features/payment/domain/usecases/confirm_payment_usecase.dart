@@ -10,9 +10,5 @@ class ConfirmPaymentUseCase {
     String paymentId, {
     bool success = true,
     Map<String, String>? params,
-  }) => _repository.confirmPayment(
-    paymentId,
-    success: success,
-    params: params,
-  );
+  }) => _repository.confirmPayment(paymentId, success: success, params: params);
 }
