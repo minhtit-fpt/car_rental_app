@@ -14,6 +14,10 @@ final bookingRoutes = [
     builder: (context, state) => const MyTripsScreen(),
   ),
   GoRoute(
+    path: '/trips',
+    builder: (context, state) => const MyTripsScreen(),
+  ),
+  GoRoute(
     path: '/booking/dates',
     builder: (context, state) {
       final vehicle = state.extra as Vehicle;

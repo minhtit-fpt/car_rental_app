@@ -4,7 +4,10 @@ import {
   type Prisma,
 } from "@prisma/client";
 import { AppError } from "@/lib/errors/app-error";
-import { notificationRepository } from "@/lib/repositories/notification.repository";
+import {
+  notificationRepository,
+  type CreateNotificationData,
+} from "@/lib/repositories/notification.repository";
 import type { ListNotificationsQuery } from "@/lib/validators/notification.validator";
 
 export interface NotifyInput {

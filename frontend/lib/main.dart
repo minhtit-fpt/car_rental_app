@@ -21,6 +21,7 @@ Future<void> main() async {
   setupAuth(); // ApiClient + auth repository/usecases + AuthCubit
   setupAdmin(); // admin repository + AdminCubit factory
   setupVehicle(); // vehicle repository + VehicleListCubit factory
+  setupMap(); // location service + MapCubit factory (Phase C)
   setupBooking(); // booking repository + BookingCubit factory
   setupPayment(); // payment repository + PaymentCubit factory
   setupReview(); // review repository + ReviewCubit factory
@@ -114,6 +115,7 @@ class _RideVNAppState extends State<RideVNApp> with WidgetsBindingObserver {
         BlocProvider<NotificationCubit>.value(value: _notificationCubit),
         BlocProvider<LocaleCubit>.value(value: _localeCubit),
         BlocProvider<ThemeModeCubit>.value(value: _themeModeCubit),
+        BlocProvider<NotificationCubit>.value(value: _notificationCubit),
       ],
       // Đồng bộ theo phiên: đăng nhập → nạp + bật polling thông báo; đăng xuất → xoá.
       child: BlocListener<AuthCubit, AuthState>(

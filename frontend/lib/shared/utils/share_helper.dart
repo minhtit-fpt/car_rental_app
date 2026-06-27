@@ -3,6 +3,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:frontend/core/config/app_config.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
+import 'package:frontend/shared/utils/price_format.dart';
 
 /// Tiện ích chia sẻ — bọc `share_plus` để phần còn lại của app không phụ thuộc
 /// trực tiếp vào plugin. Payload được tách thành hàm thuần [buildVehicleShareText]
@@ -17,7 +18,7 @@ String vehicleShareLink(String vehicleId) =>
 String buildVehicleShareText(AppLocalizations l10n, Vehicle vehicle) {
   return l10n.vehicleShareMessage(
     vehicle.name,
-    _formatPricePerDay(vehicle.pricePerDay),
+    formatPricePerDayK(vehicle.pricePerDay),
     vehicleShareLink(vehicle.id),
   );
 }
@@ -28,15 +29,4 @@ Future<void> shareVehicle(BuildContext context, Vehicle vehicle) {
   return SharePlus.instance.share(
     ShareParams(text: text, subject: vehicle.name),
   );
-}
-
-/// `pricePerDay` lưu theo đơn vị nghìn (K). Quy về chuỗi K/M khớp UI hiện có
-/// (vd: 890 → "890K", 1200 → "1.2M").
-String _formatPricePerDay(double kAmount) {
-  if (kAmount >= 1000) {
-    final m = kAmount / 1000;
-    if (m == m.truncateToDouble()) return '${m.truncate()}M';
-    return '${m.toStringAsFixed(2).replaceAll(RegExp(r'0+$'), '')}M';
-  }
-  return '${kAmount.toInt()}K';
 }

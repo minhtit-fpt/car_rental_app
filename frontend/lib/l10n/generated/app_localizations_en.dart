@@ -1252,10 +1252,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shellAccountTitle => 'Account';
 
   @override
+  String get mapScreenTitle => 'Nearby cars';
+
+  @override
+  String mapNearbyCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cars nearby',
+      one: '1 car nearby',
+      zero: 'No cars nearby',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mapEmptyTitle => 'No cars nearby';
+
+  @override
+  String get mapEmptySubtitle =>
+      'Try moving the map or widening your search area.';
+
+  @override
+  String get mapMyLocationTooltip => 'My location';
+
+  @override
+  String get mapRefreshTooltip => 'Refresh';
+
+  @override
+  String get mapOpenInTab => 'View full map';
+
+  @override
   String get notifMarkAllRead => 'Mark all read';
 
   @override
   String get notifEmpty => 'No notifications yet';
+
+  @override
+  String get notifDetailTitle => 'Notification details';
+
+  @override
+  String get notifViewTrip => 'View my trips';
 
   @override
   String get loyaltySubtitle => 'Earn points for every trip';

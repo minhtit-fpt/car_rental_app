@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:frontend/core/location/app_geo.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
@@ -149,7 +151,6 @@ class _CarListScreenState extends State<CarListScreen> {
                 child: _MapStrip(
                   showMap: _showMap,
                   onToggleMap: () => setState(() => _showMap = !_showMap),
-                  vehicles: vehicles,
                 ),
               ),
               // Search bar (frosted overlay style)
@@ -315,15 +316,10 @@ class _CarListScreenState extends State<CarListScreen> {
 // ─────────────────────────────────────────────
 
 class _MapStrip extends StatelessWidget {
-  const _MapStrip({
-    required this.showMap,
-    required this.onToggleMap,
-    required this.vehicles,
-  });
+  const _MapStrip({required this.showMap, required this.onToggleMap});
 
   final bool showMap;
   final VoidCallback onToggleMap;
-  final List<Vehicle> vehicles;
 
   @override
   Widget build(BuildContext context) {
@@ -333,16 +329,29 @@ class _MapStrip extends StatelessWidget {
       child: showMap
           ? Stack(
               children: [
-                // Map background with grid
-                Container(
-                  color: const Color(0xFFE8EDF5),
-                  child: CustomPaint(
-                    painter: _MapRoadsPainter(),
-                    child: const SizedBox.expand(),
+                // Mini bản đồ thật — tap để mở bản đồ xe quanh đây đầy đủ.
+                Positioned.fill(
+                  child: GestureDetector(
+                    onTap: () => context.push('/map'),
+                    child: GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: LatLng(
+                          AppGeo.defaultCenter.latitude,
+                          AppGeo.defaultCenter.longitude,
+                        ),
+                        zoom: AppGeo.cityZoom,
+                      ),
+                      liteModeEnabled: true,
+                      zoomControlsEnabled: false,
+                      mapToolbarEnabled: false,
+                      myLocationButtonEnabled: false,
+                      scrollGesturesEnabled: false,
+                      zoomGesturesEnabled: false,
+                      rotateGesturesEnabled: false,
+                      tiltGesturesEnabled: false,
+                    ),
                   ),
                 ),
-                // Price pills on map
-                ..._buildPricePills(vehicles),
                 // Toggle button
                 Positioned(
                   bottom: 12,
@@ -357,78 +366,6 @@ class _MapStrip extends StatelessWidget {
           : null,
     );
   }
-
-  List<Widget> _buildPricePills(List<Vehicle> vehicles) {
-    // Mock positions for price pills on map
-    const positions = [
-      (left: 40.0, top: 30.0),
-      (left: 140.0, top: 70.0),
-      (left: 240.0, top: 40.0),
-      (left: 80.0, top: 110.0),
-    ];
-    return List.generate(
-      vehicles.length.clamp(0, positions.length),
-      (i) => Positioned(
-        left: positions[i].left,
-        top: positions[i].top,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: AppColors.brandShadow,
-          ),
-          child: Text(
-            '${vehicles[i].pricePerDay.toInt()}K',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MapRoadsPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final roadPaint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.round;
-
-    final gridPaint = Paint()
-      ..color = const Color(0xFFD0D8E8)
-      ..strokeWidth = 1;
-
-    // Grid lines
-    for (double x = 0; x < size.width; x += 30) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
-    }
-    for (double y = 0; y < size.height; y += 30) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-
-    // Roads
-    canvas.drawLine(const Offset(0, 60), Offset(size.width, 60), roadPaint);
-    canvas.drawLine(const Offset(0, 130), Offset(size.width, 130), roadPaint);
-    canvas.drawLine(
-      Offset(size.width * 0.3, 0),
-      Offset(size.width * 0.3, size.height),
-      roadPaint,
-    );
-    canvas.drawLine(
-      Offset(size.width * 0.7, 0),
-      Offset(size.width * 0.7, size.height),
-      roadPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_MapRoadsPainter oldDelegate) => false;
 }
 
 class _MapTogglePill extends StatelessWidget {
@@ -624,7 +561,9 @@ class _FilterChips extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isActive ? Colors.white : context.palette.secondaryText,
+                  color: isActive
+                      ? Colors.white
+                      : context.palette.secondaryText,
                 ),
               ),
             ),

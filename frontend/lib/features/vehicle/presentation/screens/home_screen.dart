@@ -206,12 +206,7 @@ class _NotificationBell extends StatelessWidget {
         return _NavIconButton(
           icon: Icons.notifications_outlined,
           badgeCount: unread,
-          onTap: () async {
-            await context.push('/notifications');
-            if (context.mounted) {
-              context.read<NotificationCubit>().load();
-            }
-          },
+          onTap: () => context.push('/notifications'),
         );
       },
     );

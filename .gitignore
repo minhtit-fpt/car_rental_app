@@ -29,6 +29,9 @@ frontend/android/.gradle/
 frontend/android/local.properties
 frontend/**/local.properties
 
+# Khoá Google Maps cục bộ (Phase C) — chỉ commit bản .example
+frontend/ios/Flutter/Maps.xcconfig
+
 # === OS / IDE ===
 .DS_Store
 .idea/

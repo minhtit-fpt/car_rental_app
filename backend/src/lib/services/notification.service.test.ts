@@ -32,6 +32,58 @@ function makeNotif(overrides: Partial<Notification> = {}): Notification {
   } as Notification;
 }
 
+describe("notificationService.create", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("persists a notification and returns its public shape", async () => {
+    vi.mocked(notificationRepository.create).mockResolvedValue(
+      makeNotif({ payload: { bookingId: "book-1" } }),
+    );
+
+    const result = await notificationService.create({
+      userId: USER,
+      type: NotificationType.BOOKING,
+      title: "Đặt xe thành công",
+      payload: { bookingId: "book-1" },
+    });
+
+    expect(notificationRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: USER, title: "Đặt xe thành công" }),
+    );
+    expect(result.payload).toEqual({ bookingId: "book-1" });
+  });
+});
+
+describe("notificationService.safeCreate", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns the created notification on success", async () => {
+    vi.mocked(notificationRepository.create).mockResolvedValue(makeNotif());
+    const result = await notificationService.safeCreate({
+      userId: USER,
+      type: NotificationType.BOOKING,
+      title: "x",
+    });
+    expect(result).not.toBeNull();
+  });
+
+  it("returns null and never throws when the repository fails", async () => {
+    vi.mocked(notificationRepository.create).mockRejectedValue(
+      new Error("db down"),
+    );
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const result = await notificationService.safeCreate({
+      userId: USER,
+      type: NotificationType.BOOKING,
+      title: "x",
+    });
+
+    expect(result).toBeNull();
+    errorSpy.mockRestore();
+  });
+});
+
 describe("notificationService.list", () => {
   beforeEach(() => vi.clearAllMocks());
 

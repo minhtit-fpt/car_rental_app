@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/di/injector.dart';
+import 'package:frontend/core/location/app_geo.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
@@ -17,17 +19,11 @@ import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/rating_stars.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
+import 'package:frontend/shared/utils/price_format.dart';
 import 'package:frontend/shared/utils/share_helper.dart';
 
 // pricePerDay stored in K VNĐ
-String _fmtVnd(double kAmount) {
-  if (kAmount >= 1000) {
-    final m = kAmount / 1000;
-    if (m == m.truncateToDouble()) return '${m.truncate()}M';
-    return '${m.toStringAsFixed(2).replaceAll(RegExp(r'0+$'), '')}M';
-  }
-  return '${kAmount.toInt()}K';
-}
+String _fmtVnd(double kAmount) => formatPricePerDayK(kAmount);
 
 class VehicleDetailScreen extends StatefulWidget {
   const VehicleDetailScreen({super.key, required this.vehicle});
@@ -179,7 +175,9 @@ class _DetailAppBar extends StatelessWidget {
                       isFavorite
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
-                      color: isFavorite ? AppColors.danger : context.palette.darkText,
+                      color: isFavorite
+                          ? AppColors.danger
+                          : context.palette.darkText,
                       size: 20,
                     ),
                   ),
@@ -821,88 +819,93 @@ class _PickupMapBlock extends StatelessWidget {
       children: [
         SectionHeader(title: l10n.vehiclePickupLocationTitle),
         const SizedBox(height: 10),
-        Container(
-          height: 120,
-          decoration: BoxDecoration(
-            color: context.palette.surfaceSunken,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: context.palette.border),
-          ),
-          child: Stack(
-            children: [
-              // Grid lines for map feel
-              CustomPaint(
-                painter: _MapGridPainter(color: context.palette.border),
-                child: const SizedBox.expand(),
-              ),
-              // Location pin
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: AppColors.brandShadow,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.location_on_rounded,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            city ?? l10n.vehicleNotUpdated,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        _PickupMiniMap(city: city),
       ],
     );
   }
 }
 
-class _MapGridPainter extends CustomPainter {
-  const _MapGridPainter({required this.color});
+/// Mini bản đồ thật cho điểm nhận xe. Chi tiết xe chưa kèm toạ độ chính xác, nên
+/// căn theo tâm thành phố ([AppGeo.cityCenterOf]); bấm để mở bản đồ đầy đủ.
+class _PickupMiniMap extends StatelessWidget {
+  const _PickupMiniMap({this.city});
 
-  final Color color;
+  final String? city;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color.withAlpha(120)
-      ..strokeWidth = 1;
-
-    const step = 24.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final center = AppGeo.cityCenterOf(city);
+    final target = LatLng(center.latitude, center.longitude);
+    return GestureDetector(
+      onTap: () => context.push('/map'),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 120,
+          decoration: BoxDecoration(
+            border: Border.all(color: context.palette.border),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              GoogleMap(
+                initialCameraPosition: CameraPosition(target: target, zoom: 13),
+                liteModeEnabled: true,
+                markers: {
+                  Marker(markerId: const MarkerId('pickup'), position: target),
+                },
+                zoomControlsEnabled: false,
+                mapToolbarEnabled: false,
+                myLocationButtonEnabled: false,
+                // Mini preview — không cho thao tác, tap mở bản đồ đầy đủ.
+                scrollGesturesEnabled: false,
+                zoomGesturesEnabled: false,
+                rotateGesturesEnabled: false,
+                tiltGesturesEnabled: false,
+              ),
+              // Nhãn thành phố nổi ở góc.
+              Positioned(
+                left: 10,
+                top: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: AppColors.brandShadow,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.location_on_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        city ?? l10n.vehicleNotUpdated,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(_MapGridPainter oldDelegate) => false;
 }
 
 // ─────────────────────────────────────────────

@@ -16,7 +16,9 @@ abstract final class VehicleModel {
     doors: (json['doors'] as num?)?.toInt(),
     transmission: json['transmission'] as String?,
     city: json['city'] as String?,
-    // Chỉ endpoint `nearby` mới kèm khoảng cách.
+    // Chỉ endpoint `nearby` mới kèm khoảng cách + toạ độ.
     distanceMeters: (json['distanceMeters'] as num?)?.round(),
+    latitude: (json['lat'] as num?)?.toDouble(),
+    longitude: (json['lng'] as num?)?.toDouble(),
   );
 }

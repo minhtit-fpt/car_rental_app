@@ -65,10 +65,15 @@ class NotificationCubit extends Cubit<NotificationState> {
   /// Tải có hiển thị trạng thái (dùng khi mở màn hình thông báo).
   Future<void> load() async {
     emit(const NotificationLoading());
+    await _fetch(allowPopups: false);
+  }
+
+  Future<void> _fetch({required bool allowPopups}) async {
     try {
       _handleData(await _listNotifications());
     } on ApiException catch (e) {
-      emit(NotificationError(e.message));
+      // Lỗi khi poll không được xoá danh sách đang hiển thị.
+      if (state is! NotificationLoaded) emit(NotificationError(e.message));
     }
   }
 
