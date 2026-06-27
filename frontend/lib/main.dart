@@ -6,11 +6,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/locale/locale_cubit.dart';
+import 'package:frontend/core/notifications/local_notification_service.dart';
 import 'package:frontend/core/router/app_router.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/theme/theme_mode_cubit.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
+import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 
 Future<void> main() async {
@@ -50,18 +52,53 @@ class RideVNApp extends StatefulWidget {
   State<RideVNApp> createState() => _RideVNAppState();
 }
 
-class _RideVNAppState extends State<RideVNApp> {
+class _RideVNAppState extends State<RideVNApp> with WidgetsBindingObserver {
   late final GoRouter _router = createAppRouter(widget.authCubit);
   final FavoriteCubit _favoriteCubit = sl<FavoriteCubit>();
   final LocaleCubit _localeCubit = sl<LocaleCubit>();
   final ThemeModeCubit _themeModeCubit = sl<ThemeModeCubit>();
+  final NotificationCubit _notificationCubit = sl<NotificationCubit>();
+
+  bool get _isAuthenticated =>
+      widget.authCubit.state.status == AuthStatus.authenticated;
 
   @override
   void initState() {
     super.initState();
-    // Phiên khôi phục sẵn (token còn hạn) → nạp danh sách yêu thích ngay.
-    if (widget.authCubit.state.status == AuthStatus.authenticated) {
+    WidgetsBinding.instance.addObserver(this);
+    // Khởi tạo local notification; chạm vào popup → mở danh sách thông báo.
+    unawaited(
+      sl<LocalNotificationService>().init(
+        onSelect: (_) => _router.go('/notifications'),
+      ),
+    );
+    // Phiên khôi phục sẵn (token còn hạn) → nạp yêu thích + bật poll thông báo.
+    if (_isAuthenticated) {
       _favoriteCubit.load();
+      _notificationCubit.startAutoRefresh();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // App vào nền → dừng poll; quay lại foreground → bật lại + làm mới ngay.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (!_isAuthenticated) return;
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _notificationCubit.startAutoRefresh();
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        _notificationCubit.stopAutoRefresh();
+      case AppLifecycleState.inactive:
+        break;
     }
   }
 
@@ -73,16 +110,20 @@ class _RideVNAppState extends State<RideVNApp> {
         BlocProvider<FavoriteCubit>.value(value: _favoriteCubit),
         BlocProvider<LocaleCubit>.value(value: _localeCubit),
         BlocProvider<ThemeModeCubit>.value(value: _themeModeCubit),
+        BlocProvider<NotificationCubit>.value(value: _notificationCubit),
       ],
-      // Đồng bộ yêu thích theo phiên: đăng nhập → nạp, đăng xuất → xoá.
+      // Đồng bộ theo phiên: đăng nhập → nạp yêu thích + bật poll thông báo;
+      // đăng xuất → xoá yêu thích + dừng poll + xoá thông báo.
       child: BlocListener<AuthCubit, AuthState>(
         listenWhen: (prev, curr) => prev.status != curr.status,
         listener: (context, state) {
           switch (state.status) {
             case AuthStatus.authenticated:
               _favoriteCubit.load();
+              _notificationCubit.startAutoRefresh();
             case AuthStatus.unauthenticated:
               _favoriteCubit.clear();
+              _notificationCubit.reset();
             case AuthStatus.unknown:
             case AuthStatus.authenticating:
               break;

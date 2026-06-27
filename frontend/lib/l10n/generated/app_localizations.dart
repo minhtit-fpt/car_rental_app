@@ -2474,6 +2474,18 @@ abstract class AppLocalizations {
   /// **'No notifications yet'**
   String get notifEmpty;
 
+  /// No description provided for @notifDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification details'**
+  String get notifDetailTitle;
+
+  /// No description provided for @notifViewTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'View my trips'**
+  String get notifViewTrip;
+
   /// No description provided for @loyaltySubtitle.
   ///
   /// In en, this message translates to:

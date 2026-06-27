@@ -54,6 +54,10 @@ dependencies:
   google_maps_flutter: ^2.10.0
   geolocator: ^13.0.2
 
+  # Thông báo cục bộ (khay hệ thống) — popup khi app foreground/background.
+  # Poll-based (chưa phải push thật từ server).
+  flutter_local_notifications: ^19.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

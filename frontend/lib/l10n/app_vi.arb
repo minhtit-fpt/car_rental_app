@@ -437,6 +437,8 @@
 
   "notifMarkAllRead": "Đọc tất cả",
   "notifEmpty": "Chưa có thông báo nào",
+  "notifDetailTitle": "Chi tiết thông báo",
+  "notifViewTrip": "Xem chuyến của tôi",
 
   "loyaltySubtitle": "Tích lũy điểm cho mỗi chuyến đi",
   "loyaltyPointsUnit": "điểm thưởng",

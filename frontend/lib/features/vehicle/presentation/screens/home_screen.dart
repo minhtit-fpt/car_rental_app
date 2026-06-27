@@ -193,22 +193,10 @@ class _TopBar extends StatelessWidget {
 }
 
 /// Chuông thông báo: mở danh sách `/notifications` và hiển thị badge số chưa
-/// đọc. Tự tạo [NotificationCubit] (factory trong DI) và nạp khi dựng; nạp lại
-/// sau khi quay về để badge phản ánh các mục vừa đọc.
+/// đọc. Đọc [NotificationCubit] singleton (cấp ở gốc app + tự poll nền) nên
+/// badge luôn phản ánh số chưa đọc mới nhất, không cần tự nạp lại.
 class _NotificationBell extends StatelessWidget {
   const _NotificationBell();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider<NotificationCubit>(
-      create: (_) => sl<NotificationCubit>()..load(),
-      child: const _NotificationBellView(),
-    );
-  }
-}
-
-class _NotificationBellView extends StatelessWidget {
-  const _NotificationBellView();
 
   @override
   Widget build(BuildContext context) {
@@ -218,12 +206,7 @@ class _NotificationBellView extends StatelessWidget {
         return _NavIconButton(
           icon: Icons.notifications_outlined,
           badgeCount: unread,
-          onTap: () async {
-            await context.push('/notifications');
-            if (context.mounted) {
-              context.read<NotificationCubit>().load();
-            }
-          },
+          onTap: () => context.push('/notifications'),
         );
       },
     );

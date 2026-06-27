@@ -7,9 +7,22 @@ import {
   type ListBookingsParams,
 } from "@/lib/repositories/booking.repository";
 import { vehicleRepository } from "@/lib/repositories/vehicle.repository";
+import { userRepository } from "@/lib/repositories/user.repository";
+import { notificationEvents } from "@/lib/services/notification.events";
 import type { CreateBookingInput } from "@/lib/validators/booking.validator";
 
 const MS_PER_HOUR = 3_600_000;
+
+// Cửa sổ thanh toán: đơn PENDING_PAYMENT quá ngần này giờ kể từ khi tạo sẽ bị
+// cron tự huỷ. Cấu hình qua PAYMENT_REMINDER_HOURS (mặc định 1 giờ).
+const DEFAULT_PAYMENT_WINDOW_HOURS = 1;
+// Giới hạn số đơn xử lý mỗi lần quét để tránh batch quá lớn.
+const EXPIRE_BATCH_LIMIT = 100;
+
+function getPaymentWindowHours(): number {
+  const raw = Number(process.env.PAYMENT_REMINDER_HOURS);
+  return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_PAYMENT_WINDOW_HOURS;
+}
 
 export interface PublicBooking {
   id: string;
@@ -152,6 +165,11 @@ export const bookingService = {
       totalPrice,
       deliveryRequested: input.deliveryRequested,
     });
+    await notificationEvents.bookingCreated({
+      bookingId: booking.id,
+      renterId,
+      ownerId: vehicle.ownerId,
+    });
     return toPublicBooking(booking);
   },
 
@@ -220,6 +238,10 @@ export const bookingService = {
       }
       throw error;
     }
+    await notificationEvents.bookingApproved({
+      bookingId: booking.id,
+      renterId: booking.renterId,
+    });
     return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
   },
 
@@ -234,6 +256,10 @@ export const bookingService = {
       );
     }
     await bookingRepository.updateStatus(id, BookingStatus.CANCELLED);
+    await notificationEvents.bookingRejected({
+      bookingId: booking.id,
+      renterId: booking.renterId,
+    });
     return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
   },
 
@@ -269,12 +295,12 @@ export const bookingService = {
         "Xe đã có người đặt trong khoảng thời gian này",
       );
     }
+    let updated: Booking;
     try {
-      const updated = await bookingRepository.updateStatus(
+      updated = await bookingRepository.updateStatus(
         bookingId,
         BookingStatus.CONFIRMED,
       );
-      return toPublicBooking(updated);
     } catch (error) {
       if (isOverlapViolation(error)) {
         throw new AppError(
@@ -285,6 +311,48 @@ export const bookingService = {
       }
       throw error;
     }
+
+    const vehicle = await vehicleRepository.findById(updated.vehicleId);
+    if (vehicle) {
+      const renter = await userRepository.findById(updated.renterId);
+      await notificationEvents.paymentConfirmed({
+        bookingId: updated.id,
+        renterId: updated.renterId,
+        ownerId: vehicle.ownerId,
+        renterEmail: renter?.email,
+      });
+    }
+    return toPublicBooking(updated);
+  },
+
+  // Quét & tự huỷ các đơn PENDING_PAYMENT quá hạn thanh toán (gọi bởi cron).
+  // Mỗi đơn: PENDING_PAYMENT → CANCELLED + noti in-app cho renter (fire-and-forget).
+  // Lỗi của 1 đơn không được chặn các đơn còn lại. Trả số đơn đã huỷ.
+  async expireOverduePayments(): Promise<{ expired: number }> {
+    const before = new Date(Date.now() - getPaymentWindowHours() * MS_PER_HOUR);
+    const overdue = await bookingRepository.findOverduePendingPayment(
+      before,
+      EXPIRE_BATCH_LIMIT,
+    );
+
+    let expired = 0;
+    for (const booking of overdue) {
+      try {
+        await bookingRepository.updateStatus(
+          booking.id,
+          BookingStatus.CANCELLED,
+        );
+      } catch (error) {
+        console.error("Failed to expire overdue booking", booking.id, error);
+        continue;
+      }
+      expired += 1;
+      await notificationEvents.paymentExpired({
+        bookingId: booking.id,
+        renterId: booking.renterId,
+      });
+    }
+    return { expired };
   },
 
   async cancel(renterId: string, id: string): Promise<PublicBooking> {
@@ -300,6 +368,13 @@ export const bookingService = {
       id,
       BookingStatus.CANCELLED,
     );
+    const vehicle = await vehicleRepository.findById(updated.vehicleId);
+    if (vehicle) {
+      await notificationEvents.bookingCancelled({
+        bookingId: updated.id,
+        ownerId: vehicle.ownerId,
+      });
+    }
     return toPublicBooking(updated);
   },
 };
