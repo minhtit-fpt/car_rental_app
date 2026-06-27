@@ -223,10 +223,46 @@ model Booking {
   tripStories  TripStory[]
   conversation ChatConversation?
   disputes     Dispute[]
+  inspections  Inspection[]
+  damageReport DamageReport?
 
   @@index([vehicleId])
   @@index([renterId])
   @@index([status])
+}
+
+enum InspectionPhase {
+  CHECKIN
+  CHECKOUT
+}
+
+// Ảnh kiểm tra xe khi nhận (CHECKIN) và trả (CHECKOUT). photoKeys là object key
+// trong bucket private — KHÔNG public. Mỗi đơn tối đa 1 bộ ảnh mỗi phase.
+model Inspection {
+  id          String          @id @default(uuid()) @db.Uuid
+  bookingId   String          @db.Uuid
+  phase       InspectionPhase
+  photoKeys   String[]
+  createdById String          @db.Uuid
+  createdAt   DateTime        @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, phase])
+  @@index([bookingId])
+}
+
+// Báo cáo hư hỏng do VLM sinh ra khi so ảnh CHECKIN ↔ CHECKOUT. items là JSON
+// [{ label, severity, description }]; estimatedCost gợi ý bồi thường (VND).
+model DamageReport {
+  id            String   @id @default(uuid()) @db.Uuid
+  bookingId     String   @unique @db.Uuid
+  summary       String
+  items         Json
+  estimatedCost Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
 
 enum DisputePriority {

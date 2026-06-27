@@ -39,6 +39,9 @@ import 'package:frontend/features/ai_chat/data/repositories/ai_chat_repository_i
 import 'package:frontend/features/ai_chat/domain/repositories/ai_chat_repository.dart';
 import 'package:frontend/features/ai_chat/domain/usecases/stream_ai_reply_usecase.dart';
 import 'package:frontend/features/ai_chat/presentation/cubit/ai_chat_cubit.dart';
+import 'package:frontend/features/inspection/data/datasources/inspection_remote_datasource.dart';
+import 'package:frontend/features/inspection/data/repositories/inspection_repository_impl.dart';
+import 'package:frontend/features/inspection/domain/repositories/inspection_repository.dart';
 import 'package:frontend/features/vehicle/data/datasources/vehicle_remote_datasource.dart';
 import 'package:frontend/features/vehicle/data/repositories/vehicle_repository_impl.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
@@ -425,6 +428,14 @@ void setupAiChat() {
         streamReply: StreamAiReplyUseCase(sl<AiChatRepository>()),
       ),
     );
+}
+
+/// Đăng ký data layer cho luồng kiểm tra xe + báo cáo hư hỏng AI.
+/// Cubit được tạo trong màn (cần `bookingId`), nên chỉ đăng ký repository.
+void setupInspection() {
+  sl.registerSingleton<InspectionRepository>(
+    InspectionRepositoryImpl(InspectionRemoteDataSource(sl<ApiClient>())),
+  );
 }
 
 void setupChat() {

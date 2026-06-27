@@ -70,6 +70,15 @@ class ActiveTripScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     _QuickActionsRow(),
                     const SizedBox(height: 20),
+                    if (state.booking?.id case final bookingId?) ...[
+                      SecondaryButton(
+                        label: 'Kiểm tra xe (AI nhận diện hư hỏng)',
+                        onPressed: () =>
+                            context.push('/inspection/$bookingId'),
+                        icon: Icons.camera_alt_outlined,
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     PrimaryButton(
                       label: l10n.activeTripReturn,
                       onPressed: () => _showReturnDialog(context),

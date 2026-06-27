@@ -32,6 +32,7 @@ Future<void> main() async {
   setupCommunity(); // community repository + CommunityCubit factory
   setupChat(); // chat repository + conversation/chat cubits
   setupAiChat(); // AI RAG chatbot repository + AiChatCubit factory
+  setupInspection(); // inspection repository (vision damage detection)
   setupFavorite(); // favorite repository + FavoriteCubit singleton
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),

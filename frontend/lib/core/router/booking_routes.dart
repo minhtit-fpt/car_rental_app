@@ -5,6 +5,7 @@ import 'package:frontend/features/booking/presentation/screens/booking_confirm_s
 import 'package:frontend/features/booking/presentation/screens/booking_date_picker_screen.dart';
 import 'package:frontend/features/booking/presentation/screens/contract_screen.dart';
 import 'package:frontend/features/booking/presentation/screens/my_trips_screen.dart';
+import 'package:frontend/features/inspection/presentation/screens/vehicle_inspection_screen.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 
 final bookingRoutes = [
@@ -53,5 +54,12 @@ final bookingRoutes = [
         cubit: args['cubit'] as BookingCubit,
       );
     },
+  ),
+  // Kiểm tra xe + AI nhận diện hư hỏng (check-in/check-out).
+  GoRoute(
+    path: '/inspection/:bookingId',
+    builder: (context, state) => VehicleInspectionScreen(
+      bookingId: state.pathParameters['bookingId']!,
+    ),
   ),
 ];

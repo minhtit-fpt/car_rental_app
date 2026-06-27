@@ -18,4 +18,7 @@ export interface StoragePort {
   presignUpload(objectKey: string): Promise<string>;
   // Cấp presigned GET ngắn hạn để ADMIN xem ảnh khi duyệt KYC.
   presignDownload(objectKey: string): Promise<string>;
+  // Tải nguyên bytes của object (server-side) — dùng để base64 ảnh kiểm tra xe
+  // gửi cho VLM nhận diện hư hỏng.
+  getBytes(objectKey: string): Promise<Buffer>;
 }

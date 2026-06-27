@@ -58,4 +58,14 @@ export const minioStorage: StoragePort = {
     const { client, bucket } = getClient();
     return client.presignedGetObject(bucket, objectKey, DOWNLOAD_TTL_SECONDS);
   },
+
+  async getBytes(objectKey: string): Promise<Buffer> {
+    const { client, bucket } = getClient();
+    const stream = await client.getObject(bucket, objectKey);
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) {
+      chunks.push(chunk as Buffer);
+    }
+    return Buffer.concat(chunks);
+  },
 };
