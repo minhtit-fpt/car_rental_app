@@ -36,6 +36,17 @@ export const nearbyQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
 });
 
+// Báo giá động (preview) cho 1 lượt thuê: cần khoảng thời gian thuê.
+export const priceQuoteQuerySchema = z
+  .object({
+    startTime: z.string().datetime({ offset: true }),
+    endTime: z.string().datetime({ offset: true }),
+  })
+  .refine((v) => new Date(v.endTime) > new Date(v.startTime), {
+    message: "endTime phải sau startTime",
+    path: ["endTime"],
+  });
+
 const transmissionSchema = z.enum(["AUTOMATIC", "MANUAL"]);
 
 export const createVehicleSchema = z.object({

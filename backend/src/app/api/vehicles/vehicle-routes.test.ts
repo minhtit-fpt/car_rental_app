@@ -15,6 +15,9 @@ vi.mock("@/lib/services/vehicle.service", () => ({
     remove: vi.fn(),
   },
 }));
+vi.mock("@/lib/services/pricing.service", () => ({
+  pricingService: { quoteForVehicle: vi.fn() },
+}));
 
 import { GET as listGET, POST as createPOST } from "@/app/api/vehicles/route";
 import { GET as nearbyGET } from "@/app/api/vehicles/nearby/route";
@@ -23,7 +26,9 @@ import {
   PATCH as updatePATCH,
   DELETE as deleteDELETE,
 } from "@/app/api/vehicles/[id]/route";
+import { GET as priceQuoteGET } from "@/app/api/vehicles/[id]/price-quote/route";
 import { vehicleService } from "@/lib/services/vehicle.service";
+import { pricingService } from "@/lib/services/pricing.service";
 import { requireAuth } from "@/lib/middleware/auth.middleware";
 import { AppError } from "@/lib/errors/app-error";
 import type { AccessTokenClaims } from "@/lib/auth/jwt";
@@ -90,6 +95,47 @@ describe("GET /api/vehicles/[id]", () => {
     const res = await detailGET(getReq("/api/vehicles/x"), {
       params: { id: "x" },
     });
+    expect(res.status).toBe(404);
+  });
+});
+
+describe("GET /api/vehicles/[id]/price-quote", () => {
+  const RANGE =
+    "startTime=2026-07-01T08:00:00Z&endTime=2026-07-01T12:00:00Z";
+
+  it("returns 200 with the explainable quote", async () => {
+    vi.mocked(pricingService.quoteForVehicle).mockResolvedValue({
+      basePricePerHour: 100,
+      hours: 4,
+      basePrice: 400,
+      factors: [],
+      finalPrice: 400,
+      currency: "VND",
+    });
+    const res = await priceQuoteGET(
+      getReq(`/api/vehicles/veh-1/price-quote?${RANGE}`),
+      { params: { id: "veh-1" } },
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).data.finalPrice).toBe(400);
+  });
+
+  it("returns 400 when the time range is missing", async () => {
+    const res = await priceQuoteGET(getReq("/api/vehicles/veh-1/price-quote"), {
+      params: { id: "veh-1" },
+    });
+    expect(res.status).toBe(400);
+    expect(pricingService.quoteForVehicle).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 when the vehicle does not exist", async () => {
+    vi.mocked(pricingService.quoteForVehicle).mockRejectedValue(
+      new AppError(404, "VEHICLE_NOT_FOUND", "Không tìm thấy xe"),
+    );
+    const res = await priceQuoteGET(
+      getReq(`/api/vehicles/nope/price-quote?${RANGE}`),
+      { params: { id: "nope" } },
+    );
     expect(res.status).toBe(404);
   });
 });

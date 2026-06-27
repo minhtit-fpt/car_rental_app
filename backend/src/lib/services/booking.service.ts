@@ -6,8 +6,11 @@ import {
   type ListBookingsByOwnerParams,
   type ListBookingsParams,
 } from "@/lib/repositories/booking.repository";
+import { userRepository } from "@/lib/repositories/user.repository";
 import { vehicleRepository } from "@/lib/repositories/vehicle.repository";
+import { notificationEvents } from "@/lib/services/notification.events";
 import { notificationService } from "@/lib/services/notification.service";
+import { pricingService } from "@/lib/services/pricing.service";
 import type { CreateBookingInput } from "@/lib/validators/booking.validator";
 
 const MS_PER_HOUR = 3_600_000;
@@ -149,12 +152,13 @@ export const bookingService = {
       );
     }
 
-    // Làm tròn lên theo giờ; tối thiểu 1 giờ.
-    const hours = Math.max(
-      1,
-      Math.ceil((end.getTime() - start.getTime()) / MS_PER_HOUR),
-    );
-    const totalPrice = Number(vehicle.pricePerHour) * hours;
+    // Giá động: giá gốc (DB, do chủ xe đặt) × các yếu tố surge (giờ cao điểm,
+    // cuối tuần/lễ, giảm giá thuê dài). Xem pricing.service / surge.util.
+    const totalPrice = pricingService.quote({
+      pricePerHour: Number(vehicle.pricePerHour),
+      startTime: start,
+      endTime: end,
+    }).finalPrice;
 
     const booking = await bookingRepository.create({
       vehicleId: vehicle.id,
@@ -165,24 +169,13 @@ export const bookingService = {
       deliveryRequested: input.deliveryRequested,
     });
 
-    // Báo cho NGƯỜI THUÊ: đặt xe thành công, cần thanh toán.
-    await notificationService.notify({
-      userId: renterId,
-      type: "BOOKING",
-      title: "Đặt xe thành công",
-      body: `Bạn đã đặt ${vehicle.title}. Vui lòng thanh toán để hoàn tất.`,
-      payload: { bookingId: booking.id, role: "renter" },
+    // Báo cho renter (đặt thành công, chờ thanh toán) + owner (yêu cầu mới).
+    // safeCreate bên trong: lỗi noti KHÔNG làm hỏng luồng tạo đơn.
+    await notificationEvents.bookingCreated({
+      bookingId: booking.id,
+      renterId,
+      ownerId: vehicle.ownerId,
     });
-    // Báo cho CHỦ XE có yêu cầu đặt mới (bỏ qua nếu tự đặt xe của mình).
-    if (vehicle.ownerId !== renterId) {
-      await notificationService.notify({
-        userId: vehicle.ownerId,
-        type: "BOOKING",
-        title: "Yêu cầu đặt xe mới",
-        body: `${vehicle.title} có yêu cầu đặt mới đang chờ xác nhận.`,
-        payload: { bookingId: booking.id, role: "owner" },
-      });
-    }
     return toPublicBooking(booking);
   },
 
@@ -389,15 +382,12 @@ export const bookingService = {
       id,
       BookingStatus.CANCELLED,
     );
-    // Báo cho chủ xe rằng người thuê đã huỷ đơn.
+    // Báo cho chủ xe rằng người thuê đã huỷ đơn (bỏ qua nếu tự huỷ xe của mình).
     const vehicle = await vehicleRepository.findById(booking.vehicleId);
     if (vehicle && vehicle.ownerId !== renterId) {
-      await notificationService.notify({
-        userId: vehicle.ownerId,
-        type: "BOOKING",
-        title: "Khách đã huỷ đơn",
-        body: `Một đơn đặt ${vehicle.title} vừa bị người thuê huỷ.`,
-        payload: { bookingId: updated.id, role: "owner" },
+      await notificationEvents.bookingCancelled({
+        bookingId: updated.id,
+        ownerId: vehicle.ownerId,
       });
     }
     return toPublicBooking(updated);

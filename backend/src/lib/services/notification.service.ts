@@ -4,10 +4,7 @@ import {
   type Prisma,
 } from "@prisma/client";
 import { AppError } from "@/lib/errors/app-error";
-import {
-  notificationRepository,
-  type CreateNotificationData,
-} from "@/lib/repositories/notification.repository";
+import { notificationRepository } from "@/lib/repositories/notification.repository";
 import type { ListNotificationsQuery } from "@/lib/validators/notification.validator";
 
 export interface NotifyInput {
@@ -56,6 +53,23 @@ export const notificationService = {
       await notificationRepository.create(input);
     } catch (error) {
       console.error("[notification] tạo thông báo thất bại", error);
+    }
+  },
+
+  // Tạo thông báo và TRẢ VỀ bản ghi (dạng public). Ném lỗi nếu repo thất bại —
+  // dùng khi caller cần biết kết quả.
+  async create(input: NotifyInput): Promise<PublicNotification> {
+    return toPublic(await notificationRepository.create(input));
+  },
+
+  // Như create nhưng KHÔNG bao giờ ném: trả null nếu thất bại. Dùng cho thông báo
+  // theo sự kiện (notification.events) — lỗi noti không được làm hỏng luồng chính.
+  async safeCreate(input: NotifyInput): Promise<PublicNotification | null> {
+    try {
+      return await this.create(input);
+    } catch (error) {
+      console.error("[notification] tạo thông báo thất bại", error);
+      return null;
     }
   },
 
