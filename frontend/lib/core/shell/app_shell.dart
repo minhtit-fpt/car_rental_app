@@ -39,6 +39,16 @@ class _AppShellState extends State<AppShell> {
           const _DashboardSelectorScreen(),
         ],
       ),
+      // Trợ lý AI nổi ở tab Trang chủ (index 0) — lối vào chatbot RAG.
+      floatingActionButton: _currentIndex == 0
+          ? FloatingActionButton(
+              heroTag: 'ai-assistant',
+              backgroundColor: AppColors.accent,
+              tooltip: 'Trợ lý AI',
+              onPressed: () => context.push('/ai-chat'),
+              child: const Icon(Icons.auto_awesome, color: Colors.white),
+            )
+          : null,
       bottomNavigationBar: _BottomNav(
         currentIndex: _currentIndex,
         onTap: _navigateTo,

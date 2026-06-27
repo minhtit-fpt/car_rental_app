@@ -34,6 +34,11 @@ import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart'
 import 'package:frontend/features/admin/presentation/cubit/admin_users_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_revenue_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_disputes_cubit.dart';
+import 'package:frontend/features/ai_chat/data/datasources/ai_chat_remote_datasource.dart';
+import 'package:frontend/features/ai_chat/data/repositories/ai_chat_repository_impl.dart';
+import 'package:frontend/features/ai_chat/domain/repositories/ai_chat_repository.dart';
+import 'package:frontend/features/ai_chat/domain/usecases/stream_ai_reply_usecase.dart';
+import 'package:frontend/features/ai_chat/presentation/cubit/ai_chat_cubit.dart';
 import 'package:frontend/features/vehicle/data/datasources/vehicle_remote_datasource.dart';
 import 'package:frontend/features/vehicle/data/repositories/vehicle_repository_impl.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
@@ -408,6 +413,20 @@ void setupFavorite() {
 }
 
 /// Đăng ký data layer + cubit cho chat (REST + polling). Gọi sau [setupAuth].
+/// Đăng ký trợ lý AI (RAG chatbot). Gọi sau [setupStorage] (cần [SecureStorage]
+/// cho token). KHÔNG dùng [ApiClient] — AI service là origin riêng, stream text.
+void setupAiChat() {
+  sl
+    ..registerSingleton<AiChatRepository>(
+      AiChatRepositoryImpl(AiChatRemoteDataSource(sl<SecureStorage>())),
+    )
+    ..registerFactory<AiChatCubit>(
+      () => AiChatCubit(
+        streamReply: StreamAiReplyUseCase(sl<AiChatRepository>()),
+      ),
+    );
+}
+
 void setupChat() {
   sl
     ..registerSingleton<ChatRepository>(

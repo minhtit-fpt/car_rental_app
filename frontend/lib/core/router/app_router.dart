@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
+import 'package:frontend/core/router/ai_chat_routes.dart';
 import 'package:frontend/core/router/auth_routes.dart';
 import 'package:frontend/core/router/booking_routes.dart';
 import 'package:frontend/core/router/kyc_routes.dart';
@@ -103,6 +104,7 @@ GoRouter createAppRouter(AuthCubit authCubit) {
       ...authRoutes,
       ...kycRoutes,
       ...vehicleRoutes,
+      ...aiChatRoutes,
       ...bookingRoutes,
       ...paymentRoutes,
       ...socialRoutes,
