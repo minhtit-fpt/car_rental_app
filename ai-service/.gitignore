@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+# Index nhị phân sinh ra khi build (embedding bge-m3) — không commit.
+data/index/
+*.index
