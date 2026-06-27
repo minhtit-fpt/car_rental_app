@@ -1,6 +1,8 @@
 import 'package:frontend/features/vehicle/data/datasources/vehicle_remote_datasource.dart';
+import 'package:frontend/features/vehicle/data/models/price_quote_model.dart';
 import 'package:frontend/features/vehicle/data/models/vehicle_availability_model.dart';
 import 'package:frontend/features/vehicle/data/models/vehicle_model.dart';
+import 'package:frontend/features/vehicle/domain/entities/price_quote.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle_availability.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
@@ -41,6 +43,15 @@ class VehicleRepositoryImpl implements VehicleRepository {
   @override
   Future<VehicleAvailability> getAvailability(String id) async =>
       VehicleAvailabilityModel.fromJson(await _remote.availability(id));
+
+  @override
+  Future<PriceQuote> getPriceQuote({
+    required String vehicleId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) async => PriceQuoteModel.fromJson(
+    await _remote.priceQuote(vehicleId, startTime: startTime, endTime: endTime),
+  );
 
   @override
   Future<Vehicle> createVehicle({

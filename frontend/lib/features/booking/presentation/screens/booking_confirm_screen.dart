@@ -7,6 +7,7 @@ import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
+import 'package:frontend/features/vehicle/domain/entities/price_quote.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -50,12 +51,28 @@ class BookingConfirmScreen extends StatelessWidget {
   }
 }
 
-class _BookingConfirmView extends StatelessWidget {
+class _BookingConfirmView extends StatefulWidget {
   const _BookingConfirmView({required this.vehicle});
   final Vehicle vehicle;
 
   @override
+  State<_BookingConfirmView> createState() => _BookingConfirmViewState();
+}
+
+class _BookingConfirmViewState extends State<_BookingConfirmView> {
+  @override
+  void initState() {
+    super.initState();
+    // Tải báo giá động cho lựa chọn hiện tại (loadQuote idempotent).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<BookingCubit>().loadQuote(vehicleId: widget.vehicle.id);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final vehicle = widget.vehicle;
     final l10n = AppLocalizations.of(context);
     return MultiBlocListener(
       listeners: [
@@ -105,12 +122,6 @@ class _BookingConfirmView extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: BlocBuilder<BookingCubit, BookingFormState>(
                     builder: (context, state) {
-                      final days = state.totalDays;
-                      final rentalTotal = vehicle.pricePerDay * days;
-                      final deliveryFee = state.withDelivery ? 50.0 : 0.0;
-                      final insurance = rentalTotal * 0.05;
-                      final total = rentalTotal + deliveryFee + insurance;
-
                       return Column(
                         children: [
                           const SizedBox(height: 8),
@@ -118,11 +129,7 @@ class _BookingConfirmView extends StatelessWidget {
                           const SizedBox(height: 16),
                           _TripDetailsCard(state: state),
                           const SizedBox(height: 16),
-                          _TotalCard(
-                            vehicle: vehicle,
-                            state: state,
-                            total: total,
-                          ),
+                          _PriceBreakdownCard(vehicle: vehicle, state: state),
                           const SizedBox(height: 20),
                           _InfoBanner(),
                           const SizedBox(height: 20),
@@ -383,22 +390,35 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-class _TotalCard extends StatelessWidget {
-  const _TotalCard({
-    required this.vehicle,
-    required this.state,
-    required this.total,
-  });
+/// Định dạng số tiền VND với dấu chấm phân tách nghìn (vd 230000 → "230.000 ₫").
+String _fmtVnd(double value) {
+  final digits = value.round().toString();
+  final buf = StringBuffer();
+  for (var i = 0; i < digits.length; i++) {
+    if (i > 0 && (digits.length - i) % 3 == 0) buf.write('.');
+    buf.write(digits[i]);
+  }
+  return '$buf ₫';
+}
+
+/// Breakdown giá ĐỘNG lấy từ pricing engine (`price-quote`): giá gốc + từng yếu
+/// tố surge có giải thích + tổng. Fallback giá gốc khi chưa tải được báo giá.
+class _PriceBreakdownCard extends StatelessWidget {
+  const _PriceBreakdownCard({required this.vehicle, required this.state});
   final Vehicle vehicle;
   final BookingFormState state;
-  final double total;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final days = state.totalDays;
-    final rentalTotal = vehicle.pricePerDay * days;
-    final insurance = rentalTotal * 0.05;
+    final quote = state.priceQuote;
+
+    // Fallback khi thiếu báo giá: tính giá gốc tại chỗ (giờ = số ngày × 24,
+    // khớp khoảng thời gian đơn đặt suy ra ở cubit).
+    final fallbackHours = state.totalDays * 24;
+    final hours = quote?.hours ?? fallbackHours;
+    final basePrice = quote?.basePrice ?? vehicle.pricePerHour * fallbackHours;
+    final total = quote?.finalPrice ?? basePrice;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -410,31 +430,50 @@ class _TotalCard extends StatelessWidget {
           BoxShadow(
             color: context.palette.cardShadowColor,
             blurRadius: 6,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SummaryLine(
-            label: l10n.bookingRentalCarLine(
-              vehicle.pricePerDay.toInt().toString(),
-              days,
-            ),
-            value: '${rentalTotal.toInt()}K',
+          Row(
+            children: [
+              const Icon(
+                Icons.insights_rounded,
+                size: 16,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                l10n.bookingPriceBreakdownTitle,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: context.palette.darkText,
+                ),
+              ),
+              const Spacer(),
+              if (state.quoteLoading)
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+            ],
           ),
-          if (state.withDelivery)
-            _SummaryLine(label: l10n.bookingDeliveryShort, value: '50K'),
-          _SummaryLine(
-            label: l10n.bookingInsuranceLabel,
-            value: '${insurance.toInt()}K',
+          const SizedBox(height: 14),
+          _PriceLine(
+            label: l10n.bookingBasePrice(hours),
+            value: _fmtVnd(basePrice),
           ),
-          _SummaryLine(
-            label: l10n.bookingServiceFee,
-            value: '${(rentalTotal * 0.03).toInt()}K',
-          ),
+          if (quote != null)
+            for (final f in quote.factors) ...[
+              const SizedBox(height: 8),
+              _FactorLine(factor: f),
+            ],
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 10),
             child: Divider(color: context.palette.border, height: 1),
           ),
           Row(
@@ -449,7 +488,7 @@ class _TotalCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '${total.toInt()}K VNĐ',
+                _fmtVnd(total),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
@@ -458,41 +497,87 @@ class _TotalCard extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.bookingDynamicPriceNote,
+            style: TextStyle(
+              fontSize: 11,
+              color: context.palette.mutedText,
+              height: 1.4,
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _SummaryLine extends StatelessWidget {
-  const _SummaryLine({required this.label, required this.value});
+class _PriceLine extends StatelessWidget {
+  const _PriceLine({required this.label, required this.value});
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 13, color: context.palette.secondaryText),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            color: context.palette.darkText,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Một dòng yếu tố surge: nhãn (từ backend) + badge phần trăm có dấu.
+/// Giảm giá hiển thị xanh teal, phụ thu hiển thị cam accent.
+class _FactorLine extends StatelessWidget {
+  const _FactorLine({required this.factor});
+  final PriceFactor factor;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = factor.isDiscount ? AppColors.teal : AppColors.accent;
+    final sign = factor.percentDelta >= 0 ? '+' : '−';
+    final pct = factor.percentDelta.abs();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            factor.label,
             style: TextStyle(
               fontSize: 13,
               color: context.palette.secondaryText,
             ),
           ),
-          Text(
-            '$value VNĐ',
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: color.withAlpha(26),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '$sign$pct%',
             style: TextStyle(
-              fontSize: 13,
-              color: context.palette.darkText,
-              fontWeight: FontWeight.w500,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: color,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

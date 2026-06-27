@@ -626,6 +626,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingTotalPayment => 'Total payment';
 
   @override
+  String get bookingPriceBreakdownTitle => 'Price breakdown';
+
+  @override
+  String bookingBasePrice(int hours) {
+    return 'Base price (${hours}h)';
+  }
+
+  @override
+  String get bookingDynamicPriceNote =>
+      'Price adjusts to timing and rental demand.';
+
+  @override
   String get bookingDepositTitle => 'Deposit & Cancellation';
 
   @override

@@ -42,6 +42,23 @@ class VehicleRemoteDataSource {
     return data as Map<String, dynamic>;
   }
 
+  /// `GET /api/vehicles/:id/price-quote` — báo giá động (breakdown surge).
+  /// Thời gian gửi ISO 8601 UTC (hậu tố `Z`) khớp validator backend.
+  Future<Map<String, dynamic>> priceQuote(
+    String id, {
+    required DateTime startTime,
+    required DateTime endTime,
+  }) async {
+    final data = await _client.get(
+      '/api/vehicles/$id/price-quote',
+      query: {
+        'startTime': startTime.toUtc().toIso8601String(),
+        'endTime': endTime.toUtc().toIso8601String(),
+      },
+    );
+    return data as Map<String, dynamic>;
+  }
+
   /// `POST /api/vehicles` — chủ xe đăng xe mới (cần role OWNER). Trả về xe vừa tạo.
   Future<Map<String, dynamic>> create({
     required String type,

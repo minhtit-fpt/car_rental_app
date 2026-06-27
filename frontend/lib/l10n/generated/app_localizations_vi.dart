@@ -623,6 +623,18 @@ class AppLocalizationsVi extends AppLocalizations {
   String get bookingTotalPayment => 'Tổng thanh toán';
 
   @override
+  String get bookingPriceBreakdownTitle => 'Chi tiết giá';
+
+  @override
+  String bookingBasePrice(int hours) {
+    return 'Giá gốc ($hours giờ)';
+  }
+
+  @override
+  String get bookingDynamicPriceNote =>
+      'Giá tự điều chỉnh theo thời điểm và nhu cầu thuê.';
+
+  @override
   String get bookingDepositTitle => 'Đặt cọc & Hủy chuyến';
 
   @override

@@ -43,6 +43,7 @@ import 'package:frontend/features/vehicle/domain/usecases/list_nearby_vehicles_u
 import 'package:frontend/features/vehicle/domain/usecases/list_vehicles_usecase.dart';
 import 'package:frontend/features/vehicle/domain/usecases/update_vehicle_usecase.dart';
 import 'package:frontend/features/vehicle/domain/usecases/get_vehicle_availability_usecase.dart';
+import 'package:frontend/features/vehicle/domain/usecases/get_price_quote_usecase.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_availability_cubit.dart';
 import 'package:frontend/features/map/presentation/cubit/map_cubit.dart';
@@ -278,6 +279,7 @@ void setupBooking() {
     ..registerFactory<BookingCubit>(
       () => BookingCubit(
         createBooking: CreateBookingUseCase(sl<BookingRepository>()),
+        getPriceQuote: GetPriceQuoteUseCase(sl<VehicleRepository>()),
       ),
     )
     ..registerFactory<MyTripsCubit>(

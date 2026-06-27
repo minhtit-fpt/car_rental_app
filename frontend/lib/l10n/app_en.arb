@@ -341,6 +341,17 @@
   "bookingDeliveryShort": "Delivery",
   "bookingServiceFee": "Service fee (3%)",
   "bookingTotalPayment": "Total payment",
+  "bookingPriceBreakdownTitle": "Price breakdown",
+  "bookingBasePrice": "Base price ({hours}h)",
+  "@bookingBasePrice": {
+    "description": "Base rental price before dynamic adjustments",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "bookingDynamicPriceNote": "Price adjusts to timing and rental demand.",
   "bookingDepositTitle": "Deposit & Cancellation",
   "bookingDepositBody": "30% deposit on confirmation. Full refund if cancelled at least 24h before pick-up.",
 

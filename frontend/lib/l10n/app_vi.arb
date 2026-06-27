@@ -212,6 +212,17 @@
   "bookingDeliveryShort": "Giao xe",
   "bookingServiceFee": "Phí dịch vụ (3%)",
   "bookingTotalPayment": "Tổng thanh toán",
+  "bookingPriceBreakdownTitle": "Chi tiết giá",
+  "bookingBasePrice": "Giá gốc ({hours} giờ)",
+  "@bookingBasePrice": {
+    "description": "Base rental price before dynamic adjustments",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "bookingDynamicPriceNote": "Giá tự điều chỉnh theo thời điểm và nhu cầu thuê.",
   "bookingDepositTitle": "Đặt cọc & Hủy chuyến",
   "bookingDepositBody": "Đặt cọc 30% khi xác nhận. Hoàn 100% nếu hủy trước 24h nhận xe.",
 

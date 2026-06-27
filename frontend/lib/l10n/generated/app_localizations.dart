@@ -1268,6 +1268,24 @@ abstract class AppLocalizations {
   /// **'Total payment'**
   String get bookingTotalPayment;
 
+  /// No description provided for @bookingPriceBreakdownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Price breakdown'**
+  String get bookingPriceBreakdownTitle;
+
+  /// Base rental price before dynamic adjustments
+  ///
+  /// In en, this message translates to:
+  /// **'Base price ({hours}h)'**
+  String bookingBasePrice(int hours);
+
+  /// No description provided for @bookingDynamicPriceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Price adjusts to timing and rental demand.'**
+  String get bookingDynamicPriceNote;
+
   /// No description provided for @bookingDepositTitle.
   ///
   /// In en, this message translates to:
