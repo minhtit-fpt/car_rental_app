@@ -4,6 +4,7 @@ import { KycStatus } from "@prisma/client";
 import { AppError } from "@/lib/errors/app-error";
 import { kycRepository } from "@/lib/repositories/kyc.repository";
 import { userRepository } from "@/lib/repositories/user.repository";
+import { notificationService } from "@/lib/services/notification.service";
 import { storage } from "@/lib/storage";
 import type {
   ReviewKycInput,
@@ -118,6 +119,16 @@ export const kycService = {
       rejectReason: approved ? null : (input.rejectReason ?? null),
     });
     await userRepository.updateKycStatus(record.userId, status);
+
+    // Báo cho người dùng kết quả duyệt KYC.
+    await notificationService.notify({
+      userId: record.userId,
+      type: "KYC",
+      title: approved ? "KYC đã được duyệt" : "KYC bị từ chối",
+      body: approved
+        ? "Hồ sơ định danh của bạn đã được xác minh. Bạn có thể đặt xe ngay."
+        : (input.rejectReason ?? "Hồ sơ định danh chưa đạt. Vui lòng nộp lại."),
+    });
 
     return updated;
   },

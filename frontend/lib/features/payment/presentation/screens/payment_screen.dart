@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:frontend/features/payment/presentation/cubit/payment_cubit.dart';
 import 'package:frontend/features/payment/presentation/screens/vnpay_webview_screen.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -83,6 +84,9 @@ class _PaymentViewState extends State<_PaymentView> {
       listener: (context, state) async {
         switch (state) {
           case PaymentSuccess():
+            // Thanh toán xong → noti "Thanh toán thành công" vừa được tạo trên
+            // backend; refresh để dấu đỏ + popup tới ngay, không đợi poll 30s.
+            sl<NotificationCubit>().refresh();
             final next = widget.successLocation;
             if (next != null) {
               context.pushReplacement(next, extra: widget.successExtra);

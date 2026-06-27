@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
+import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/presentation/vehicle_display_l10n.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
@@ -59,10 +61,18 @@ class _BookingConfirmView extends StatelessWidget {
       listeners: [
         BlocListener<BookingCubit, BookingFormState>(
           listenWhen: (p, c) => c.submitted && !p.submitted,
-          listener: (context, _) => context.pushReplacement(
-            '/booking/contract',
-            extra: {'vehicle': vehicle, 'cubit': context.read<BookingCubit>()},
-          ),
+          listener: (context, _) {
+            // Đơn vừa được tạo trên backend → refresh để noti "Đặt xe thành
+            // công" + dấu đỏ + popup tới ngay, không đợi poll 30s.
+            sl<NotificationCubit>().refresh();
+            context.pushReplacement(
+              '/booking/contract',
+              extra: {
+                'vehicle': vehicle,
+                'cubit': context.read<BookingCubit>(),
+              },
+            );
+          },
         ),
         BlocListener<BookingCubit, BookingFormState>(
           listenWhen: (p, c) =>

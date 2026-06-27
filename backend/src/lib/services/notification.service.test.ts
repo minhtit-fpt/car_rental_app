@@ -3,6 +3,7 @@ import { NotificationType, type Notification } from "@prisma/client";
 
 vi.mock("@/lib/repositories/notification.repository", () => ({
   notificationRepository: {
+    create: vi.fn(),
     findManyByUser: vi.fn(),
     countUnread: vi.fn(),
     findById: vi.fn(),
@@ -96,5 +97,46 @@ describe("notificationService.markAllRead", () => {
     const result = await notificationService.markAllRead(USER);
 
     expect(result.updated).toBe(3);
+  });
+});
+
+describe("notificationService.notify", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("creates a notification with the given fields", async () => {
+    vi.mocked(notificationRepository.create).mockResolvedValue(makeNotif());
+
+    await notificationService.notify({
+      userId: USER,
+      type: NotificationType.BOOKING,
+      title: "Yêu cầu đặt xe mới",
+      body: "Nội dung",
+      payload: { bookingId: "b-1", role: "owner" },
+    });
+
+    expect(notificationRepository.create).toHaveBeenCalledWith({
+      userId: USER,
+      type: NotificationType.BOOKING,
+      title: "Yêu cầu đặt xe mới",
+      body: "Nội dung",
+      payload: { bookingId: "b-1", role: "owner" },
+    });
+  });
+
+  it("never throws when the repository fails (notifications are side effects)", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(notificationRepository.create).mockRejectedValue(
+      new Error("db down"),
+    );
+
+    await expect(
+      notificationService.notify({
+        userId: USER,
+        type: NotificationType.PAYMENT,
+        title: "Thanh toán thành công",
+      }),
+    ).resolves.toBeUndefined();
+
+    spy.mockRestore();
   });
 });

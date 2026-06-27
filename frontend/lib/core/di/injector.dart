@@ -83,6 +83,7 @@ import 'package:frontend/features/kyc/domain/usecases/get_kyc_status_usecase.dar
 import 'package:frontend/features/kyc/domain/usecases/submit_kyc_usecase.dart';
 import 'package:frontend/features/kyc/domain/usecases/upload_kyc_document_usecase.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_status_cubit.dart';
+import 'package:frontend/core/notifications/local_notification_service.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_upload_cubit.dart';
 import 'package:frontend/features/notification/data/datasources/notification_remote_datasource.dart';
 import 'package:frontend/features/notification/data/repositories/notification_repository_impl.dart';
@@ -323,13 +324,16 @@ void setupKyc() {
 }
 
 /// Đăng ký data layer + cubit cho thông báo. Gọi sau [setupAuth].
+/// `NotificationCubit` là singleton (provide ở app root) để badge + polling +
+/// popup dùng chung một instance.
 void setupNotification() {
   sl
+    ..registerSingleton<LocalNotificationService>(LocalNotificationService())
     ..registerSingleton<NotificationRepository>(
       NotificationRepositoryImpl(NotificationRemoteDataSource(sl<ApiClient>())),
     )
-    ..registerFactory<NotificationCubit>(
-      () => NotificationCubit(
+    ..registerSingleton<NotificationCubit>(
+      NotificationCubit(
         listNotifications: ListNotificationsUseCase(
           sl<NotificationRepository>(),
         ),
@@ -337,6 +341,7 @@ void setupNotification() {
         markAllRead: MarkAllNotificationsReadUseCase(
           sl<NotificationRepository>(),
         ),
+        popup: sl<LocalNotificationService>(),
       ),
     );
 }

@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { KycStatus, type KYCVerification } from "@prisma/client";
 
+vi.mock("@/lib/services/notification.service", () => ({
+  notificationService: { notify: vi.fn() },
+}));
+
 vi.mock("@/lib/repositories/kyc.repository", () => ({
   kycRepository: {
     findByUserId: vi.fn(),

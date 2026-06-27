@@ -1,4 +1,8 @@
-import { type Notification, type Prisma } from "@prisma/client";
+import {
+  type Notification,
+  type NotificationType,
+  type Prisma,
+} from "@prisma/client";
 import { prisma } from "@/db/prisma";
 
 // Tầng truy cập DB cho Notification — CHỈ nơi đây gọi Prisma cho bảng Notification.
@@ -9,7 +13,27 @@ export interface ListNotificationsParams {
   limit: number;
 }
 
+export interface CreateNotificationParams {
+  userId: string;
+  type: NotificationType;
+  title: string;
+  body?: string | null;
+  payload?: Prisma.InputJsonValue;
+}
+
 export const notificationRepository = {
+  create(p: CreateNotificationParams): Promise<Notification> {
+    return prisma.notification.create({
+      data: {
+        userId: p.userId,
+        type: p.type,
+        title: p.title,
+        body: p.body ?? null,
+        payload: p.payload,
+      },
+    });
+  },
+
   async findManyByUser(
     p: ListNotificationsParams,
   ): Promise<{ items: Notification[]; total: number }> {

@@ -6,11 +6,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/locale/locale_cubit.dart';
+import 'package:frontend/core/notifications/local_notification_service.dart';
 import 'package:frontend/core/router/app_router.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/theme/theme_mode_cubit.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/favorite/presentation/cubit/favorite_cubit.dart';
+import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 
 Future<void> main() async {
@@ -49,19 +51,58 @@ class RideVNApp extends StatefulWidget {
   State<RideVNApp> createState() => _RideVNAppState();
 }
 
-class _RideVNAppState extends State<RideVNApp> {
+class _RideVNAppState extends State<RideVNApp> with WidgetsBindingObserver {
   late final GoRouter _router = createAppRouter(widget.authCubit);
   final FavoriteCubit _favoriteCubit = sl<FavoriteCubit>();
   final LocaleCubit _localeCubit = sl<LocaleCubit>();
   final ThemeModeCubit _themeModeCubit = sl<ThemeModeCubit>();
+  final NotificationCubit _notificationCubit = sl<NotificationCubit>();
+  final LocalNotificationService _localNotifications =
+      sl<LocalNotificationService>();
+
+  bool get _isAuthenticated =>
+      widget.authCubit.state.status == AuthStatus.authenticated;
 
   @override
   void initState() {
     super.initState();
-    // Phiên khôi phục sẵn (token còn hạn) → nạp danh sách yêu thích ngay.
-    if (widget.authCubit.state.status == AuthStatus.authenticated) {
+    WidgetsBinding.instance.addObserver(this);
+    // Khởi tạo popup khay OS; chạm popup → điều hướng theo route trong payload.
+    unawaited(
+      _localNotifications.init(
+        onTap: (payload) {
+          if (payload != null && payload.isNotEmpty) _router.push(payload);
+        },
+      ),
+    );
+    // Phiên khôi phục sẵn (token còn hạn) → nạp ngay + bật polling thông báo.
+    if (_isAuthenticated) {
       _favoriteCubit.load();
+      _startNotifications();
     }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Tạm dừng polling khi app vào nền, chạy lại khi quay về (chỉ khi đã đăng nhập).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_isAuthenticated) return;
+    if (state == AppLifecycleState.resumed) {
+      _notificationCubit.startAutoRefresh();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _notificationCubit.stopAutoRefresh();
+    }
+  }
+
+  Future<void> _startNotifications() async {
+    await _localNotifications.requestPermissions();
+    _notificationCubit.startAutoRefresh();
   }
 
   @override
@@ -70,18 +111,21 @@ class _RideVNAppState extends State<RideVNApp> {
       providers: [
         BlocProvider<AuthCubit>.value(value: widget.authCubit),
         BlocProvider<FavoriteCubit>.value(value: _favoriteCubit),
+        BlocProvider<NotificationCubit>.value(value: _notificationCubit),
         BlocProvider<LocaleCubit>.value(value: _localeCubit),
         BlocProvider<ThemeModeCubit>.value(value: _themeModeCubit),
       ],
-      // Đồng bộ yêu thích theo phiên: đăng nhập → nạp, đăng xuất → xoá.
+      // Đồng bộ theo phiên: đăng nhập → nạp + bật polling thông báo; đăng xuất → xoá.
       child: BlocListener<AuthCubit, AuthState>(
         listenWhen: (prev, curr) => prev.status != curr.status,
         listener: (context, state) {
           switch (state.status) {
             case AuthStatus.authenticated:
               _favoriteCubit.load();
+              unawaited(_startNotifications());
             case AuthStatus.unauthenticated:
               _favoriteCubit.clear();
+              _notificationCubit.reset();
             case AuthStatus.unknown:
             case AuthStatus.authenticating:
               break;

@@ -9,6 +9,7 @@ import { AppError } from "@/lib/errors/app-error";
 import { bookingRepository } from "@/lib/repositories/booking.repository";
 import { paymentRepository } from "@/lib/repositories/payment.repository";
 import { bookingService, type PublicBooking } from "@/lib/services/booking.service";
+import { notificationService } from "@/lib/services/notification.service";
 import { paymentProvider, paymentProviderName } from "@/lib/payments";
 import type {
   ConfirmPaymentInput,
@@ -154,6 +155,13 @@ export const paymentService = {
       const failed = await paymentRepository.updateStatus(payment.id, {
         status: PaymentStatus.FAILED,
       });
+      await notificationService.notify({
+        userId: renterId,
+        type: "PAYMENT",
+        title: "Thanh toán thất bại",
+        body: "Giao dịch chưa hoàn tất. Vui lòng thử lại để giữ chỗ đặt xe.",
+        payload: { bookingId: failed.bookingId },
+      });
       return { payment: toPublicPayment(failed), booking: null };
     }
 
@@ -164,6 +172,14 @@ export const paymentService = {
     const paid = await paymentRepository.updateStatus(payment.id, {
       status: PaymentStatus.PAID,
       paidAt: new Date(),
+    });
+
+    await notificationService.notify({
+      userId: renterId,
+      type: "PAYMENT",
+      title: "Thanh toán thành công",
+      body: "Đơn đặt xe của bạn đã được xác nhận. Chúc bạn có chuyến đi vui vẻ!",
+      payload: { bookingId: paid.bookingId },
     });
 
     return { payment: toPublicPayment(paid), booking };

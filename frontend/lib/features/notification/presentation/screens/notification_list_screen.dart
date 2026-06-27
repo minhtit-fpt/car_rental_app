@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
@@ -8,16 +9,24 @@ import 'package:frontend/features/notification/domain/entities/notification.dart
 import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 
-class NotificationListScreen extends StatelessWidget {
+/// Dùng [NotificationCubit] singleton (provide ở app root). Mở màn hình →
+/// refresh danh sách để phản ánh ngay các mục mới nhất.
+class NotificationListScreen extends StatefulWidget {
   const NotificationListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider<NotificationCubit>(
-      create: (_) => sl<NotificationCubit>()..load(),
-      child: const _NotificationView(),
-    );
+  State<NotificationListScreen> createState() => _NotificationListScreenState();
+}
+
+class _NotificationListScreenState extends State<NotificationListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    sl<NotificationCubit>().load();
   }
+
+  @override
+  Widget build(BuildContext context) => const _NotificationView();
 }
 
 class _NotificationView extends StatelessWidget {
@@ -124,9 +133,8 @@ class _NotificationView extends StatelessWidget {
                         ),
                         itemBuilder: (context, index) => _NotifTile(
                           notif: data.items[index],
-                          onTap: () => context
-                              .read<NotificationCubit>()
-                              .markRead(data.items[index].id),
+                          onTap: () =>
+                              _onTapNotif(context, data.items[index]),
                         ),
                       ),
                     ),
@@ -296,6 +304,13 @@ class _NotifTile extends StatelessWidget {
       NotificationType.system => (emoji: '🔔', color: context.palette.mutedText),
     };
   }
+}
+
+/// Đánh dấu đã đọc + điều hướng tới màn hình liên quan (nếu có).
+void _onTapNotif(BuildContext context, AppNotification notif) {
+  context.read<NotificationCubit>().markRead(notif.id);
+  final route = notif.targetRoute;
+  if (route != null) context.push(route);
 }
 
 /// Định dạng thời gian tương đối ngắn gọn (tiếng Việt).
