@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cho phép HTTP cleartext CHỈ tới các host backend dev. Mọi domain khác vẫn bị
+  chặn cleartext mặc định (Android targetSdk >= 28), nên production an toàn.
+
+  - 10.0.2.2  : địa chỉ máy host khi chạy Android emulator (AVD)
+  - localhost / 127.0.0.1 : khi chạy thiết bị thật qua `adb reverse tcp:3000 tcp:3000`
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>

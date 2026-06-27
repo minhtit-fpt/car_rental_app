@@ -1,53 +1,125 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/features/kyc/domain/entities/kyc_status_info.dart';
+import 'package:frontend/features/kyc/presentation/cubit/kyc_status_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 
-enum KycStatus { pending, approved, rejected }
+enum KycStatus { unverified, pending, approved, rejected }
+
+KycStatus _mapStatus(String s) => switch (s) {
+  'VERIFIED' => KycStatus.approved,
+  'REJECTED' => KycStatus.rejected,
+  'PENDING' => KycStatus.pending,
+  _ => KycStatus.unverified,
+};
+
+String _fmtDateTime(DateTime? d, String pendingLabel) {
+  if (d == null) return pendingLabel;
+  String two(int v) => v.toString().padLeft(2, '0');
+  return '${two(d.day)}/${two(d.month)} ${two(d.hour)}:${two(d.minute)}';
+}
 
 class KycStatusScreen extends StatelessWidget {
-  const KycStatusScreen({super.key, this.status = KycStatus.pending});
-
-  final KycStatus status;
+  const KycStatusScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
-            const RvSliverAppBar(
-              title: 'Trạng thái KYC',
-              subtitle: 'Xác minh danh tính của bạn',
+            RvSliverAppBar(
+              title: AppLocalizations.of(context).kycStatusTitle,
+              subtitle: AppLocalizations.of(context).kycStatusSubtitle,
               role: RvRole.neutral,
             ),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 8),
-                    _StatusCard(status: status),
-                    const SizedBox(height: 20),
-                    _TimelineCard(status: status),
-                    const SizedBox(height: 20),
-                    if (status == KycStatus.rejected) ...[
-                      _RejectionReasonCard(),
-                      const SizedBox(height: 20),
-                    ],
-                    _ActionButtons(status: status),
-                    const SizedBox(height: 24),
-                  ],
-                ),
+              child: BlocBuilder<KycStatusCubit, KycStatusState>(
+                builder: (context, state) => switch (state) {
+                  KycStatusLoading() => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 80),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  KycStatusFailure(:final message) => _ErrorBlock(
+                    message: message,
+                    onRetry: () => context.read<KycStatusCubit>().load(),
+                  ),
+                  KycStatusLoaded(:final info) => _Content(info: info),
+                },
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _Content extends StatelessWidget {
+  const _Content({required this.info});
+  final KycStatusInfo info;
+
+  @override
+  Widget build(BuildContext context) {
+    final status = _mapStatus(info.status);
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          _StatusCard(status: status),
+          const SizedBox(height: 20),
+          _TimelineCard(status: status, info: info),
+          const SizedBox(height: 20),
+          if (status == KycStatus.rejected &&
+              (info.rejectReason?.isNotEmpty ?? false)) ...[
+            _RejectionReasonCard(reason: info.rejectReason!),
+            const SizedBox(height: 20),
+          ],
+          _ActionButtons(status: status),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorBlock extends StatelessWidget {
+  const _ErrorBlock({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
+      child: Column(
+        children: [
+          const Text('⚠️', style: TextStyle(fontSize: 44)),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: context.palette.secondaryText,
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context).commonRetry),
+          ),
+        ],
       ),
     );
   }
@@ -59,17 +131,17 @@ class _StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final info = _statusInfo(status);
+    final info = _statusInfo(context, status, AppLocalizations.of(context));
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: info.color.withAlpha(60)),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -101,10 +173,7 @@ class _StatusCard extends StatelessWidget {
           Text(
             info.subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.mutedText,
-            ),
+            style: TextStyle(fontSize: 13, color: context.palette.mutedText),
           ),
         ],
       ),
@@ -112,57 +181,75 @@ class _StatusCard extends StatelessWidget {
   }
 
   ({String emoji, String title, String subtitle, Color color}) _statusInfo(
-      KycStatus s) {
+    BuildContext context,
+    KycStatus s,
+    AppLocalizations l10n,
+  ) {
     return switch (s) {
+      KycStatus.unverified => (
+        emoji: '📄',
+        title: l10n.kycStatusUnverifiedTitle,
+        subtitle: l10n.kycStatusUnverifiedSubtitle,
+        color: context.palette.mutedText,
+      ),
       KycStatus.pending => (
-          emoji: '⏳',
-          title: 'Đang chờ xét duyệt',
-          subtitle:
-              'Hồ sơ của bạn đang được xem xét.\nThường mất 1–2 ngày làm việc.',
-          color: AppColors.warning,
-        ),
+        emoji: '⏳',
+        title: l10n.kycStatusPendingTitle,
+        subtitle: l10n.kycStatusPendingSubtitle,
+        color: AppColors.warning,
+      ),
       KycStatus.approved => (
-          emoji: '✅',
-          title: 'Đã xác minh',
-          subtitle: 'Tài khoản của bạn đã được xác minh.\nBạn có thể thuê xe ngay.',
-          color: AppColors.success,
-        ),
+        emoji: '✅',
+        title: l10n.kycStatusApprovedTitle,
+        subtitle: l10n.kycStatusApprovedSubtitle,
+        color: AppColors.success,
+      ),
       KycStatus.rejected => (
-          emoji: '❌',
-          title: 'Xác minh thất bại',
-          subtitle: 'Hồ sơ bị từ chối. Vui lòng\nnộp lại với ảnh rõ ràng hơn.',
-          color: AppColors.danger,
-        ),
+        emoji: '❌',
+        title: l10n.kycStatusRejectedTitle,
+        subtitle: l10n.kycStatusRejectedSubtitle,
+        color: AppColors.danger,
+      ),
     };
   }
 }
 
 class _TimelineCard extends StatelessWidget {
-  const _TimelineCard({required this.status});
+  const _TimelineCard({required this.status, required this.info});
   final KycStatus status;
+  final KycStatusInfo info;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final reviewed =
+        status == KycStatus.approved || status == KycStatus.rejected;
     final steps = [
       _TimelineStep(
-        label: 'Nộp hồ sơ',
-        time: 'Hôm nay, 14:32',
-        isDone: true,
+        label: l10n.kycStepSubmit,
+        time: status == KycStatus.unverified
+            ? l10n.kycNotSubmitted
+            : _fmtDateTime(info.submittedAt, l10n.kycPending),
+        isDone: status != KycStatus.unverified,
       ),
       _TimelineStep(
-        label: 'Đang xét duyệt',
-        time: status == KycStatus.pending ? 'Đang xử lý...' : 'Hôm nay, 16:00',
-        isDone: status != KycStatus.pending,
+        label: l10n.kycStepReview,
+        time: status == KycStatus.pending
+            ? l10n.kycProcessing
+            : reviewed
+            ? _fmtDateTime(info.reviewedAt, l10n.kycPending)
+            : l10n.kycPending,
+        isDone: reviewed,
         isActive: status == KycStatus.pending,
       ),
       _TimelineStep(
-        label: status == KycStatus.rejected ? 'Từ chối' : 'Xác minh hoàn tất',
-        time: status == KycStatus.approved
-            ? 'Hôm nay, 16:05'
-            : status == KycStatus.rejected
-                ? 'Hôm nay, 16:05'
-                : 'Chờ xử lý',
-        isDone: status == KycStatus.approved || status == KycStatus.rejected,
+        label: status == KycStatus.rejected
+            ? l10n.kycStepRejected
+            : l10n.kycStepComplete,
+        time: reviewed
+            ? _fmtDateTime(info.reviewedAt, l10n.kycPending)
+            : l10n.kycPending,
+        isDone: reviewed,
         isRejected: status == KycStatus.rejected,
       ),
     ];
@@ -170,12 +257,12 @@ class _TimelineCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -184,12 +271,12 @@ class _TimelineCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Tiến trình xét duyệt',
+          Text(
+            l10n.kycTimelineTitle,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(height: 16),
@@ -228,10 +315,10 @@ class _TimelineRow extends StatelessWidget {
     final dotColor = step.isRejected
         ? AppColors.danger
         : step.isDone
-            ? AppColors.success
-            : step.isActive
-                ? AppColors.warning
-                : AppColors.border;
+        ? AppColors.success
+        : step.isActive
+        ? AppColors.warning
+        : context.palette.border;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +331,7 @@ class _TimelineRow extends StatelessWidget {
               decoration: BoxDecoration(
                 color: step.isDone || step.isActive || step.isRejected
                     ? dotColor.withAlpha(26)
-                    : AppColors.background,
+                    : context.palette.background,
                 shape: BoxShape.circle,
                 border: Border.all(color: dotColor, width: 2),
               ),
@@ -255,23 +342,25 @@ class _TimelineRow extends StatelessWidget {
                       color: dotColor,
                     )
                   : step.isActive
-                      ? Center(
-                          child: Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: dotColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        )
-                      : null,
+                  ? Center(
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: dotColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    )
+                  : null,
             ),
             if (!isLast)
               Container(
                 width: 2,
                 height: 32,
-                color: step.isDone ? AppColors.success.withAlpha(60) : AppColors.border,
+                color: step.isDone
+                    ? AppColors.success.withAlpha(60)
+                    : context.palette.border,
               ),
           ],
         ),
@@ -288,16 +377,16 @@ class _TimelineRow extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: step.isDone || step.isActive
-                        ? AppColors.darkText
-                        : AppColors.mutedText,
+                        ? context.palette.darkText
+                        : context.palette.mutedText,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   step.time,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.mutedText,
+                    color: context.palette.mutedText,
                   ),
                 ),
               ],
@@ -310,6 +399,9 @@ class _TimelineRow extends StatelessWidget {
 }
 
 class _RejectionReasonCard extends StatelessWidget {
+  const _RejectionReasonCard({required this.reason});
+  final String reason;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -319,17 +411,20 @@ class _RejectionReasonCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.danger.withAlpha(60)),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline_rounded,
-                  size: 16, color: AppColors.danger),
-              SizedBox(width: 8),
+              const Icon(
+                Icons.info_outline_rounded,
+                size: 16,
+                color: AppColors.danger,
+              ),
+              const SizedBox(width: 8),
               Text(
-                'Lý do từ chối',
-                style: TextStyle(
+                AppLocalizations.of(context).kycRejectReason,
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.danger,
@@ -337,11 +432,13 @@ class _RejectionReasonCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            '• Ảnh CCCD bị mờ, không đọc được thông tin\n'
-            '• Ảnh selfie không khớp với ảnh trên CCCD',
-            style: TextStyle(fontSize: 12, color: AppColors.secondaryText),
+            reason,
+            style: TextStyle(
+              fontSize: 12,
+              color: context.palette.secondaryText,
+            ),
           ),
         ],
       ),
@@ -355,32 +452,38 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return switch (status) {
+      KycStatus.unverified => PrimaryButton(
+        label: l10n.kycSubmitDocs,
+        onPressed: () => context.push('/kyc/upload'),
+        icon: Icons.upload_rounded,
+      ),
       KycStatus.pending => SecondaryButton(
-          label: 'Về trang chủ',
-          onPressed: () => context.go('/'),
-          icon: Icons.home_outlined,
-        ),
+        label: l10n.paymentBackHome,
+        onPressed: () => context.go('/'),
+        icon: Icons.home_outlined,
+      ),
       KycStatus.approved => PrimaryButton(
-          label: 'Tìm xe ngay',
-          onPressed: () => context.go('/'),
-          icon: Icons.directions_car_rounded,
-        ),
+        label: l10n.kycFindCarNow,
+        onPressed: () => context.go('/'),
+        icon: Icons.directions_car_rounded,
+      ),
       KycStatus.rejected => Column(
-          children: [
-            PrimaryButton(
-              label: 'Nộp lại hồ sơ',
-              onPressed: () => context.pushReplacement('/kyc/upload'),
-              icon: Icons.upload_rounded,
-            ),
-            const SizedBox(height: 12),
-            SecondaryButton(
-              label: 'Liên hệ hỗ trợ',
-              onPressed: () {},
-              icon: Icons.headset_mic_outlined,
-            ),
-          ],
-        ),
+        children: [
+          PrimaryButton(
+            label: l10n.kycResubmit,
+            onPressed: () => context.pushReplacement('/kyc/upload'),
+            icon: Icons.upload_rounded,
+          ),
+          const SizedBox(height: 12),
+          SecondaryButton(
+            label: l10n.kycContactSupport,
+            onPressed: () => context.push('/conversations'),
+            icon: Icons.headset_mic_outlined,
+          ),
+        ],
+      ),
     };
   }
 }

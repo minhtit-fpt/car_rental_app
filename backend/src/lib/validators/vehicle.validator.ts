@@ -17,8 +17,16 @@ export const listVehiclesQuerySchema = z.object({
   available: boolQuery.optional(),
   minPrice: z.coerce.number().nonnegative().optional(),
   maxPrice: z.coerce.number().nonnegative().optional(),
+  // mine=true → chỉ trả xe của người gọi (cần đăng nhập), xử lý ở route handler.
+  mine: boolQuery.optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
+});
+
+// Cửa sổ thời gian truy vấn lịch bận của một xe (mặc định từ hôm nay).
+export const availabilityQuerySchema = z.object({
+  from: z.string().datetime({ offset: true }).optional(),
+  to: z.string().datetime({ offset: true }).optional(),
 });
 
 export const nearbyQuerySchema = z.object({
@@ -28,6 +36,8 @@ export const nearbyQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
 });
 
+const transmissionSchema = z.enum(["AUTOMATIC", "MANUAL"]);
+
 export const createVehicleSchema = z.object({
   type: vehicleTypeSchema,
   title: z.string().trim().min(1, "Tiêu đề là bắt buộc").max(120),
@@ -35,6 +45,10 @@ export const createVehicleSchema = z.object({
   isElectric: z.boolean().default(false),
   deliveryAvailable: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
+  seats: z.number().int().positive().max(64).optional(),
+  doors: z.number().int().positive().max(10).optional(),
+  transmission: transmissionSchema.optional(),
+  city: z.string().trim().min(1).max(100).optional(),
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
 });
@@ -46,6 +60,10 @@ export const updateVehicleSchema = z
     isElectric: z.boolean().optional(),
     deliveryAvailable: z.boolean().optional(),
     isAvailable: z.boolean().optional(),
+    seats: z.number().int().positive().max(64).optional(),
+    doors: z.number().int().positive().max(10).optional(),
+    transmission: transmissionSchema.optional(),
+    city: z.string().trim().min(1).max(100).optional(),
     lat: z.number().min(-90).max(90).optional(),
     lng: z.number().min(-180).max(180).optional(),
   })
@@ -59,6 +77,7 @@ export const updateVehicleSchema = z
   });
 
 export type ListVehiclesQuery = z.infer<typeof listVehiclesQuerySchema>;
+export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>;
 export type NearbyQuery = z.infer<typeof nearbyQuerySchema>;
 export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;
 export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>;

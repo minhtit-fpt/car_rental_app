@@ -2,16 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
+import 'package:frontend/shared/utils/coming_soon.dart';
+import 'package:frontend/shared/utils/emergency_sheet.dart';
+import 'package:frontend/shared/utils/report_sheet.dart';
 
 const _months = [
-  'Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6',
-  'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12',
+  'Th1',
+  'Th2',
+  'Th3',
+  'Th4',
+  'Th5',
+  'Th6',
+  'Th7',
+  'Th8',
+  'Th9',
+  'Th10',
+  'Th11',
+  'Th12',
 ];
 
 String _fmtDate(DateTime d) => '${d.day} ${_months[d.month - 1]} ${d.year}';
@@ -28,16 +43,17 @@ class ActiveTripScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final state = cubit.state;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
-            const RvSliverAppBar(
-              title: 'Chuyến đi đang diễn ra',
-              subtitle: 'Quản lý chuyến đi của bạn',
+            RvSliverAppBar(
+              title: l10n.activeTripTitle,
+              subtitle: l10n.activeTripSubtitle,
               role: RvRole.renter,
             ),
             SliverToBoxAdapter(
@@ -55,14 +71,14 @@ class ActiveTripScreen extends StatelessWidget {
                     _QuickActionsRow(),
                     const SizedBox(height: 20),
                     PrimaryButton(
-                      label: 'Trả xe',
+                      label: l10n.activeTripReturn,
                       onPressed: () => _showReturnDialog(context),
                       icon: Icons.check_circle_outline_rounded,
                     ),
                     const SizedBox(height: 12),
                     SecondaryButton(
-                      label: 'Hỗ trợ khẩn cấp',
-                      onPressed: () {},
+                      label: l10n.activeTripEmergency,
+                      onPressed: () => showEmergencySheet(context),
                       icon: Icons.emergency_rounded,
                     ),
                     const SizedBox(height: 24),
@@ -77,36 +93,44 @@ class ActiveTripScreen extends StatelessWidget {
   }
 
   void _showReturnDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text(
-          'Xác nhận trả xe?',
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          l10n.activeTripReturnTitle,
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
-        content: const Text(
-          'Bạn xác nhận đã trả xe và kết thúc chuyến đi này?',
-          style: TextStyle(fontSize: 14, color: AppColors.secondaryText),
+        content: Text(
+          l10n.activeTripReturnBody,
+          style: TextStyle(fontSize: 14, color: context.palette.secondaryText),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Chưa',
-              style: TextStyle(color: AppColors.mutedText),
+            child: Text(
+              l10n.activeTripNotYet,
+              style: TextStyle(color: context.palette.mutedText),
             ),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              context.go('/');
+              // Trả xe xong → mời đánh giá chuyến (đơn đã CONFIRMED sau thanh toán).
+              final bookingId = cubit.state.booking?.id;
+              if (bookingId != null) {
+                context.push(
+                  '/review',
+                  extra: {'bookingId': bookingId, 'vehicle': vehicle},
+                );
+              } else {
+                context.go('/');
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -116,7 +140,7 @@ class ActiveTripScreen extends StatelessWidget {
               ),
               elevation: 0,
             ),
-            child: const Text('Xác nhận'),
+            child: Text(l10n.commonConfirm),
           ),
         ],
       ),
@@ -131,6 +155,7 @@ class _ActiveStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -159,7 +184,7 @@ class _ActiveStatusCard extends StatelessWidget {
                     Row(
                       children: [
                         StatusChip(
-                          label: '🟢 Đang chạy',
+                          label: l10n.activeTripRunning,
                           color: AppColors.success,
                         ),
                       ],
@@ -180,25 +205,34 @@ class _ActiveStatusCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _StatItem(
-                  label: 'Nhận xe',
+                  label: l10n.bookingPickup,
                   value: state.startDate != null
                       ? _fmtDate(state.startDate!)
                       : '—',
                 ),
                 Container(
-                    width: 1, height: 32, color: Colors.white.withAlpha(50)),
+                  width: 1,
+                  height: 32,
+                  color: Colors.white.withAlpha(50),
+                ),
                 _StatItem(
-                  label: 'Trả xe',
-                  value: state.endDate != null
-                      ? _fmtDate(state.endDate!)
-                      : '—',
+                  label: l10n.bookingReturn,
+                  value: state.endDate != null ? _fmtDate(state.endDate!) : '—',
                 ),
                 Container(
-                    width: 1, height: 32, color: Colors.white.withAlpha(50)),
+                  width: 1,
+                  height: 32,
+                  color: Colors.white.withAlpha(50),
+                ),
                 _StatItem(
-                  label: 'Còn lại',
+                  label: l10n.activeTripRemaining,
                   value: state.endDate != null
-                      ? '${state.endDate!.difference(DateTime.now()).inDays.clamp(0, 365)} ngày'
+                      ? l10n.bookingDays(
+                          state.endDate!
+                              .difference(DateTime.now())
+                              .inDays
+                              .clamp(0, 365),
+                        )
                       : '—',
                 ),
               ],
@@ -248,16 +282,17 @@ class _TripProgressCard extends StatelessWidget {
         ? DateTime.now().difference(state.startDate!).inDays.clamp(0, total)
         : 0;
     final progress = elapsed / total;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -269,16 +304,16 @@ class _TripProgressCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Tiến trình chuyến đi',
+              Text(
+                l10n.activeTripProgress,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.darkText,
+                  color: context.palette.darkText,
                 ),
               ),
               Text(
-                '$elapsed/$total ngày',
+                l10n.activeTripDaysProgress(elapsed, total),
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.primary,
@@ -293,9 +328,10 @@ class _TripProgressCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: AppColors.border,
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              backgroundColor: context.palette.border,
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.primary,
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -304,13 +340,17 @@ class _TripProgressCard extends StatelessWidget {
             children: [
               Text(
                 state.startDate != null ? _fmtDate(state.startDate!) : '—',
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.mutedText),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: context.palette.mutedText,
+                ),
               ),
               Text(
                 state.endDate != null ? _fmtDate(state.endDate!) : '—',
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.mutedText),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: context.palette.mutedText,
+                ),
               ),
             ],
           ),
@@ -326,15 +366,16 @@ class _VehicleInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -343,22 +384,28 @@ class _VehicleInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Thông tin xe',
+          Text(
+            l10n.activeTripVehicleInfo,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              _InfoChip(icon: '🔑', label: 'Biển số: 30A-12345'),
+              _InfoChip(
+                icon: '🔑',
+                label: l10n.activeTripLicensePlate('30A-12345'),
+              ),
               const SizedBox(width: 8),
               _InfoChip(
-                  icon: vehicle.isElectric ? '⚡' : '⛽',
-                  label: vehicle.isElectric ? 'Điện' : 'Xăng'),
+                icon: vehicle.isElectric ? '⚡' : '⛽',
+                label: vehicle.isElectric
+                    ? l10n.vehicleElectric
+                    : l10n.vehicleFuelGas,
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -372,7 +419,8 @@ class _VehicleInfoCard extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
-                    child: Text('👤', style: TextStyle(fontSize: 16))),
+                  child: Text('👤', style: TextStyle(fontSize: 16)),
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -380,38 +428,48 @@ class _VehicleInfoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      vehicle.ownerName,
-                      style: const TextStyle(
+                      vehicle.ownerName ?? l10n.vehicleOwnerFallback,
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.darkText,
+                        color: context.palette.darkText,
                       ),
                     ),
-                    const Text(
-                      'Chủ xe',
+                    Text(
+                      l10n.roleOwner,
                       style: TextStyle(
-                          fontSize: 11, color: AppColors.mutedText),
+                        fontSize: 11,
+                        color: context.palette.mutedText,
+                      ),
                     ),
                   ],
                 ),
               ),
               OutlinedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.phone_outlined,
-                    size: 14, color: AppColors.primary),
-                label: const Text(
-                  'Gọi',
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600),
+                onPressed: () =>
+                    showComingSoonSnack(context, l10n.activeTripCallOwner),
+                icon: const Icon(
+                  Icons.phone_outlined,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
+                label: Text(
+                  l10n.activeTripCall,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.primary),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ],
@@ -432,9 +490,9 @@ class _InfoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: context.palette.background,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.palette.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -443,10 +501,11 @@ class _InfoChip extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             label,
-            style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.secondaryText,
-                fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 11,
+              color: context.palette.secondaryText,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -457,11 +516,30 @@ class _InfoChip extends StatelessWidget {
 class _QuickActionsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final actions = [
-      (icon: '🗺️', label: 'Bản đồ'),
-      (icon: '💬', label: 'Nhắn tin'),
-      (icon: '📸', label: 'Chụp ảnh'),
-      (icon: '🚨', label: 'Báo hỏng'),
+    final l10n = AppLocalizations.of(context);
+    final actions = <({String icon, String label, VoidCallback onTap})>[
+      // Map (🗺️) — mở bản đồ xe quanh đây (Phase C).
+      (
+        icon: '🗺️',
+        label: l10n.activeTripMap,
+        onTap: () => context.push('/map'),
+      ),
+      (
+        icon: '💬',
+        label: l10n.vehicleMessage,
+        onTap: () => context.push('/conversations'),
+      ),
+      // Chụp ảnh gộp vào luồng Báo hỏng (đính kèm ảnh + chuyển hỗ trợ).
+      (
+        icon: '📸',
+        label: l10n.activeTripPhoto,
+        onTap: () => showReportSheet(context),
+      ),
+      (
+        icon: '🚨',
+        label: l10n.activeTripReport,
+        onTap: () => showReportSheet(context),
+      ),
     ];
 
     return Row(
@@ -469,17 +547,17 @@ class _QuickActionsRow extends StatelessWidget {
           .map(
             (a) => Expanded(
               child: GestureDetector(
-                onTap: () {},
+                onTap: a.onTap,
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: context.palette.surface,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.border),
-                    boxShadow: const [
+                    border: Border.all(color: context.palette.border),
+                    boxShadow: [
                       BoxShadow(
-                        color: AppColors.cardShadowColor,
+                        color: context.palette.cardShadowColor,
                         blurRadius: 8,
                         offset: Offset(0, 2),
                       ),
@@ -491,9 +569,9 @@ class _QuickActionsRow extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         a.label,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
-                          color: AppColors.secondaryText,
+                          color: context.palette.secondaryText,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

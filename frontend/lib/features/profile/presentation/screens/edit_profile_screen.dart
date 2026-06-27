@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
+import 'package:frontend/shared/utils/coming_soon.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -14,15 +19,23 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameController =
-      TextEditingController(text: 'Nguyễn Văn An');
-  final _emailController =
-      TextEditingController(text: 'an.nguyen@email.com');
-  final _phoneController =
-      TextEditingController(text: '0912 345 678');
-  final _bioController = TextEditingController(
-      text: 'Tài xế kinh nghiệm 5 năm. Thích du lịch khám phá.');
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _bioController;
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Tiền điền từ phiên đăng nhập. Backend MVP chỉ lưu email; SĐT chỉ đọc;
+    // họ tên & giới thiệu chưa có trường backend nên để trống.
+    final user = context.read<AuthCubit>().state.user;
+    _nameController = TextEditingController();
+    _emailController = TextEditingController(text: user?.email ?? '');
+    _phoneController = TextEditingController(text: user?.phone ?? '');
+    _bioController = TextEditingController();
+  }
 
   @override
   void dispose() {
@@ -35,21 +48,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _save() async {
     setState(() => _isSubmitting = true);
-    await Future.delayed(const Duration(milliseconds: 1000));
-    if (mounted) context.pop();
+    final email = _emailController.text.trim();
+    final cubit = context.read<AuthCubit>();
+    final success = await cubit.updateProfile(
+      email: email.isEmpty ? null : email,
+    );
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    if (success) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.profileUpdateSuccess)),
+      );
+      context.pop();
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(cubit.state.errorMessage ?? l10n.profileUpdateFailed),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
-            const RvSliverAppBar(
-              title: 'Chỉnh sửa hồ sơ',
-              subtitle: 'Cập nhật thông tin cá nhân',
+            RvSliverAppBar(
+              title: l10n.profileEdit,
+              subtitle: l10n.profileEditSubtitle,
               role: RvRole.neutral,
             ),
             SliverToBoxAdapter(
@@ -69,7 +102,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     _BioCard(controller: _bioController),
                     const SizedBox(height: 20),
                     PrimaryButton(
-                      label: 'Lưu thay đổi',
+                      label: l10n.ownerVehicleSaveChanges,
                       onPressed: _isSubmitting ? null : _save,
                       isLoading: _isSubmitting,
                       icon: Icons.save_outlined,
@@ -107,7 +140,10 @@ class _AvatarSection extends StatelessWidget {
             bottom: 0,
             right: 0,
             child: GestureDetector(
-              onTap: () {},
+              onTap: () => showComingSoonSnack(
+                context,
+                AppLocalizations.of(context).profileChangeAvatar,
+              ),
               child: Container(
                 width: 30,
                 height: 30,
@@ -143,15 +179,16 @@ class _PersonalInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -160,28 +197,28 @@ class _PersonalInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Thông tin cá nhân'),
+          SectionHeader(title: l10n.profilePersonalInfo),
           const SizedBox(height: 14),
           _ProfileField(
-            label: 'Họ và tên',
+            label: l10n.profileFullName,
             icon: Icons.person_outline_rounded,
             controller: nameController,
           ),
           const SizedBox(height: 12),
           _ProfileField(
-            label: 'Email',
+            label: l10n.profileEmail,
             icon: Icons.email_outlined,
             controller: emailController,
             keyboardType: TextInputType.emailAddress,
           ),
           const SizedBox(height: 12),
           _ProfileField(
-            label: 'Số điện thoại',
+            label: l10n.phoneLabel,
             icon: Icons.phone_outlined,
             controller: phoneController,
             keyboardType: TextInputType.phone,
             readOnly: true,
-            helperText: 'Không thể thay đổi số điện thoại',
+            helperText: l10n.profilePhoneReadonly,
           ),
         ],
       ),
@@ -213,10 +250,10 @@ class _ProfileField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondaryText,
+            color: context.palette.secondaryText,
           ),
         ),
         const SizedBox(height: 6),
@@ -227,30 +264,35 @@ class _ProfileField extends StatelessWidget {
           decoration: InputDecoration(
             prefixIcon: Icon(icon, size: 18, color: AppColors.primary),
             filled: true,
-            fillColor:
-                readOnly ? AppColors.border.withAlpha(40) : AppColors.background,
+            fillColor: readOnly
+                ? context.palette.border.withAlpha(40)
+                : context.palette.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primary),
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
             isDense: true,
             helperText: helperText,
-            helperStyle: const TextStyle(
-                fontSize: 11, color: AppColors.mutedText),
+            helperStyle: TextStyle(
+              fontSize: 11,
+              color: context.palette.mutedText,
+            ),
           ),
           style: TextStyle(
             fontSize: 13,
-            color: readOnly ? AppColors.mutedText : AppColors.darkText,
+            color: readOnly ? context.palette.mutedText : context.palette.darkText,
           ),
         ),
       ],
@@ -267,12 +309,12 @@ class _BioCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -281,25 +323,27 @@ class _BioCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Giới thiệu bản thân'),
+          SectionHeader(title: AppLocalizations.of(context).profileBio),
           const SizedBox(height: 12),
           TextField(
             controller: controller,
             maxLines: 3,
             maxLength: 200,
             decoration: InputDecoration(
-              hintText: 'Chia sẻ một chút về bản thân...',
-              hintStyle: const TextStyle(
-                  fontSize: 13, color: AppColors.mutedText),
+              hintText: AppLocalizations.of(context).profileBioHint,
+              hintStyle: TextStyle(
+                fontSize: 13,
+                color: context.palette.mutedText,
+              ),
               filled: true,
-              fillColor: AppColors.background,
+              fillColor: context.palette.background,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: context.palette.border),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: context.palette.border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -307,7 +351,7 @@ class _BioCard extends StatelessWidget {
               ),
               contentPadding: const EdgeInsets.all(12),
             ),
-            style: const TextStyle(fontSize: 13, color: AppColors.darkText),
+            style: TextStyle(fontSize: 13, color: context.palette.darkText),
           ),
         ],
       ),

@@ -12,6 +12,7 @@ export interface VehicleListFilters {
   available?: boolean;
   minPrice?: number;
   maxPrice?: number;
+  ownerId?: string;
   page: number;
   limit: number;
 }
@@ -24,6 +25,10 @@ export interface CreateVehicleData {
   isElectric: boolean;
   deliveryAvailable: boolean;
   isAvailable: boolean;
+  seats?: number;
+  doors?: number;
+  transmission?: string;
+  city?: string;
   lat: number;
   lng: number;
 }
@@ -34,6 +39,10 @@ export interface UpdateVehicleData {
   isElectric?: boolean;
   deliveryAvailable?: boolean;
   isAvailable?: boolean;
+  seats?: number;
+  doors?: number;
+  transmission?: string;
+  city?: string;
   lat?: number;
   lng?: number;
 }
@@ -49,12 +58,17 @@ export interface NearbyParams {
 export interface NearbyRow {
   id: string;
   ownerId: string;
+  ownerName: string | null;
   type: VehicleType;
   title: string;
   pricePerHour: number;
   isElectric: boolean;
   isAvailable: boolean;
   deliveryAvailable: boolean;
+  seats: number | null;
+  doors: number | null;
+  transmission: string | null;
+  city: string | null;
   createdAt: Date;
   updatedAt: Date;
   lat: number;
@@ -62,9 +76,14 @@ export interface NearbyRow {
   distanceMeters: number;
 }
 
+// Vehicle kèm tên chủ xe (cho list/getById). `owner` chỉ select trường hiển thị.
+const ownerNameInclude = { owner: { select: { name: true } } } as const;
+export type VehicleWithOwner = Vehicle & { owner: { name: string | null } };
+
 function buildWhere(f: VehicleListFilters): Prisma.VehicleWhereInput {
   return {
     ...(f.type && { type: f.type }),
+    ...(f.ownerId && { ownerId: f.ownerId }),
     ...(f.isElectric !== undefined && { isElectric: f.isElectric }),
     ...(f.available !== undefined && { isAvailable: f.available }),
     ...((f.minPrice !== undefined || f.maxPrice !== undefined) && {
@@ -79,7 +98,7 @@ function buildWhere(f: VehicleListFilters): Prisma.VehicleWhereInput {
 export const vehicleRepository = {
   async findMany(
     f: VehicleListFilters,
-  ): Promise<{ items: Vehicle[]; total: number }> {
+  ): Promise<{ items: VehicleWithOwner[]; total: number }> {
     const where = buildWhere(f);
     const [items, total] = await Promise.all([
       prisma.vehicle.findMany({
@@ -87,6 +106,7 @@ export const vehicleRepository = {
         orderBy: { createdAt: "desc" },
         skip: (f.page - 1) * f.limit,
         take: f.limit,
+        include: ownerNameInclude,
       }),
       prisma.vehicle.count({ where }),
     ]);
@@ -97,16 +117,26 @@ export const vehicleRepository = {
     return prisma.vehicle.findUnique({ where: { id } });
   },
 
+  findByIdWithOwner(id: string): Promise<VehicleWithOwner | null> {
+    return prisma.vehicle.findUnique({
+      where: { id },
+      include: ownerNameInclude,
+    });
+  },
+
   async create(data: CreateVehicleData): Promise<Vehicle> {
     const id = randomUUID();
     await prisma.$executeRaw(Prisma.sql`
       INSERT INTO "Vehicle"
         ("id","ownerId","type","title","pricePerHour","isElectric",
-         "isAvailable","deliveryAvailable","location","createdAt","updatedAt")
+         "isAvailable","deliveryAvailable","seats","doors","transmission",
+         "city","location","createdAt","updatedAt")
       VALUES (
         ${id}::uuid, ${data.ownerId}::uuid, ${data.type}::"VehicleType",
         ${data.title}, ${data.pricePerHour}, ${data.isElectric},
         ${data.isAvailable}, ${data.deliveryAvailable},
+        ${data.seats ?? null}, ${data.doors ?? null},
+        ${data.transmission ?? null}, ${data.city ?? null},
         ST_SetSRID(ST_MakePoint(${data.lng}, ${data.lat}), 4326)::geography,
         now(), now()
       )
@@ -129,6 +159,12 @@ export const vehicleRepository = {
         deliveryAvailable: data.deliveryAvailable,
       }),
       ...(data.isAvailable !== undefined && { isAvailable: data.isAvailable }),
+      ...(data.seats !== undefined && { seats: data.seats }),
+      ...(data.doors !== undefined && { doors: data.doors }),
+      ...(data.transmission !== undefined && {
+        transmission: data.transmission,
+      }),
+      ...(data.city !== undefined && { city: data.city }),
     };
     if (Object.keys(scalar).length > 0) {
       await prisma.vehicle.update({ where: { id }, data: scalar });
@@ -157,20 +193,22 @@ export const vehicleRepository = {
   findNearby(p: NearbyParams): Promise<NearbyRow[]> {
     return prisma.$queryRaw<NearbyRow[]>(Prisma.sql`
       SELECT
-        "id", "ownerId", "type", "title",
-        "pricePerHour"::float8 AS "pricePerHour",
-        "isElectric", "isAvailable", "deliveryAvailable",
-        "createdAt", "updatedAt",
-        ST_Y("location"::geometry) AS "lat",
-        ST_X("location"::geometry) AS "lng",
+        v."id", v."ownerId", u."name" AS "ownerName", v."type", v."title",
+        v."pricePerHour"::float8 AS "pricePerHour",
+        v."isElectric", v."isAvailable", v."deliveryAvailable",
+        v."seats", v."doors", v."transmission", v."city",
+        v."createdAt", v."updatedAt",
+        ST_Y(v."location"::geometry) AS "lat",
+        ST_X(v."location"::geometry) AS "lng",
         ST_Distance(
-          "location",
+          v."location",
           ST_SetSRID(ST_MakePoint(${p.lng}, ${p.lat}), 4326)::geography
         ) AS "distanceMeters"
-      FROM "Vehicle"
-      WHERE "isAvailable" = true
+      FROM "Vehicle" v
+      JOIN "User" u ON u."id" = v."ownerId"
+      WHERE v."isAvailable" = true
         AND ST_DWithin(
-          "location",
+          v."location",
           ST_SetSRID(ST_MakePoint(${p.lng}, ${p.lat}), 4326)::geography,
           ${p.radius}
         )

@@ -36,6 +36,7 @@ model User {
   id           String    @id @default(uuid()) @db.Uuid
   phone        String    @unique
   email        String?   @unique
+  name         String?
   passwordHash String
   // 1 user có thể giữ nhiều vai (RENTER + OWNER). ADMIN phải đứng một mình
   // (ép bằng CHECK constraint user_admin_exclusive trong migration).
@@ -56,6 +57,8 @@ model User {
   conversations   ConversationParticipant[]
   messagesSent    ChatMessage[]
   auditLogs       AuditLog[]
+  disputes        Dispute[]
+  favorites       Favorite[]
 
   @@index([phone])
   @@index([roles], type: Gin)
@@ -128,19 +131,42 @@ model Vehicle {
   isElectric        Boolean     @default(false)
   isAvailable       Boolean     @default(true)
   deliveryAvailable Boolean     @default(false)
+  // Thông số kỹ thuật (nullable — chỉ áp dụng cho một số loại xe).
+  seats             Int?
+  doors             Int?
+  transmission      String? // 'AUTOMATIC' | 'MANUAL'
+  city              String?
   // PostGIS — Prisma không hỗ trợ native, dùng Unsupported.
   // GIST index thêm thủ công trong migration.
   location          Unsupported("geography(Point, 4326)")
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 
-  owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  bookings Booking[]
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  bookings  Booking[]
+  favorites Favorite[]
 
   @@index([ownerId])
   @@index([type])
   @@index([isAvailable])
   @@index([location], type: Gist)
+}
+
+// ============================================================
+// B3b — Favorite (xe đã lưu / tim)
+// ============================================================
+
+model Favorite {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  vehicleId String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vehicleId])
+  @@index([userId])
 }
 
 // ============================================================
@@ -196,10 +222,42 @@ model Booking {
   reviews      Review[]
   tripStories  TripStory[]
   conversation ChatConversation?
+  disputes     Dispute[]
 
   @@index([vehicleId])
   @@index([renterId])
   @@index([status])
+}
+
+enum DisputePriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum DisputeStatus {
+  OPEN
+  RESOLVED
+  REJECTED
+}
+
+// Tranh chấp gắn với một booking, do RENTER/OWNER tạo, ADMIN xử lý.
+model Dispute {
+  id          String          @id @default(uuid()) @db.Uuid
+  bookingId   String          @db.Uuid
+  raisedById  String          @db.Uuid
+  title       String
+  description String?
+  priority    DisputePriority @default(MEDIUM)
+  status      DisputeStatus   @default(OPEN)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  raisedBy User    @relation(fields: [raisedById], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([bookingId])
 }
 
 model Payment {

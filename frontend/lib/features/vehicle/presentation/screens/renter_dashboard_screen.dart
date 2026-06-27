@@ -1,159 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/features/auth/domain/entities/auth_user.dart';
+import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/features/booking/domain/entities/booking.dart';
+import 'package:frontend/features/booking/presentation/cubit/my_trips_cubit.dart';
+import 'package:frontend/features/loyalty/presentation/cubit/loyalty_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/info_row.dart';
-
-String _fmtVnd(int kAmount) {
-  if (kAmount >= 1000) {
-    final m = kAmount / 1000;
-    if (m == m.truncateToDouble()) return '${m.truncate()}M VNĐ';
-    return '${m.toStringAsFixed(2).replaceAll(RegExp(r'0+$'), '')}M VNĐ';
-  }
-  return '${kAmount}K VNĐ';
-}
-
-// ─────────────────────────────────────────────
-// Mock Data
-// ─────────────────────────────────────────────
-
-enum _BookingStatus { active, completed, cancelled }
-
-class _Booking {
-  const _Booking({
-    required this.carName,
-    required this.carEmoji,
-    required this.dateRange,
-    required this.location,
-    required this.bookingRef,
-    required this.status,
-    required this.price,
-  });
-
-  final String carName;
-  final String carEmoji;
-  final String dateRange;
-  final String location;
-  final String bookingRef;
-  final _BookingStatus status;
-  final int price;
-}
-
-const _kBookings = [
-  _Booking(
-    carName: 'BMW X5 xDrive',
-    carEmoji: '🚙',
-    dateRange: '05/04 → 08/04, 2026',
-    location: 'HQ Guzm Office',
-    bookingRef: 'BK-2024-002',
-    status: _BookingStatus.active,
-    price: 3750,
-  ),
-  _Booking(
-    carName: 'Tesla Model 3',
-    carEmoji: '🚗',
-    dateRange: '15/03 → 18/03, 2026',
-    location: 'Sân bay Nội Bài',
-    bookingRef: 'BK-2024-001',
-    status: _BookingStatus.completed,
-    price: 2670,
-  ),
-  _Booking(
-    carName: 'Toyota Camry',
-    carEmoji: '🚗',
-    dateRange: '10/02 → 12/02, 2026',
-    location: 'Sân bay Tân Sơn Nhất',
-    bookingRef: 'BK-2024-003',
-    status: _BookingStatus.completed,
-    price: 1100,
-  ),
-  _Booking(
-    carName: 'Honda Civic RS',
-    carEmoji: '🚗',
-    dateRange: '22/01 → 24/01, 2026',
-    location: 'Trung tâm Đà Nẵng',
-    bookingRef: 'BK-2024-004',
-    status: _BookingStatus.cancelled,
-    price: 0,
-  ),
-];
 
 // ─────────────────────────────────────────────
 // Screen
 // ─────────────────────────────────────────────
 
-class RenterDashboardScreen extends StatefulWidget {
+/// Tab "Tôi" của người thuê: hồ sơ + chỉ số nhanh (điểm thưởng, số chuyến).
+/// Danh sách chuyến đã chuyển hẳn sang tab "Chuyến" (MyTripsScreen).
+class RenterDashboardScreen extends StatelessWidget {
   const RenterDashboardScreen({super.key});
 
   @override
-  State<RenterDashboardScreen> createState() => _RenterDashboardScreenState();
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<MyTripsCubit>(create: (_) => sl<MyTripsCubit>()..load()),
+        BlocProvider<LoyaltyCubit>(create: (_) => sl<LoyaltyCubit>()..load()),
+      ],
+      child: const _RenterDashboardView(),
+    );
+  }
 }
 
-class _RenterDashboardScreenState extends State<RenterDashboardScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-  int _tabIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this)
-      ..addListener(() {
-        if (!_tabController.indexIsChanging) {
-          setState(() => _tabIndex = _tabController.index);
-        }
-      });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  List<_Booking> get _filteredBookings {
-    switch (_tabIndex) {
-      case 1:
-        return _kBookings
-            .where((b) => b.status != _BookingStatus.active)
-            .toList();
-      default:
-        // Sắp tới: active bookings
-        return _kBookings
-            .where((b) => b.status == _BookingStatus.active)
-            .toList();
-    }
-  }
+class _RenterDashboardView extends StatelessWidget {
+  const _RenterDashboardView();
 
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: CustomScrollView(
-          slivers: [
-            _RenterSliverAppBar(),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _StatsRow(),
-                    const SizedBox(height: 16),
-                    _ProfileCard(),
-                    const SizedBox(height: 16),
-                    _BookingsCard(
-                      tabController: _tabController,
-                      bookings: _filteredBookings,
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+        backgroundColor: context.palette.background,
+        body: RefreshIndicator(
+          onRefresh: () async {
+            await Future.wait([
+              context.read<MyTripsCubit>().load(),
+              context.read<LoyaltyCubit>().load(),
+            ]);
+          },
+          child: CustomScrollView(
+            slivers: [
+              _RenterSliverAppBar(),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      _StatsRow(),
+                      SizedBox(height: 16),
+                      _ProfileCard(),
+                      SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -167,6 +82,7 @@ class _RenterDashboardScreenState extends State<RenterDashboardScreen>
 class _RenterSliverAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SliverAppBar(
       pinned: true,
       expandedHeight: 150,
@@ -205,9 +121,9 @@ class _RenterSliverAppBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Text(
-                    'Chuyến đi của tôi',
-                    style: TextStyle(
+                  Text(
+                    l10n.dashboardMyProfile,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
@@ -215,7 +131,7 @@ class _RenterSliverAppBar extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Quản lý tất cả chuyến thuê xe',
+                    l10n.dashboardRenterSubtitle,
                     style: TextStyle(
                       color: Colors.white.withAlpha(191),
                       fontSize: 13,
@@ -232,50 +148,74 @@ class _RenterSliverAppBar extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// Stats Row
+// Stats Row — đếm chuyến từ MyTripsCubit, điểm từ LoyaltyCubit
 // ─────────────────────────────────────────────
 
 class _StatsRow extends StatelessWidget {
+  const _StatsRow();
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            value: '1',
-            unit: 'xe',
-            label: 'Đang Thuê',
-            color: AppColors.primary,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _StatCard(
-            value: '1',
-            unit: 'chuyến',
-            label: 'Sắp Tới',
-            color: AppColors.primary,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _StatCard(
-            value: '12',
-            unit: 'chuyến',
-            label: 'Tổng Chuyến',
-            color: AppColors.accent,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _StatCard(
-            value: '850',
-            unit: 'pts',
-            label: 'Điểm thưởng',
-            color: AppColors.success,
-          ),
-        ),
-      ],
+    final l10n = AppLocalizations.of(context);
+    return BlocBuilder<MyTripsCubit, MyTripsState>(
+      builder: (context, tripsState) {
+        final bookings = tripsState is MyTripsLoaded
+            ? tripsState.bookings
+            : const <Booking>[];
+        final active = bookings
+            .where((b) => b.status == BookingStatus.inProgress)
+            .length;
+        final upcoming = bookings
+            .where((b) => b.status == BookingStatus.confirmed)
+            .length;
+
+        return Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                value: '$active',
+                unit: l10n.unitVehicles,
+                label: l10n.dashboardActiveRenting,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _StatCard(
+                value: '$upcoming',
+                unit: l10n.unitTrips,
+                label: l10n.dashboardUpcoming,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _StatCard(
+                value: '${bookings.length}',
+                unit: l10n.unitTrips,
+                label: l10n.dashboardTotalTrips,
+                color: AppColors.accent,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: BlocBuilder<LoyaltyCubit, LoyaltyState>(
+                builder: (context, loyaltyState) {
+                  final points = loyaltyState is LoyaltyLoaded
+                      ? loyaltyState.summary.totalPoints
+                      : 0;
+                  return _StatCard(
+                    value: '$points',
+                    unit: 'pts',
+                    label: l10n.dashboardLoyaltyPoints,
+                    color: AppColors.success,
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -298,12 +238,12 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border(left: BorderSide(color: color, width: 3)),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -337,10 +277,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: AppColors.mutedText,
-            ),
+            style: TextStyle(fontSize: 10, color: context.palette.mutedText),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -351,21 +288,26 @@ class _StatCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// Profile Card
+// Profile Card — dữ liệu thật từ AuthCubit
 // ─────────────────────────────────────────────
 
 class _ProfileCard extends StatelessWidget {
+  const _ProfileCard();
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final user = context.watch<AuthCubit>().state.user;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -390,71 +332,24 @@ class _ProfileCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Tuan Nguyen',
+          Text(
+            _displayName(user, l10n),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkText,
+              color: context.palette.darkText,
             ),
           ),
-          const SizedBox(height: 2),
-          const Text(
-            'Thành viên từ 2024',
-            style: TextStyle(fontSize: 12, color: AppColors.mutedText),
-          ),
-          const SizedBox(height: 8),
-          // Rating
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ...List.generate(
-                5,
-                (_) => const Text(
-                  '★',
-                  style: TextStyle(color: AppColors.starYellow, fontSize: 16),
-                ),
-              ),
-              const SizedBox(width: 6),
-              const Text(
-                '4.9',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkText,
-                ),
-              ),
-            ],
-          ),
+          const SizedBox(height: 6),
+          _RoleBadges(user: user),
           const SizedBox(height: 16),
-          const InfoRow(icon: Icons.email_outlined, text: 'tuan@email.com'),
+          if (user?.email != null) ...[
+            InfoRow(icon: Icons.email_outlined, text: user!.email!),
+            const SizedBox(height: 6),
+          ],
+          InfoRow(icon: Icons.phone_outlined, text: user?.phone ?? '—'),
           const SizedBox(height: 6),
-          const InfoRow(icon: Icons.phone_outlined, text: '+84 912 345 678'),
-          const SizedBox(height: 6),
-          const InfoRow(icon: Icons.location_on_outlined, text: 'Hà Nội, Việt Nam'),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              const Icon(Icons.credit_card_outlined,
-                  size: 16, color: AppColors.mutedText),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.successSoft,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  '✓ KYC Đã xác minh',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.success,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
+          _KycBadge(status: user?.kycStatus),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -467,9 +362,9 @@ class _ProfileCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                'Chỉnh sửa hồ sơ',
-                style: TextStyle(
+              child: Text(
+                l10n.profileEdit,
+                style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -481,269 +376,121 @@ class _ProfileCard extends StatelessWidget {
       ),
     );
   }
+
+  /// Backend chưa có trường tên — ưu tiên email, fallback số điện thoại.
+  String _displayName(AuthUser? user, AppLocalizations l10n) {
+    if (user == null) return l10n.commonUser;
+    final email = user.email;
+    if (email != null && email.contains('@')) return email.split('@').first;
+    return user.phone;
+  }
 }
 
+class _RoleBadges extends StatelessWidget {
+  const _RoleBadges({required this.user});
 
-// ─────────────────────────────────────────────
-// Bookings Card
-// ─────────────────────────────────────────────
-
-class _BookingsCard extends StatelessWidget {
-  const _BookingsCard({
-    required this.tabController,
-    required this.bookings,
-  });
-
-  final TabController tabController;
-  final List<_Booking> bookings;
+  final AuthUser? user;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.cardShadowColor,
-            blurRadius: 12,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Row(
-              children: [
-                const Text(
-                  'Xe Đang Thuê',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkText,
-                  ),
+    final l10n = AppLocalizations.of(context);
+    final labels = <String>[
+      if (user?.isRenter ?? true) l10n.roleRenter,
+      if (user?.isOwner ?? false) l10n.roleOwner,
+    ];
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 6,
+      children: labels
+          .map(
+            (label) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: context.palette.surfaceSunken,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: context.palette.secondaryText,
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Text(
-                    '4',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _KycBadge extends StatelessWidget {
+  const _KycBadge({required this.status});
+
+  final String? status;
+
+  @override
+  Widget build(BuildContext context) {
+    final info = _kycInfo(context, status, AppLocalizations.of(context));
+
+    return Row(
+      children: [
+        Icon(
+          Icons.credit_card_outlined,
+          size: 16,
+          color: context.palette.mutedText,
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: info.bg,
+            borderRadius: BorderRadius.circular(8),
           ),
-          const SizedBox(height: 12),
-          // Tab bar — Sắp tới / Đã đi (orange underline per design)
-          TabBar(
-            controller: tabController,
-            isScrollable: false,
-            labelColor: AppColors.accent,
-            unselectedLabelColor: AppColors.secondaryText,
-            indicatorColor: AppColors.accent,
-            indicatorWeight: 2.5,
-            labelStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 14,
+          child: Text(
+            info.label,
+            style: TextStyle(
+              fontSize: 11,
+              color: info.fg,
               fontWeight: FontWeight.w500,
             ),
-            tabs: const [
-              Tab(text: 'Sắp tới'),
-              Tab(text: 'Đã đi'),
-            ],
           ),
-          const Divider(height: 1, color: AppColors.border),
-          // Booking list
-          if (bookings.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
-              child: Center(
-                child: Column(
-                  children: [
-                    Text('🚗', style: TextStyle(fontSize: 40)),
-                    SizedBox(height: 8),
-                    Text(
-                      'Không có chuyến nào',
-                      style: TextStyle(
-                        color: AppColors.secondaryText,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: bookings.length,
-              separatorBuilder: (_, _) =>
-                  const Divider(height: 1, color: AppColors.border),
-              itemBuilder: (_, i) => _BookingRow(booking: bookings[i]),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BookingRow extends StatelessWidget {
-  const _BookingRow({required this.booking});
-
-  final _Booking booking;
-
-  @override
-  Widget build(BuildContext context) {
-    final statusInfo = _statusInfo(booking.status);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          // Car emoji
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                booking.carEmoji,
-                style: const TextStyle(fontSize: 22),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  booking.carName,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.darkText,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                // Trip code — monospace
-                Text(
-                  booking.bookingRef,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mutedText,
-                    fontFamily: 'monospace',
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                // Date strip
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today_outlined,
-                      size: 10,
-                      color: AppColors.mutedText,
-                    ),
-                    const SizedBox(width: 3),
-                    Expanded(
-                      child: Text(
-                        booking.dateRange,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.mutedText,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Status + price
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: statusInfo.bgColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  statusInfo.label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: statusInfo.textColor,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              if (booking.price > 0)
-                Text(
-                  _fmtVnd(booking.price),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navyDark,
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  ({String label, Color bgColor, Color textColor}) _statusInfo(
-    _BookingStatus status,
+  ({String label, Color bg, Color fg}) _kycInfo(
+    BuildContext context,
+    String? status,
+    AppLocalizations l10n,
   ) {
-    return switch (status) {
-      _BookingStatus.active => (
-          label: 'Đang thuê',
-          bgColor: AppColors.primary.withAlpha(26),
-          textColor: AppColors.primary,
-        ),
-      _BookingStatus.completed => (
-          label: 'Hoàn thành',
-          bgColor: AppColors.successSoft,
-          textColor: AppColors.success,
-        ),
-      _BookingStatus.cancelled => (
-          label: 'Đã hủy',
-          bgColor: AppColors.dangerSoft,
-          textColor: AppColors.danger,
-        ),
-    };
+    switch (status?.toUpperCase()) {
+      case 'VERIFIED':
+        return (
+          label: l10n.kycVerified,
+          bg: AppColors.successSoft,
+          fg: AppColors.success,
+        );
+      case 'PENDING':
+        return (
+          label: l10n.kycPending,
+          bg: AppColors.warningSoft,
+          fg: AppColors.warning,
+        );
+      case 'REJECTED':
+        return (
+          label: l10n.kycRejected,
+          bg: AppColors.dangerSoft,
+          fg: AppColors.danger,
+        );
+      default:
+        return (
+          label: l10n.kycUnverified,
+          bg: context.palette.surfaceSunken,
+          fg: context.palette.mutedText,
+        );
+    }
   }
 }

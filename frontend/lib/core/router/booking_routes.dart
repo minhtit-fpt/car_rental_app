@@ -4,9 +4,19 @@ import 'package:frontend/features/booking/presentation/screens/active_trip_scree
 import 'package:frontend/features/booking/presentation/screens/booking_confirm_screen.dart';
 import 'package:frontend/features/booking/presentation/screens/booking_date_picker_screen.dart';
 import 'package:frontend/features/booking/presentation/screens/contract_screen.dart';
+import 'package:frontend/features/booking/presentation/screens/my_trips_screen.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 
 final bookingRoutes = [
+  // Mở danh sách chuyến độc lập (dùng khi điều hướng từ thông báo).
+  GoRoute(
+    path: '/trips',
+    builder: (context, state) => const MyTripsScreen(),
+  ),
+  GoRoute(
+    path: '/trips',
+    builder: (context, state) => const MyTripsScreen(),
+  ),
   GoRoute(
     path: '/booking/dates',
     builder: (context, state) {

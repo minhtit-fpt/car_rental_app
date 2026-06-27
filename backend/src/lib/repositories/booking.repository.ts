@@ -19,6 +19,23 @@ export interface ListBookingsParams {
   limit: number;
 }
 
+export interface ListBookingsByOwnerParams {
+  ownerId: string;
+  status?: BookingStatus;
+  page: number;
+  limit: number;
+}
+
+// Booking kèm xe + người thuê — phục vụ các màn của OWNER (yêu cầu đặt xe).
+const OWNER_BOOKING_INCLUDE = {
+  vehicle: { select: { id: true, title: true, type: true, ownerId: true } },
+  renter: { select: { id: true, phone: true, email: true } },
+} satisfies Prisma.BookingInclude;
+
+export type BookingWithVehicleRenter = Prisma.BookingGetPayload<{
+  include: typeof OWNER_BOOKING_INCLUDE;
+}>;
+
 // Trạng thái "chiếm chỗ" xe — khớp với EXCLUDE constraint booking_no_overlap.
 const ACTIVE_STATUSES: BookingStatus[] = [
   BookingStatus.CONFIRMED,
@@ -53,6 +70,51 @@ export const bookingRepository = {
     return { items, total };
   },
 
+  // Đơn đặt trên các xe của một OWNER (lọc qua vehicle.ownerId), kèm xe + người thuê.
+  async findManyByOwner(
+    p: ListBookingsByOwnerParams,
+  ): Promise<{ items: BookingWithVehicleRenter[]; total: number }> {
+    const where: Prisma.BookingWhereInput = {
+      vehicle: { ownerId: p.ownerId },
+      ...(p.status && { status: p.status }),
+    };
+    const [items, total] = await Promise.all([
+      prisma.booking.findMany({
+        where,
+        include: OWNER_BOOKING_INCLUDE,
+        orderBy: { createdAt: "desc" },
+        skip: (p.page - 1) * p.limit,
+        take: p.limit,
+      }),
+      prisma.booking.count({ where }),
+    ]);
+    return { items, total };
+  },
+
+  findByIdForOwner(id: string): Promise<BookingWithVehicleRenter | null> {
+    return prisma.booking.findUnique({
+      where: { id },
+      include: OWNER_BOOKING_INCLUDE,
+    });
+  },
+
+  // Các đơn của một xe trong các trạng thái cho trước, từ thời điểm `from` trở đi
+  // (suy ra lịch bận cho màn calendar/availability).
+  findByVehicle(
+    vehicleId: string,
+    statuses: BookingStatus[],
+    from?: Date,
+  ): Promise<Booking[]> {
+    return prisma.booking.findMany({
+      where: {
+        vehicleId,
+        status: { in: statuses },
+        ...(from && { endTime: { gte: from } }),
+      },
+      orderBy: { startTime: "asc" },
+    });
+  },
+
   // Pre-check tầng ứng dụng: có booking đang chiếm chỗ chồng khoảng [start,end)?
   // EXCLUDE constraint là chốt cứng ở bước confirm (Phase 4).
   async hasActiveOverlap(
@@ -69,6 +131,20 @@ export const bookingRepository = {
       },
     });
     return count > 0;
+  },
+
+  // Đơn còn PENDING_PAYMENT nhưng đã tạo trước mốc `before` (quá hạn thanh toán).
+  // Dùng cho cron tự huỷ. Không cần cờ "đã nhắc": sau khi huỷ, đơn chuyển sang
+  // CANCELLED nên lần quét sau không còn khớp → tránh xử lý trùng.
+  findOverduePendingPayment(before: Date, limit: number): Promise<Booking[]> {
+    return prisma.booking.findMany({
+      where: {
+        status: BookingStatus.PENDING_PAYMENT,
+        createdAt: { lt: before },
+      },
+      orderBy: { createdAt: "asc" },
+      take: limit,
+    });
   },
 
   updateStatus(id: string, status: BookingStatus): Promise<Booking> {

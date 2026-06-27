@@ -58,8 +58,11 @@ class _AdminAppBar extends StatelessWidget {
       pinned: true,
       backgroundColor: AppColors.adminBg,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_rounded,
-            color: AppColors.adminText, size: 20),
+        icon: const Icon(
+          Icons.arrow_back_ios_rounded,
+          color: AppColors.adminText,
+          size: 20,
+        ),
         onPressed: () => context.pop(),
       ),
       flexibleSpace: FlexibleSpaceBar(
@@ -68,14 +71,18 @@ class _AdminAppBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.adminText)),
-            Text(subtitle,
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.adminMuted)),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.adminText,
+              ),
+            ),
+            Text(
+              subtitle,
+              style: const TextStyle(fontSize: 11, color: AppColors.adminMuted),
+            ),
           ],
         ),
         background: Container(
@@ -168,17 +175,25 @@ class _DocumentsCard extends StatelessWidget {
           const SizedBox(height: 14),
           Row(
             children: [
-              Expanded(child: _DocTile(label: 'CCCD mặt trước', emoji: '🪪')),
+              Expanded(
+                child: _DocTile(label: 'CCCD mặt trước', emoji: '🪪'),
+              ),
               const SizedBox(width: 10),
-              Expanded(child: _DocTile(label: 'CCCD mặt sau', emoji: '🪪')),
+              Expanded(
+                child: _DocTile(label: 'CCCD mặt sau', emoji: '🪪'),
+              ),
             ],
           ),
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: _DocTile(label: 'Bằng lái xe', emoji: '📋')),
+              Expanded(
+                child: _DocTile(label: 'Bằng lái xe', emoji: '📋'),
+              ),
               const SizedBox(width: 10),
-              Expanded(child: _DocTile(label: 'Ảnh selfie', emoji: '🤳')),
+              Expanded(
+                child: _DocTile(label: 'Ảnh selfie', emoji: '🤳'),
+              ),
             ],
           ),
         ],
@@ -252,13 +267,18 @@ class _InfoRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 13, color: AppColors.adminMuted)),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.adminText)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: AppColors.adminMuted),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.adminText,
+          ),
+        ),
       ],
     );
   }

@@ -1,0 +1,7 @@
+# gen-l10n config — i18n cho RideVN (cơ chế A: gen-l10n + ARB)
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+output-dir: lib/l10n/generated
+nullable-getter: false

@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/features/owner/presentation/cubit/vehicle_form_cubit.dart';
+import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/section_header.dart';
+import 'package:frontend/shared/utils/coming_soon.dart';
 
 class AddEditVehicleScreen extends StatefulWidget {
-  const AddEditVehicleScreen({super.key, this.isEdit = false});
+  const AddEditVehicleScreen({super.key, this.isEdit = false, this.vehicle});
 
   final bool isEdit;
+
+  /// Xe cần sửa (chỉ có khi [isEdit] = true). Dùng để prefill form.
+  final Vehicle? vehicle;
 
   @override
   State<AddEditVehicleScreen> createState() => _AddEditVehicleScreenState();
@@ -19,23 +28,34 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   final _nameController = TextEditingController(text: '');
   final _priceController = TextEditingController(text: '');
   final _descController = TextEditingController(text: '');
-  String _selectedType = 'Sedan';
+  final _seatsController = TextEditingController(text: '');
+  final _doorsController = TextEditingController(text: '');
+  final _cityController = TextEditingController(text: '');
+  // Vị trí mặc định: trung tâm Hà Nội (chưa có map picker — sẽ thay sau).
+  final _latController = TextEditingController(text: '21.0278');
+  final _lngController = TextEditingController(text: '105.8342');
+  String _selectedType = 'CAR';
+  String? _transmission; // 'AUTOMATIC' | 'MANUAL' | null
   bool _isElectric = false;
   bool _deliveryAvailable = false;
   bool _isSubmitting = false;
 
-  static const _types = ['Sedan', 'SUV', 'Pickup', 'Hatchback', 'Van'];
-
   @override
   void initState() {
     super.initState();
-    if (widget.isEdit) {
-      _nameController.text = 'Tesla Model 3';
-      _priceController.text = '890';
-      _descController.text = 'Xe điện cao cấp, trang bị đầy đủ tiện nghi.';
-      _selectedType = 'Sedan';
-      _isElectric = true;
-      _deliveryAvailable = true;
+    // Prefill khi sửa. Vehicle entity không có lat/lng nên giữ nguyên vị trí cũ
+    // (card vị trí được ẩn ở chế độ sửa, không gửi toạ độ lên backend).
+    final v = widget.vehicle;
+    if (v != null) {
+      _nameController.text = v.title;
+      _priceController.text = v.pricePerHour.toStringAsFixed(0);
+      _selectedType = v.type;
+      _isElectric = v.isElectric;
+      _deliveryAvailable = v.deliveryAvailable;
+      _seatsController.text = v.seats?.toString() ?? '';
+      _doorsController.text = v.doors?.toString() ?? '';
+      _cityController.text = v.city ?? '';
+      _transmission = v.transmission;
     }
   }
 
@@ -44,28 +64,117 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
     _nameController.dispose();
     _priceController.dispose();
     _descController.dispose();
+    _seatsController.dispose();
+    _doorsController.dispose();
+    _cityController.dispose();
+    _latController.dispose();
+    _lngController.dispose();
     super.dispose();
   }
 
+  void _snack(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
+    final title = _nameController.text.trim();
+    final price = double.tryParse(_priceController.text.trim());
+    if (title.isEmpty) return _snack(l10n.ownerVehicleNameRequired);
+    if (price == null || price <= 0) {
+      return _snack(l10n.ownerVehiclePriceInvalid);
+    }
+
+    final seats = int.tryParse(_seatsController.text.trim());
+    final doors = int.tryParse(_doorsController.text.trim());
+    final cityText = _cityController.text.trim();
+    final city = cityText.isEmpty ? null : cityText;
+
+    final cubit = sl<VehicleFormCubit>();
     setState(() => _isSubmitting = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (mounted) context.pop();
+
+    if (widget.isEdit) {
+      // Sửa: không gửi toạ độ (giữ nguyên vị trí cũ); type không đổi được.
+      await cubit.update(
+        widget.vehicle!.id,
+        title: title,
+        pricePerHour: price,
+        isElectric: _isElectric,
+        deliveryAvailable: _deliveryAvailable,
+        seats: seats,
+        doors: doors,
+        transmission: _transmission,
+        city: city,
+      );
+    } else {
+      final lat = double.tryParse(_latController.text.trim());
+      final lng = double.tryParse(_lngController.text.trim());
+      if (lat == null || lng == null) {
+        setState(() => _isSubmitting = false);
+        return _snack(l10n.ownerVehicleCoordsInvalid);
+      }
+      await cubit.create(
+        type: _selectedType,
+        title: title,
+        pricePerHour: price,
+        isElectric: _isElectric,
+        deliveryAvailable: _deliveryAvailable,
+        lat: lat,
+        lng: lng,
+        seats: seats,
+        doors: doors,
+        transmission: _transmission,
+        city: city,
+      );
+    }
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    switch (cubit.state) {
+      case VehicleFormSuccess():
+        _snack(
+          widget.isEdit
+              ? l10n.ownerVehicleUpdateSuccess
+              : l10n.ownerVehicleCreateSuccess,
+        );
+        context.pop(true);
+      case VehicleFormError(:final message):
+        _snack(message);
+      case VehicleFormIdle():
+      case VehicleFormSubmitting():
+        break;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    // value gửi server → nhãn hiển thị (đã localize). Mục đầu hộp số = null.
+    final transmissions = {
+      '': l10n.vehicleTransmissionNone,
+      'AUTOMATIC': l10n.vehicleTransmissionAutomatic,
+      'MANUAL': l10n.vehicleTransmissionManual,
+    };
+    final types = {
+      'CAR': l10n.vehicleTypeCar,
+      'MOTORBIKE': l10n.vehicleTypeMotorbike,
+      'BICYCLE': l10n.vehicleTypeBicycle,
+    };
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         body: CustomScrollView(
           slivers: [
             RvSliverAppBar(
-              title: widget.isEdit ? 'Chỉnh sửa xe' : 'Đăng xe mới',
+              title: widget.isEdit
+                  ? l10n.ownerVehicleEditTitle
+                  : l10n.ownerVehicleAddTitle,
               subtitle: widget.isEdit
-                  ? 'Cập nhật thông tin xe của bạn'
-                  : 'Điền thông tin để đăng xe',
+                  ? l10n.ownerVehicleEditSubtitle
+                  : l10n.ownerVehicleAddSubtitle,
               role: RvRole.owner,
             ),
             SliverToBoxAdapter(
@@ -80,24 +189,43 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                       nameController: _nameController,
                       priceController: _priceController,
                       selectedType: _selectedType,
-                      types: _types,
-                      onTypeChanged: (t) =>
-                          setState(() => _selectedType = t),
+                      types: types,
+                      onTypeChanged: (t) => setState(() => _selectedType = t),
+                    ),
+                    const SizedBox(height: 16),
+                    _SpecsCard(
+                      seatsController: _seatsController,
+                      doorsController: _doorsController,
+                      cityController: _cityController,
+                      transmission: _transmission,
+                      transmissions: transmissions,
+                      onTransmissionChanged: (t) =>
+                          setState(() => _transmission = t.isEmpty ? null : t),
                     ),
                     const SizedBox(height: 16),
                     _DescriptionCard(controller: _descController),
+                    // Vị trí chỉ đặt khi đăng xe mới — sửa xe giữ nguyên toạ độ
+                    // cũ (Vehicle entity chưa expose lat/lng để prefill).
+                    if (!widget.isEdit) ...[
+                      const SizedBox(height: 16),
+                      _LocationCard(
+                        latController: _latController,
+                        lngController: _lngController,
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     _OptionsCard(
                       isElectric: _isElectric,
                       deliveryAvailable: _deliveryAvailable,
-                      onElectricChanged: (v) =>
-                          setState(() => _isElectric = v),
+                      onElectricChanged: (v) => setState(() => _isElectric = v),
                       onDeliveryChanged: (v) =>
                           setState(() => _deliveryAvailable = v),
                     ),
                     const SizedBox(height: 20),
                     PrimaryButton(
-                      label: widget.isEdit ? 'Lưu thay đổi' : 'Đăng xe',
+                      label: widget.isEdit
+                          ? l10n.ownerVehicleSaveChanges
+                          : l10n.ownerVehiclePublish,
                       onPressed: _isSubmitting ? null : _submit,
                       isLoading: _isSubmitting,
                       icon: widget.isEdit
@@ -122,12 +250,12 @@ class _PhotoSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -136,7 +264,7 @@ class _PhotoSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Ảnh xe'),
+          SectionHeader(title: AppLocalizations.of(context).ownerVehiclePhotos),
           const SizedBox(height: 12),
           SizedBox(
             height: 100,
@@ -166,9 +294,9 @@ class _PhotoSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Tối đa 10 ảnh · Ảnh đầu tiên là ảnh bìa',
-            style: TextStyle(fontSize: 11, color: AppColors.mutedText),
+          Text(
+            AppLocalizations.of(context).ownerVehiclePhotosHint,
+            style: TextStyle(fontSize: 11, color: context.palette.mutedText),
           ),
         ],
       ),
@@ -179,31 +307,36 @@ class _PhotoSection extends StatelessWidget {
 class _AddPhotoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final addPhoto = AppLocalizations.of(context).ownerVehicleAddPhoto;
     return GestureDetector(
-      onTap: () {},
+      onTap: () => showComingSoonSnack(context, addPhoto),
       child: Container(
         width: 100,
         height: 100,
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: context.palette.background,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: AppColors.primary.withAlpha(80),
             width: 1.5,
           ),
         ),
-        child: const Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_photo_alternate_outlined,
-                color: AppColors.primary, size: 28),
-            SizedBox(height: 4),
+            const Icon(
+              Icons.add_photo_alternate_outlined,
+              color: AppColors.primary,
+              size: 28,
+            ),
+            const SizedBox(height: 4),
             Text(
-              'Thêm ảnh',
-              style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w500),
+              addPhoto,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.primary,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -224,20 +357,21 @@ class _BasicInfoCard extends StatelessWidget {
   final TextEditingController nameController;
   final TextEditingController priceController;
   final String selectedType;
-  final List<String> types;
+  final Map<String, String> types;
   final ValueChanged<String> onTypeChanged;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -246,11 +380,11 @@ class _BasicInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Thông tin cơ bản'),
+          SectionHeader(title: l10n.ownerVehicleBasicInfo),
           const SizedBox(height: 14),
           _FormField(
-            label: 'Tên xe',
-            hint: 'VD: Toyota Camry 2024',
+            label: l10n.ownerVehicleName,
+            hint: l10n.ownerVehicleNameHint,
             controller: nameController,
           ),
           const SizedBox(height: 12),
@@ -258,8 +392,8 @@ class _BasicInfoCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _FormField(
-                  label: 'Giá/ngày (K VNĐ)',
-                  hint: 'VD: 850',
+                  label: l10n.ownerVehiclePricePerHour,
+                  hint: l10n.ownerVehiclePriceHint,
                   controller: priceController,
                   keyboardType: TextInputType.number,
                 ),
@@ -300,10 +434,10 @@ class _FormField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondaryText,
+            color: context.palette.secondaryText,
           ),
         ),
         const SizedBox(height: 6),
@@ -312,28 +446,31 @@ class _FormField extends StatelessWidget {
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-                fontSize: 13, color: AppColors.mutedText),
+            hintStyle: TextStyle(
+              fontSize: 13,
+              color: context.palette.mutedText,
+            ),
             filled: true,
-            fillColor: AppColors.background,
+            fillColor: context.palette.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primary),
             ),
             contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12, vertical: 10),
+              horizontal: 12,
+              vertical: 10,
+            ),
             isDense: true,
           ),
-          style: const TextStyle(
-              fontSize: 13, color: AppColors.darkText),
+          style: TextStyle(fontSize: 13, color: context.palette.darkText),
         ),
       ],
     );
@@ -348,7 +485,7 @@ class _TypeDropdown extends StatelessWidget {
   });
 
   final String value;
-  final List<String> items;
+  final Map<String, String> items;
   final ValueChanged<String> onChanged;
 
   @override
@@ -356,12 +493,12 @@ class _TypeDropdown extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Loại xe',
+        Text(
+          AppLocalizations.of(context).ownerVehicleType,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondaryText,
+            color: context.palette.secondaryText,
           ),
         ),
         const SizedBox(height: 6),
@@ -369,27 +506,245 @@ class _TypeDropdown extends StatelessWidget {
           initialValue: value,
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppColors.background,
+            fillColor: context.palette.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.palette.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primary),
             ),
             contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12, vertical: 10),
+              horizontal: 12,
+              vertical: 10,
+            ),
             isDense: true,
           ),
-          style: const TextStyle(
-              fontSize: 13, color: AppColors.darkText),
-          items: items
-              .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+          style: TextStyle(fontSize: 13, color: context.palette.darkText),
+          items: items.entries
+              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+              .toList(),
+          onChanged: (v) {
+            if (v != null) onChanged(v);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _LocationCard extends StatelessWidget {
+  const _LocationCard({
+    required this.latController,
+    required this.lngController,
+  });
+
+  final TextEditingController latController;
+  final TextEditingController lngController;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.palette.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
+          BoxShadow(
+            color: context.palette.cardShadowColor,
+            blurRadius: 12,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionHeader(title: l10n.ownerVehicleLocation),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _FormField(
+                  label: l10n.ownerVehicleLat,
+                  hint: l10n.ownerVehicleLatHint,
+                  controller: latController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _FormField(
+                  label: l10n.ownerVehicleLng,
+                  hint: l10n.ownerVehicleLngHint,
+                  controller: lngController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.ownerVehicleMapSoon,
+            style: TextStyle(fontSize: 11, color: context.palette.mutedText),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SpecsCard extends StatelessWidget {
+  const _SpecsCard({
+    required this.seatsController,
+    required this.doorsController,
+    required this.cityController,
+    required this.transmission,
+    required this.transmissions,
+    required this.onTransmissionChanged,
+  });
+
+  final TextEditingController seatsController;
+  final TextEditingController doorsController;
+  final TextEditingController cityController;
+  final String? transmission;
+  final Map<String, String> transmissions;
+  final ValueChanged<String> onTransmissionChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.palette.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
+          BoxShadow(
+            color: context.palette.cardShadowColor,
+            blurRadius: 12,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionHeader(title: l10n.ownerVehicleSpecs),
+          const SizedBox(height: 4),
+          Text(
+            l10n.ownerVehicleSpecsHint,
+            style: TextStyle(fontSize: 11, color: context.palette.mutedText),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _FormField(
+                  label: l10n.ownerVehicleSeats,
+                  hint: l10n.ownerVehicleSeatsHint,
+                  controller: seatsController,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _FormField(
+                  label: l10n.ownerVehicleDoors,
+                  hint: l10n.ownerVehicleDoorsHint,
+                  controller: doorsController,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _LabeledDropdown(
+            label: l10n.ownerVehicleTransmission,
+            value: transmission ?? '',
+            items: transmissions,
+            onChanged: onTransmissionChanged,
+          ),
+          const SizedBox(height: 12),
+          _FormField(
+            label: l10n.ownerVehicleCity,
+            hint: l10n.ownerVehicleCityHint,
+            controller: cityController,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Dropdown có nhãn dùng chung (loại xe, hộp số…).
+class _LabeledDropdown extends StatelessWidget {
+  const _LabeledDropdown({
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String value;
+  final Map<String, String> items;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: context.palette.secondaryText,
+          ),
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          initialValue: value,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: context.palette.background,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: context.palette.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: context.palette.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
+            ),
+            isDense: true,
+          ),
+          style: TextStyle(fontSize: 13, color: context.palette.darkText),
+          items: items.entries
+              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
               .toList(),
           onChanged: (v) {
             if (v != null) onChanged(v);
@@ -409,12 +764,12 @@ class _DescriptionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -423,25 +778,31 @@ class _DescriptionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Mô tả xe'),
+          SectionHeader(
+            title: AppLocalizations.of(context).ownerVehicleDescription,
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: controller,
             maxLines: 4,
             maxLength: 500,
             decoration: InputDecoration(
-              hintText: 'Mô tả tình trạng, tiện ích nổi bật của xe...',
-              hintStyle: const TextStyle(
-                  fontSize: 13, color: AppColors.mutedText),
+              hintText: AppLocalizations.of(
+                context,
+              ).ownerVehicleDescriptionHint,
+              hintStyle: TextStyle(
+                fontSize: 13,
+                color: context.palette.mutedText,
+              ),
               filled: true,
-              fillColor: AppColors.background,
+              fillColor: context.palette.background,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: context.palette.border),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: context.palette.border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -449,8 +810,7 @@ class _DescriptionCard extends StatelessWidget {
               ),
               contentPadding: const EdgeInsets.all(12),
             ),
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.darkText),
+            style: TextStyle(fontSize: 13, color: context.palette.darkText),
           ),
         ],
       ),
@@ -473,15 +833,16 @@ class _OptionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: context.palette.border),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadowColor,
+            color: context.palette.cardShadowColor,
             blurRadius: 12,
             offset: Offset(0, 2),
           ),
@@ -490,20 +851,20 @@ class _OptionsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Tùy chọn'),
+          SectionHeader(title: l10n.ownerVehicleOptions),
           const SizedBox(height: 12),
           _ToggleRow(
             emoji: '⚡',
-            label: 'Xe điện (EV)',
-            subtitle: 'Hiển thị badge EV trên listing',
+            label: l10n.ownerVehicleEv,
+            subtitle: l10n.ownerVehicleEvSubtitle,
             value: isElectric,
             onChanged: onElectricChanged,
           ),
-          const Divider(color: AppColors.border, height: 20),
+          Divider(color: context.palette.border, height: 20),
           _ToggleRow(
             emoji: '📦',
-            label: 'Giao xe tận nơi',
-            subtitle: 'Cho phép giao xe đến địa chỉ khách',
+            label: l10n.bookingDelivery,
+            subtitle: l10n.ownerVehicleDeliverySubtitle,
             value: deliveryAvailable,
             onChanged: onDeliveryChanged,
           ),
@@ -538,15 +899,21 @@ class _ToggleRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.darkText,
-                  )),
-              Text(subtitle,
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.mutedText)),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: context.palette.darkText,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.palette.mutedText,
+                ),
+              ),
             ],
           ),
         ),

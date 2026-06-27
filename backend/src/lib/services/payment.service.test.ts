@@ -8,6 +8,10 @@ import {
   type Payment,
 } from "@prisma/client";
 
+vi.mock("@/lib/services/notification.service", () => ({
+  notificationService: { notify: vi.fn() },
+}));
+
 vi.mock("@/lib/repositories/booking.repository", () => ({
   bookingRepository: { findById: vi.fn() },
 }));
@@ -21,6 +25,7 @@ vi.mock("@/lib/repositories/payment.repository", () => ({
 }));
 vi.mock("@/lib/payments", () => ({
   paymentProvider: { createPayment: vi.fn(), verifyCallback: vi.fn() },
+  paymentProviderName: "mock",
 }));
 vi.mock("@/lib/services/booking.service", () => ({
   bookingService: { confirmAfterPayment: vi.fn() },

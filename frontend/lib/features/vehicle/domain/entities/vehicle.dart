@@ -1,129 +1,87 @@
+/// Một chiếc xe như backend trả về (`/api/vehicles*`).
+///
+/// Các trường lõi khớp đúng `PublicVehicle` của backend. Những thông tin mà
+/// backend CHƯA cung cấp (đánh giá, tên chủ xe) để `null` thay vì bịa số —
+/// UI tự ẩn khi thiếu. `pricePerDay`, `emoji`, `typeLabel`… là getter suy ra,
+/// không phải dữ liệu thật từ server.
 class Vehicle {
   const Vehicle({
     required this.id,
-    required this.name,
-    required this.year,
+    required this.ownerId,
     required this.type,
-    required this.pricePerDay,
-    required this.rating,
-    required this.reviewCount,
-    required this.ownerName,
-    required this.emoji,
-    this.isElectric = false,
+    required this.title,
+    required this.pricePerHour,
+    required this.isElectric,
+    required this.isAvailable,
+    required this.deliveryAvailable,
+    this.seats,
+    this.doors,
+    this.transmission,
+    this.city,
+    this.rating,
+    this.reviewCount,
+    this.ownerName,
     this.location = '',
+    this.distanceMeters,
+    this.latitude,
+    this.longitude,
   });
 
   final String id;
-  final String name;
-  final int year;
-  final String type;
-  final double pricePerDay;
-  final double rating;
-  final int reviewCount;
-  final String ownerName;
-  final String emoji;
-  final bool isElectric;
-  final String location;
-}
+  final String ownerId;
 
-/// Static mock data matching the Figma design
-const List<Vehicle> kMockVehicles = [
-  Vehicle(
-    id: '1',
-    name: 'Tesla Model 3',
-    year: 2024,
-    type: 'Sedan',
-    pricePerDay: 890,
-    rating: 4.9,
-    reviewCount: 128,
-    ownerName: 'Minh T.',
-    emoji: '🚗',
-    isElectric: true,
-    location: 'Hà Nội',
-  ),
-  Vehicle(
-    id: '2',
-    name: 'BMW X5 xDrive',
-    year: 2023,
-    type: 'SUV',
-    pricePerDay: 1250,
-    rating: 4.8,
-    reviewCount: 94,
-    ownerName: 'Linh N.',
-    emoji: '🚙',
-    location: 'TP. Hồ Chí Minh',
-  ),
-  Vehicle(
-    id: '3',
-    name: 'Mercedes C300',
-    year: 2024,
-    type: 'Sedan',
-    pricePerDay: 1100,
-    rating: 4.7,
-    reviewCount: 76,
-    ownerName: 'Đức P.',
-    emoji: '🏎️',
-    location: 'Đà Nẵng',
-  ),
-  Vehicle(
-    id: '4',
-    name: 'Toyota Camry',
-    year: 2023,
-    type: 'Sedan',
-    pricePerDay: 550,
-    rating: 4.6,
-    reviewCount: 210,
-    ownerName: 'Hoa L.',
-    emoji: '🚗',
-    location: 'Hà Nội',
-  ),
-  Vehicle(
-    id: '5',
-    name: 'Hyundai Tucson',
-    year: 2024,
-    type: 'SUV',
-    pricePerDay: 650,
-    rating: 4.5,
-    reviewCount: 183,
-    ownerName: 'Nam V.',
-    emoji: '🚙',
-    location: 'TP. Hồ Chí Minh',
-  ),
-  Vehicle(
-    id: '6',
-    name: 'Kia EV6',
-    year: 2024,
-    type: 'Sedan',
-    pricePerDay: 780,
-    rating: 4.8,
-    reviewCount: 62,
-    ownerName: 'Trang M.',
-    emoji: '⚡',
-    isElectric: true,
-    location: 'Đà Nẵng',
-  ),
-  Vehicle(
-    id: '7',
-    name: 'Ford Ranger',
-    year: 2023,
-    type: 'Pickup',
-    pricePerDay: 720,
-    rating: 4.4,
-    reviewCount: 97,
-    ownerName: 'Khoa B.',
-    emoji: '🛻',
-    location: 'Cần Thơ',
-  ),
-  Vehicle(
-    id: '8',
-    name: 'Lexus RX 350',
-    year: 2024,
-    type: 'SUV',
-    pricePerDay: 1450,
-    rating: 4.9,
-    reviewCount: 45,
-    ownerName: 'Phương T.',
-    emoji: '🚘',
-    location: 'Hà Nội',
-  ),
-];
+  /// Enum backend: `CAR` | `MOTORBIKE` | `BICYCLE`.
+  final String type;
+  final String title;
+
+  /// Giá thuê theo giờ (VND) — nguồn sự thật từ backend.
+  final double pricePerHour;
+  final bool isElectric;
+  final bool isAvailable;
+  final bool deliveryAvailable;
+
+  // ── Thông số kỹ thuật (nullable — backend trả null nếu chưa nhập) ─────────
+  final int? seats;
+  final int? doors;
+
+  /// `'AUTOMATIC'` | `'MANUAL'` | null.
+  final String? transmission;
+
+  /// Thành phố hiển thị (text thật từ backend), null nếu chưa nhập.
+  final String? city;
+
+  /// Chỉ có khi gọi `/api/vehicles/nearby` (mét). Null ở list/detail thường.
+  final int? distanceMeters;
+
+  /// Toạ độ điểm nhận xe — chỉ endpoint `nearby` trả về (PostGIS `ST_Y/ST_X`).
+  /// Null ở list/detail thường nên marker bản đồ phải tự lọc xe thiếu toạ độ.
+  final double? latitude;
+  final double? longitude;
+
+  /// Có đủ toạ độ để đặt marker lên bản đồ hay không.
+  bool get hasCoordinates => latitude != null && longitude != null;
+
+  // ── Thông tin tổng hợp backend chưa trả → null tới khi nối slice tương ứng.
+  final double? rating;
+  final int? reviewCount;
+  final String? ownerName;
+  final String location;
+
+  // ── Getter hiển thị (suy ra, không bịa dữ liệu) ──────────────────────────
+
+  /// Tên hiển thị = tiêu đề tin đăng.
+  String get name => title;
+
+  /// Giá/ngày quy theo đơn vị nghìn VND (K) để khớp formatter UI hiện có
+  /// (vd: 50.000đ/giờ → 50000*24/1000 = 1200 → "1.2M VNĐ"/ngày).
+  double get pricePerDay => pricePerHour * 24 / 1000;
+
+  /// Có dữ liệu đánh giá thật để hiển thị hay không.
+  bool get hasRating => rating != null && (reviewCount ?? 0) > 0;
+
+  String get emoji => switch (type) {
+    'MOTORBIKE' => '🏍️',
+    'BICYCLE' => '🚲',
+    _ => '🚗',
+  };
+}

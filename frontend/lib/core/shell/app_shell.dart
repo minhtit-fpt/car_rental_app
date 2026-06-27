@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/features/vehicle/presentation/screens/admin_dashboard_screen.dart';
+import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/features/booking/presentation/screens/my_trips_screen.dart';
+import 'package:frontend/features/map/presentation/screens/map_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/car_list_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/home_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/owner_dashboard_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/renter_dashboard_screen.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -28,7 +34,8 @@ class _AppShellState extends State<AppShell> {
         children: [
           HomeScreen(onCarsTap: () => _navigateTo(1)),
           const CarListScreen(),
-          const _PlaceholderScreen(label: '🗺️', title: 'Map'),
+          const MyTripsScreen(),
+          const MapScreen(),
           const _DashboardSelectorScreen(),
         ],
       ),
@@ -48,35 +55,42 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.inkLight)),
+      decoration: BoxDecoration(
+        color: context.palette.surface,
+        border: Border(top: BorderSide(color: context.palette.inkLight)),
       ),
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: onTap,
         backgroundColor: Colors.transparent,
-        items: const [
+        type: BottomNavigationBarType.fixed,
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.search_outlined),
-            activeIcon: Icon(Icons.search_rounded),
-            label: 'Tìm xe',
+            icon: const Icon(Icons.search_outlined),
+            activeIcon: const Icon(Icons.search_rounded),
+            label: l10n.navFindCar,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.directions_car_outlined),
-            activeIcon: Icon(Icons.directions_car_rounded),
-            label: 'Xe',
+            icon: const Icon(Icons.directions_car_outlined),
+            activeIcon: const Icon(Icons.directions_car_rounded),
+            label: l10n.navVehicles,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.map_outlined),
-            activeIcon: Icon(Icons.map_rounded),
-            label: 'Bản đồ',
+            icon: const Icon(Icons.receipt_long_outlined),
+            activeIcon: const Icon(Icons.receipt_long_rounded),
+            label: l10n.navTrips,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded),
-            activeIcon: Icon(Icons.person_rounded),
-            label: 'Tôi',
+            icon: const Icon(Icons.map_outlined),
+            activeIcon: const Icon(Icons.map_rounded),
+            label: l10n.navMap,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person_outline_rounded),
+            activeIcon: const Icon(Icons.person_rounded),
+            label: l10n.navMe,
           ),
         ],
       ),
@@ -93,55 +107,72 @@ class _DashboardSelectorScreen extends StatefulWidget {
 }
 
 class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
-  int _role = 0; // 0=Renter, 1=Owner, 2=Admin
+  int _role = 0; // 0=Renter, 1=Owner (admin có khu vực riêng ở /admin)
 
   @override
   Widget build(BuildContext context) {
+    // Chỉ tài khoản có vai OWNER mới thấy bộ chuyển Người thuê / Chủ xe.
+    // Người thuê thuần tuý chỉ thấy dashboard Người thuê.
+    final isOwner = context.watch<AuthCubit>().state.user?.isOwner ?? false;
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.palette.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        title: const Text(
-          'Tài khoản',
-          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.darkText),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Container(
-            color: AppColors.surface,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Row(
-              children: [
-                _RoleChip(
-                  label: '👤 Người thuê',
-                  isActive: _role == 0,
-                  onTap: () => setState(() => _role = 0),
-                ),
-                const SizedBox(width: 8),
-                _RoleChip(
-                  label: '🚗 Chủ xe',
-                  isActive: _role == 1,
-                  onTap: () => setState(() => _role = 1),
-                ),
-                const SizedBox(width: 8),
-                _RoleChip(
-                  label: '🛡️ Admin',
-                  isActive: _role == 2,
-                  onTap: () => setState(() => _role = 2),
-                ),
-              ],
-            ),
+        backgroundColor: context.palette.surface,
+        title: Text(
+          l10n.shellAccountTitle,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: context.palette.darkText,
           ),
         ),
-      ),
-      body: IndexedStack(
-        index: _role,
-        children: const [
-          RenterDashboardScreen(),
-          OwnerDashboardScreen(),
-          AdminDashboardScreen(),
+        actions: [
+          IconButton(
+            tooltip: l10n.settingsTitle,
+            icon: Icon(
+              Icons.settings_outlined,
+              color: context.palette.darkText,
+            ),
+            onPressed: () => context.push('/settings'),
+          ),
+          IconButton(
+            tooltip: l10n.settingsLogout,
+            icon: Icon(Icons.logout_rounded, color: context.palette.darkText),
+            onPressed: () => context.read<AuthCubit>().logout(),
+          ),
         ],
+        bottom: isOwner
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(48),
+                child: Container(
+                  color: context.palette.surface,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Row(
+                    children: [
+                      _RoleChip(
+                        label: '👤 ${l10n.roleRenter}',
+                        isActive: _role == 0,
+                        onTap: () => setState(() => _role = 0),
+                      ),
+                      const SizedBox(width: 8),
+                      _RoleChip(
+                        label: '🚗 ${l10n.roleOwner}',
+                        isActive: _role == 1,
+                        onTap: () => setState(() => _role = 1),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : null,
       ),
+      body: isOwner
+          ? IndexedStack(
+              index: _role,
+              children: const [RenterDashboardScreen(), OwnerDashboardScreen()],
+            )
+          : const RenterDashboardScreen(),
     );
   }
 }
@@ -165,10 +196,10 @@ class _RoleChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : AppColors.background,
+          color: isActive ? AppColors.primary : context.palette.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isActive ? AppColors.primary : AppColors.border,
+            color: isActive ? AppColors.primary : context.palette.border,
           ),
         ),
         child: Text(
@@ -176,47 +207,8 @@ class _RoleChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: isActive ? Colors.white : AppColors.secondaryText,
+            color: isActive ? Colors.white : context.palette.secondaryText,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({required this.label, required this.title});
-
-  final String label;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.darkText,
-          ),
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 64)),
-            const SizedBox(height: 16),
-            Text(
-              '$title coming soon',
-              style: const TextStyle(
-                fontSize: 16,
-                color: AppColors.secondaryText,
-              ),
-            ),
-          ],
         ),
       ),
     );

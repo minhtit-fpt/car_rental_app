@@ -29,6 +29,7 @@ export const registerSchema = z.object({
   phone: phoneField,
   password: passwordField,
   email: z.string().email("Email không hợp lệ").optional(),
+  name: z.string().trim().min(1, "Tên không hợp lệ").max(80).optional(),
 });
 
 export const loginSchema = z.object({
@@ -40,6 +41,17 @@ export const refreshSchema = z.object({
   refreshToken: z.string().min(1, "refreshToken là bắt buộc"),
 });
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Mật khẩu hiện tại là bắt buộc"),
+    newPassword: passwordField,
+  })
+  .refine((v) => v.currentPassword !== v.newPassword, {
+    message: "Mật khẩu mới phải khác mật khẩu hiện tại",
+    path: ["newPassword"],
+  });
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshInput = z.infer<typeof refreshSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

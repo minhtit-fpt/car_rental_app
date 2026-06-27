@@ -10,6 +10,11 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Localization (i18n) — gen-l10n + ARB
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+
   # Navigation
   go_router: ^14.0.0
 
@@ -35,6 +40,19 @@ dependencies:
   # Dependency injection
   get_it: ^8.0.0
 
+  # HTTP client — gọi backend Next.js (/api/auth/*)
+  dio: ^5.7.0
+
+  # WebView nhúng — mở cổng VNPay & bắt URL return để xác nhận thanh toán
+  flutter_inappwebview: ^6.1.5
+
+  # Chọn ảnh giấy tờ KYC (CCCD, bằng lái, selfie) từ thư viện/camera
+  image_picker: ^1.1.2
+  share_plus: ^12.0.2
+
+  # Popup thông báo khay hệ thống (OS) khi có thông báo mới (polling 30s)
+  flutter_local_notifications: ^18.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -54,3 +72,4 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
+  generate: true

@@ -1,13 +1,27 @@
-import { BookingStatus, type Booking } from "@prisma/client";
+import { BookingStatus, VehicleType, type Booking } from "@prisma/client";
 import { AppError } from "@/lib/errors/app-error";
 import {
   bookingRepository,
+  type BookingWithVehicleRenter,
+  type ListBookingsByOwnerParams,
   type ListBookingsParams,
 } from "@/lib/repositories/booking.repository";
 import { vehicleRepository } from "@/lib/repositories/vehicle.repository";
+import { notificationService } from "@/lib/services/notification.service";
 import type { CreateBookingInput } from "@/lib/validators/booking.validator";
 
 const MS_PER_HOUR = 3_600_000;
+
+// Cửa sổ thanh toán: đơn PENDING_PAYMENT quá ngần này giờ kể từ khi tạo sẽ bị
+// cron tự huỷ. Cấu hình qua PAYMENT_REMINDER_HOURS (mặc định 1 giờ).
+const DEFAULT_PAYMENT_WINDOW_HOURS = 1;
+// Giới hạn số đơn xử lý mỗi lần quét để tránh batch quá lớn.
+const EXPIRE_BATCH_LIMIT = 100;
+
+function getPaymentWindowHours(): number {
+  const raw = Number(process.env.PAYMENT_REMINDER_HOURS);
+  return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_PAYMENT_WINDOW_HOURS;
+}
 
 export interface PublicBooking {
   id: string;
@@ -27,6 +41,22 @@ export interface BookingListResult {
   page: number;
   limit: number;
 }
+
+// Đơn đặt nhìn từ phía OWNER — kèm thông tin xe + người thuê để hiển thị.
+export interface OwnerBooking extends PublicBooking {
+  vehicle: { id: string; title: string; type: VehicleType };
+  renter: { id: string; phone: string; email: string | null };
+}
+
+export interface OwnerBookingListResult {
+  items: OwnerBooking[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// Trạng thái owner được phép phê duyệt/từ chối (đơn còn chờ xác nhận).
+const OWNER_ACTIONABLE: BookingStatus[] = [BookingStatus.PENDING_PAYMENT];
 
 // Trạng thái còn được phép huỷ.
 const CANCELLABLE: BookingStatus[] = [
@@ -53,6 +83,29 @@ function toPublicBooking(b: Booking): PublicBooking {
     deliveryRequested: b.deliveryRequested,
     createdAt: b.createdAt,
   };
+}
+
+function toOwnerBooking(b: BookingWithVehicleRenter): OwnerBooking {
+  return {
+    ...toPublicBooking(b),
+    vehicle: { id: b.vehicle.id, title: b.vehicle.title, type: b.vehicle.type },
+    renter: { id: b.renter.id, phone: b.renter.phone, email: b.renter.email },
+  };
+}
+
+// Tải đơn và xác nhận người gọi là CHỦ XE của đơn đó (qua vehicle.ownerId).
+async function loadOwnedByVehicleOwner(
+  id: string,
+  ownerId: string,
+): Promise<BookingWithVehicleRenter> {
+  const booking = await bookingRepository.findByIdForOwner(id);
+  if (!booking) {
+    throw new AppError(404, "BOOKING_NOT_FOUND", "Không tìm thấy đơn đặt");
+  }
+  if (booking.vehicle.ownerId !== ownerId) {
+    throw new AppError(403, "FORBIDDEN", "Đây không phải xe của bạn");
+  }
+  return booking;
 }
 
 async function loadOwned(id: string, renterId: string): Promise<Booking> {
@@ -111,6 +164,25 @@ export const bookingService = {
       totalPrice,
       deliveryRequested: input.deliveryRequested,
     });
+
+    // Báo cho NGƯỜI THUÊ: đặt xe thành công, cần thanh toán.
+    await notificationService.notify({
+      userId: renterId,
+      type: "BOOKING",
+      title: "Đặt xe thành công",
+      body: `Bạn đã đặt ${vehicle.title}. Vui lòng thanh toán để hoàn tất.`,
+      payload: { bookingId: booking.id, role: "renter" },
+    });
+    // Báo cho CHỦ XE có yêu cầu đặt mới (bỏ qua nếu tự đặt xe của mình).
+    if (vehicle.ownerId !== renterId) {
+      await notificationService.notify({
+        userId: vehicle.ownerId,
+        type: "BOOKING",
+        title: "Yêu cầu đặt xe mới",
+        body: `${vehicle.title} có yêu cầu đặt mới đang chờ xác nhận.`,
+        payload: { bookingId: booking.id, role: "owner" },
+      });
+    }
     return toPublicBooking(booking);
   },
 
@@ -128,6 +200,88 @@ export const bookingService = {
 
   async getById(renterId: string, id: string): Promise<PublicBooking> {
     return toPublicBooking(await loadOwned(id, renterId));
+  },
+
+  // Danh sách đơn đặt trên các xe của OWNER (lọc theo vehicle.ownerId).
+  async listForOwner(
+    params: Omit<ListBookingsByOwnerParams, "ownerId"> & { ownerId: string },
+  ): Promise<OwnerBookingListResult> {
+    const { items, total } = await bookingRepository.findManyByOwner(params);
+    return {
+      items: items.map(toOwnerBooking),
+      total,
+      page: params.page,
+      limit: params.limit,
+    };
+  },
+
+  // OWNER chấp nhận yêu cầu: PENDING_PAYMENT → CONFIRMED. Kiểm tra trùng giờ như
+  // confirmAfterPayment; EXCLUDE constraint là chốt cứng cuối cùng.
+  async approve(ownerId: string, id: string): Promise<OwnerBooking> {
+    const booking = await loadOwnedByVehicleOwner(id, ownerId);
+    if (!OWNER_ACTIONABLE.includes(booking.status)) {
+      throw new AppError(
+        409,
+        "BOOKING_NOT_APPROVABLE",
+        "Đơn không ở trạng thái chờ xác nhận",
+      );
+    }
+    if (
+      await bookingRepository.hasActiveOverlap(
+        booking.vehicleId,
+        booking.startTime,
+        booking.endTime,
+      )
+    ) {
+      throw new AppError(
+        409,
+        "BOOKING_CONFLICT",
+        "Xe đã có người đặt trong khoảng thời gian này",
+      );
+    }
+    try {
+      await bookingRepository.updateStatus(id, BookingStatus.CONFIRMED);
+    } catch (error) {
+      if (isOverlapViolation(error)) {
+        throw new AppError(
+          409,
+          "BOOKING_CONFLICT",
+          "Xe đã có người đặt trong khoảng thời gian này",
+        );
+      }
+      throw error;
+    }
+    // Báo cho người thuê đơn đã được chủ xe xác nhận.
+    await notificationService.notify({
+      userId: booking.renterId,
+      type: "BOOKING",
+      title: "Đơn đặt đã được xác nhận",
+      body: `${booking.vehicle.title} đã được chủ xe xác nhận. Vui lòng thanh toán để hoàn tất.`,
+      payload: { bookingId: booking.id, role: "renter" },
+    });
+    return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
+  },
+
+  // OWNER từ chối yêu cầu: PENDING_PAYMENT → CANCELLED.
+  async reject(ownerId: string, id: string): Promise<OwnerBooking> {
+    const booking = await loadOwnedByVehicleOwner(id, ownerId);
+    if (!OWNER_ACTIONABLE.includes(booking.status)) {
+      throw new AppError(
+        409,
+        "BOOKING_NOT_REJECTABLE",
+        "Đơn không ở trạng thái chờ xác nhận",
+      );
+    }
+    await bookingRepository.updateStatus(id, BookingStatus.CANCELLED);
+    // Báo cho người thuê đơn đã bị chủ xe từ chối.
+    await notificationService.notify({
+      userId: booking.renterId,
+      type: "BOOKING",
+      title: "Đơn đặt bị từ chối",
+      body: `${booking.vehicle.title} đã bị chủ xe từ chối.`,
+      payload: { bookingId: booking.id, role: "renter" },
+    });
+    return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
   },
 
   // Gọi bởi payment.service sau khi thanh toán thành công. Chuyển
@@ -162,12 +316,12 @@ export const bookingService = {
         "Xe đã có người đặt trong khoảng thời gian này",
       );
     }
+    let updated: Booking;
     try {
-      const updated = await bookingRepository.updateStatus(
+      updated = await bookingRepository.updateStatus(
         bookingId,
         BookingStatus.CONFIRMED,
       );
-      return toPublicBooking(updated);
     } catch (error) {
       if (isOverlapViolation(error)) {
         throw new AppError(
@@ -178,6 +332,48 @@ export const bookingService = {
       }
       throw error;
     }
+
+    const vehicle = await vehicleRepository.findById(updated.vehicleId);
+    if (vehicle) {
+      const renter = await userRepository.findById(updated.renterId);
+      await notificationEvents.paymentConfirmed({
+        bookingId: updated.id,
+        renterId: updated.renterId,
+        ownerId: vehicle.ownerId,
+        renterEmail: renter?.email,
+      });
+    }
+    return toPublicBooking(updated);
+  },
+
+  // Quét & tự huỷ các đơn PENDING_PAYMENT quá hạn thanh toán (gọi bởi cron).
+  // Mỗi đơn: PENDING_PAYMENT → CANCELLED + noti in-app cho renter (fire-and-forget).
+  // Lỗi của 1 đơn không được chặn các đơn còn lại. Trả số đơn đã huỷ.
+  async expireOverduePayments(): Promise<{ expired: number }> {
+    const before = new Date(Date.now() - getPaymentWindowHours() * MS_PER_HOUR);
+    const overdue = await bookingRepository.findOverduePendingPayment(
+      before,
+      EXPIRE_BATCH_LIMIT,
+    );
+
+    let expired = 0;
+    for (const booking of overdue) {
+      try {
+        await bookingRepository.updateStatus(
+          booking.id,
+          BookingStatus.CANCELLED,
+        );
+      } catch (error) {
+        console.error("Failed to expire overdue booking", booking.id, error);
+        continue;
+      }
+      expired += 1;
+      await notificationEvents.paymentExpired({
+        bookingId: booking.id,
+        renterId: booking.renterId,
+      });
+    }
+    return { expired };
   },
 
   async cancel(renterId: string, id: string): Promise<PublicBooking> {
@@ -193,6 +389,17 @@ export const bookingService = {
       id,
       BookingStatus.CANCELLED,
     );
+    // Báo cho chủ xe rằng người thuê đã huỷ đơn.
+    const vehicle = await vehicleRepository.findById(booking.vehicleId);
+    if (vehicle && vehicle.ownerId !== renterId) {
+      await notificationService.notify({
+        userId: vehicle.ownerId,
+        type: "BOOKING",
+        title: "Khách đã huỷ đơn",
+        body: `Một đơn đặt ${vehicle.title} vừa bị người thuê huỷ.`,
+        payload: { bookingId: updated.id, role: "owner" },
+      });
+    }
     return toPublicBooking(updated);
   },
 };

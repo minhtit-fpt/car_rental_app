@@ -9,6 +9,7 @@ import { userRepository } from "@/lib/repositories/user.repository";
 import { refreshTokenRepository } from "@/lib/repositories/refresh-token.repository";
 import { AppError } from "@/lib/errors/app-error";
 import type {
+  ChangePasswordInput,
   LoginInput,
   RegisterInput,
 } from "@/lib/validators/auth.validator";
@@ -17,6 +18,7 @@ export interface PublicUser {
   id: string;
   phone: string;
   email: string | null;
+  name: string | null;
   roles: UserRole[];
   kycStatus: KycStatus;
 }
@@ -36,6 +38,7 @@ function toPublicUser(user: User): PublicUser {
     id: user.id,
     phone: user.phone,
     email: user.email,
+    name: user.name,
     roles: user.roles,
     kycStatus: user.kycStatus,
   };
@@ -71,6 +74,7 @@ export const authService = {
     const user = await userRepository.create({
       phone: input.phone,
       email: input.email,
+      name: input.name,
       passwordHash,
     });
 
@@ -152,5 +156,33 @@ export const authService = {
       throw new AppError(404, "USER_NOT_FOUND", "Không tìm thấy người dùng");
     }
     return toPublicUser(user);
+  },
+
+  // Đổi mật khẩu: xác minh mật khẩu hiện tại → băm mật khẩu mới → thu hồi mọi
+  // refresh token (buộc đăng nhập lại trên các thiết bị khác).
+  async changePassword(
+    userId: string,
+    input: ChangePasswordInput,
+  ): Promise<void> {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new AppError(404, "USER_NOT_FOUND", "Không tìm thấy người dùng");
+    }
+
+    const currentValid = await verifyPassword(
+      input.currentPassword,
+      user.passwordHash,
+    );
+    if (!currentValid) {
+      throw new AppError(
+        400,
+        "INVALID_CURRENT_PASSWORD",
+        "Mật khẩu hiện tại không đúng",
+      );
+    }
+
+    const passwordHash = await hashPassword(input.newPassword);
+    await userRepository.updatePassword(userId, passwordHash);
+    await refreshTokenRepository.revokeAllForUser(userId);
   },
 };

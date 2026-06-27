@@ -9,7 +9,8 @@ import { AppError } from "@/lib/errors/app-error";
 import { bookingRepository } from "@/lib/repositories/booking.repository";
 import { paymentRepository } from "@/lib/repositories/payment.repository";
 import { bookingService, type PublicBooking } from "@/lib/services/booking.service";
-import { paymentProvider } from "@/lib/payments";
+import { notificationService } from "@/lib/services/notification.service";
+import { paymentProvider, paymentProviderName } from "@/lib/payments";
 import type {
   ConfirmPaymentInput,
   CreatePaymentInput,
@@ -29,6 +30,8 @@ export interface PublicPayment {
 export interface CreatePaymentResult {
   payment: PublicPayment;
   payUrl: string;
+  /** Cổng đang hoạt động — client mở WebView nếu "vnpay", tự xác nhận nếu "mock". */
+  provider: "vnpay" | "mock";
 }
 
 export interface ConfirmPaymentResult {
@@ -116,7 +119,11 @@ export const paymentService = {
           gatewayRef,
         });
 
-    return { payment: toPublicPayment(payment), payUrl };
+    return {
+      payment: toPublicPayment(payment),
+      payUrl,
+      provider: paymentProviderName,
+    };
   },
 
   async getById(renterId: string, paymentId: string): Promise<PublicPayment> {
@@ -141,11 +148,19 @@ export const paymentService = {
       reference: payment.id,
       gatewayRef: payment.gatewayRef ?? "",
       success: input.success,
+      params: input.params,
     });
 
     if (!verified) {
       const failed = await paymentRepository.updateStatus(payment.id, {
         status: PaymentStatus.FAILED,
+      });
+      await notificationService.notify({
+        userId: renterId,
+        type: "PAYMENT",
+        title: "Thanh toán thất bại",
+        body: "Giao dịch chưa hoàn tất. Vui lòng thử lại để giữ chỗ đặt xe.",
+        payload: { bookingId: failed.bookingId },
       });
       return { payment: toPublicPayment(failed), booking: null };
     }
@@ -157,6 +172,14 @@ export const paymentService = {
     const paid = await paymentRepository.updateStatus(payment.id, {
       status: PaymentStatus.PAID,
       paidAt: new Date(),
+    });
+
+    await notificationService.notify({
+      userId: renterId,
+      type: "PAYMENT",
+      title: "Thanh toán thành công",
+      body: "Đơn đặt xe của bạn đã được xác nhận. Chúc bạn có chuyến đi vui vẻ!",
+      payload: { bookingId: paid.bookingId },
     });
 
     return { payment: toPublicPayment(paid), booking };

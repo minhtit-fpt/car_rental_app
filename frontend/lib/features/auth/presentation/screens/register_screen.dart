@@ -3,40 +3,36 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 
-class RegisterScreen extends StatelessWidget {
+/// Đăng ký bằng SĐT + mật khẩu (+ email tuỳ chọn), khớp backend
+/// `/api/auth/register`. Backend chưa lưu họ tên nên màn này không thu trường đó.
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => AuthCubit(),
-      child: const _RegisterView(),
-    );
-  }
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterView extends StatefulWidget {
-  const _RegisterView();
-
-  @override
-  State<_RegisterView> createState() => _RegisterViewState();
-}
-
-class _RegisterViewState extends State<_RegisterView> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
   bool _agreedToTerms = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
 
   @override
   void dispose() {
-    _nameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
     super.dispose();
   }
 
@@ -44,50 +40,61 @@ class _RegisterViewState extends State<_RegisterView> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!_agreedToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng đồng ý với điều khoản sử dụng')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).authAgreeTermsRequired),
+        ),
       );
       return;
     }
+    FocusScope.of(context).unfocus();
+    final email = _emailController.text.trim();
     context.read<AuthCubit>().register(
-          name: _nameController.text.trim(),
-          phone: _phoneController.text.trim(),
-          email: _emailController.text.trim(),
-        );
+      phone: _phoneController.text.trim(),
+      password: _passwordController.text,
+      email: email.isEmpty ? null : email,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocListener<AuthCubit, AuthState>(
+      listenWhen: (prev, curr) => prev.status != curr.status,
       listener: (context, state) {
-        if (state is AuthOtpSent) {
-          context.push('/otp', extra: state.phone);
+        if (state.status == AuthStatus.authenticated) {
+          context.go((state.user?.isAdmin ?? false) ? '/admin' : '/');
         }
-        if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.danger,
-            ),
-          );
+        if (state.status == AuthStatus.unauthenticated &&
+            state.errorMessage != null) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage!),
+                backgroundColor: AppColors.danger,
+              ),
+            );
         }
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.dark,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.palette.background,
           appBar: AppBar(
-            backgroundColor: AppColors.background,
+            backgroundColor: context.palette.background,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded,
-                  color: AppColors.darkText),
+              icon: Icon(
+                Icons.arrow_back_rounded,
+                color: context.palette.darkText,
+              ),
               onPressed: () => context.pop(),
             ),
-            title: const Text(
-              'Tạo tài khoản',
+            title: Text(
+              l10n.authRegisterTitle,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkText,
+                color: context.palette.darkText,
               ),
             ),
           ),
@@ -99,51 +106,71 @@ class _RegisterViewState extends State<_RegisterView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Thông tin cá nhân',
+                    Text(
+                      l10n.authRegisterSectionAccount,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                     ),
                     const SizedBox(height: 16),
                     _LabeledField(
-                      label: 'Họ và tên',
-                      controller: _nameController,
-                      hint: 'Nguyễn Văn A',
-                      validator: (v) => (v?.isEmpty ?? true)
-                          ? 'Vui lòng nhập họ tên'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    _LabeledField(
-                      label: 'Số điện thoại',
+                      label: l10n.phoneLabel,
                       controller: _phoneController,
                       hint: '0912 345 678',
                       keyboardType: TextInputType.phone,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (v) {
                         if (v == null || v.isEmpty) {
-                          return 'Vui lòng nhập số điện thoại';
+                          return l10n.phoneRequired;
                         }
-                        if (v.length < 9) return 'Số điện thoại không hợp lệ';
+                        if (v.length < 9) return l10n.phoneInvalid;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     _LabeledField(
-                      label: 'Email',
+                      label: l10n.authEmailOptionalLabel,
                       controller: _emailController,
                       hint: 'example@email.com',
                       keyboardType: TextInputType.emailAddress,
                       validator: (v) {
+                        if (v == null || v.trim().isEmpty) return null;
+                        if (!v.contains('@')) return l10n.authEmailInvalid;
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _LabeledField(
+                      label: l10n.passwordLabel,
+                      controller: _passwordController,
+                      hint: l10n.authPasswordHintMin,
+                      obscure: _obscurePassword,
+                      onToggleObscure: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                      validator: (v) {
                         if (v == null || v.isEmpty) {
-                          return 'Vui lòng nhập email';
+                          return l10n.passwordRequired;
                         }
-                        if (!v.contains('@')) return 'Email không hợp lệ';
+                        if (v.length < 8) {
+                          return l10n.authPasswordMinLength;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _LabeledField(
+                      label: l10n.authConfirmPasswordLabel,
+                      controller: _confirmController,
+                      hint: l10n.authConfirmPasswordHint,
+                      obscure: _obscureConfirm,
+                      onToggleObscure: () =>
+                          setState(() => _obscureConfirm = !_obscureConfirm),
+                      validator: (v) {
+                        if (v != _passwordController.text) {
+                          return l10n.authPasswordMismatch;
+                        }
                         return null;
                       },
                     ),
@@ -156,24 +183,24 @@ class _RegisterViewState extends State<_RegisterView> {
                     const SizedBox(height: 24),
                     BlocBuilder<AuthCubit, AuthState>(
                       builder: (context, state) => PrimaryButton(
-                        label: 'Tạo tài khoản',
+                        label: l10n.authRegisterTitle,
                         onPressed: _submit,
-                        isLoading: state is AuthLoading,
+                        isLoading: state.isBusy,
                       ),
                     ),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          'Đã có tài khoản? ',
-                          style: TextStyle(color: AppColors.mutedText),
+                        Text(
+                          l10n.authAlreadyHaveAccount,
+                          style: TextStyle(color: context.palette.mutedText),
                         ),
                         GestureDetector(
                           onTap: () => context.pop(),
-                          child: const Text(
-                            'Đăng nhập',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.authLoginTitle,
+                            style: const TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
@@ -201,6 +228,8 @@ class _LabeledField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.inputFormatters,
     this.validator,
+    this.obscure = false,
+    this.onToggleObscure,
   });
 
   final String label;
@@ -209,6 +238,8 @@ class _LabeledField extends StatelessWidget {
   final TextInputType keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final FormFieldValidator<String>? validator;
+  final bool obscure;
+  final VoidCallback? onToggleObscure;
 
   @override
   Widget build(BuildContext context) {
@@ -217,10 +248,10 @@ class _LabeledField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.darkText,
+            color: context.palette.darkText,
           ),
         ),
         const SizedBox(height: 8),
@@ -228,29 +259,29 @@ class _LabeledField extends StatelessWidget {
           controller: controller,
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
-          style: const TextStyle(fontSize: 15, color: AppColors.darkText),
+          obscureText: obscure,
+          style: TextStyle(fontSize: 15, color: context.palette.darkText),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppColors.mutedText),
+            hintStyle: TextStyle(color: context.palette.mutedText),
+            suffixIcon: onToggleObscure == null
+                ? null
+                : IconButton(
+                    onPressed: onToggleObscure,
+                    icon: Icon(
+                      obscure
+                          ? Icons.visibility_off_rounded
+                          : Icons.visibility_rounded,
+                      color: context.palette.mutedText,
+                      size: 20,
+                    ),
+                  ),
             filled: true,
-            fillColor: AppColors.surface,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.danger),
-            ),
+            fillColor: context.palette.surface,
+            border: _border(context.palette.border),
+            enabledBorder: _border(context.palette.border),
+            focusedBorder: _border(AppColors.primary, width: 2),
+            errorBorder: _border(AppColors.danger),
           ),
           validator: validator,
         ),
@@ -267,6 +298,11 @@ class _TermsCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    const linkStyle = TextStyle(
+      color: AppColors.primary,
+      fontWeight: FontWeight.w600,
+    );
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -285,29 +321,17 @@ class _TermsCheckbox extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: RichText(
-            text: const TextSpan(
+            text: TextSpan(
               style: TextStyle(
                 fontSize: 13,
-                color: AppColors.secondaryText,
+                color: context.palette.secondaryText,
               ),
               children: [
-                TextSpan(text: 'Tôi đồng ý với '),
-                TextSpan(
-                  text: 'Điều khoản sử dụng',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                TextSpan(text: ' và '),
-                TextSpan(
-                  text: 'Chính sách bảo mật',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                TextSpan(text: ' của RideVN'),
+                TextSpan(text: l10n.authTermsPrefix),
+                TextSpan(text: l10n.authTermsOfUse, style: linkStyle),
+                TextSpan(text: l10n.authTermsAnd),
+                TextSpan(text: l10n.authPrivacyPolicy, style: linkStyle),
+                TextSpan(text: l10n.authTermsSuffix),
               ],
             ),
           ),
@@ -316,3 +340,9 @@ class _TermsCheckbox extends StatelessWidget {
     );
   }
 }
+
+OutlineInputBorder _border(Color color, {double width = 1}) =>
+    OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: color, width: width),
+    );

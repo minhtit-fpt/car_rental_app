@@ -1,62 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/features/chat/domain/entities/message.dart';
+import 'package:frontend/features/chat/presentation/cubit/chat_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
-class _Message {
-  const _Message({
-    required this.text,
-    required this.isMe,
-    required this.time,
+class ChatScreen extends StatelessWidget {
+  const ChatScreen({
+    super.key,
+    required this.conversationId,
+    required this.partnerName,
   });
-  final String text;
-  final bool isMe;
-  final String time;
-}
 
-final _kMessages = [
-  const _Message(
-      text: 'Xin chào! Xe có sẵn ngày mai không ạ?',
-      isMe: true,
-      time: '09:12'),
-  const _Message(
-      text: 'Có bạn nhé! Xe sẵn sàng từ 7 giờ sáng.',
-      isMe: false,
-      time: '09:15'),
-  const _Message(
-      text: 'Bạn có thể giao xe tới quận 1 được không ạ?',
-      isMe: true,
-      time: '09:16'),
-  const _Message(
-      text: 'Được nhé, phí giao 50K. Địa chỉ cụ thể là gì vậy bạn?',
-      isMe: false,
-      time: '09:18'),
-  const _Message(
-      text: '123 Lê Lợi, phường Bến Nghé ạ.',
-      isMe: true,
-      time: '09:20'),
-  const _Message(
-      text: 'Ok mình note lại rồi. Mình sẽ giao trước 8 giờ nhé!',
-      isMe: false,
-      time: '09:22'),
-  const _Message(
-      text: 'Xe đã sẵn sàng, bạn nhận lúc mấy giờ?',
-      isMe: false,
-      time: '14:32'),
-];
-
-class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key, required this.partnerName});
-
+  final String conversationId;
   final String partnerName;
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  Widget build(BuildContext context) {
+    final currentUserId = context.read<AuthCubit>().state.user?.id ?? '';
+    return BlocProvider<ChatCubit>(
+      create: (_) => sl<ChatCubit>()..start(conversationId),
+      child: _ChatView(partnerName: partnerName, currentUserId: currentUserId),
+    );
+  }
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatView extends StatefulWidget {
+  const _ChatView({required this.partnerName, required this.currentUserId});
+
+  final String partnerName;
+  final String currentUserId;
+
+  @override
+  State<_ChatView> createState() => _ChatViewState();
+}
+
+class _ChatViewState extends State<_ChatView> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
-  final _messages = List<_Message>.from(_kMessages);
 
   @override
   void dispose() {
@@ -65,16 +50,20 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  void _send() {
+  Future<void> _send() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    final now = DateTime.now();
-    final time =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    setState(() {
-      _messages.add(_Message(text: text, isMe: true, time: time));
-    });
     _controller.clear();
+    final error = await context.read<ChatCubit>().send(text);
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
+    }
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -91,13 +80,16 @@ class _ChatScreenState extends State<ChatScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.palette.surface,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.darkText),
+            icon: Icon(
+              Icons.arrow_back_rounded,
+              color: context.palette.darkText,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           title: Row(
@@ -114,56 +106,76 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.partnerName,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkText,
-                    ),
-                  ),
-                  const Text(
-                    '🟢 Đang hoạt động',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.success,
-                    ),
-                  ),
-                ],
+              Text(
+                widget.partnerName,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: context.palette.darkText,
+                ),
               ),
             ],
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.phone_outlined, color: AppColors.primary),
-              onPressed: () {},
-            ),
-          ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppColors.border),
+            child: Container(height: 1, color: context.palette.border),
           ),
         ),
         body: Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  return _MessageBubble(message: _messages[index]);
+              child: BlocConsumer<ChatCubit, ChatState>(
+                listenWhen: (a, b) =>
+                    a is ChatLoaded &&
+                    b is ChatLoaded &&
+                    b.messages.length > a.messages.length,
+                listener: (_, _) => _scrollToBottom(),
+                builder: (context, state) => switch (state) {
+                  ChatLoading() => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  ChatError(:final message) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: context.palette.secondaryText,
+                        ),
+                      ),
+                    ),
+                  ),
+                  ChatLoaded(:final messages) =>
+                    messages.isEmpty
+                        ? Center(
+                            child: Text(
+                              AppLocalizations.of(context).chatNoMessages,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: context.palette.mutedText,
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            itemCount: messages.length,
+                            itemBuilder: (context, index) => _MessageBubble(
+                              message: messages[index],
+                              isMe:
+                                  messages[index].senderId ==
+                                  widget.currentUserId,
+                            ),
+                          ),
                 },
               ),
             ),
-            _InputBar(
-              controller: _controller,
-              onSend: _send,
-            ),
+            _InputBar(controller: _controller, onSend: _send),
           ],
         ),
       ),
@@ -172,17 +184,21 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message});
-  final _Message message;
+  const _MessageBubble({required this.message, required this.isMe});
+  final Message message;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
-    final isMe = message.isMe;
+    final time =
+        '${message.sentAt.hour.toString().padLeft(2, '0')}:'
+        '${message.sentAt.minute.toString().padLeft(2, '0')}';
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
-        mainAxisAlignment:
-            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -201,17 +217,20 @@ class _MessageBubble extends StatelessWidget {
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment:
-                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isMe
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   constraints: BoxConstraints(
                     maxWidth: MediaQuery.of(context).size.width * 0.72,
                   ),
                   decoration: BoxDecoration(
-                    color: isMe ? AppColors.primary : AppColors.surface,
+                    color: isMe ? AppColors.primary : context.palette.surface,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(18),
                       topRight: const Radius.circular(18),
@@ -222,27 +241,28 @@ class _MessageBubble extends StatelessWidget {
                       BoxShadow(
                         color: isMe
                             ? AppColors.primary.withAlpha(40)
-                            : AppColors.cardShadowColor,
+                            : context.palette.cardShadowColor,
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
                   child: Text(
-                    message.text,
+                    message.body,
                     style: TextStyle(
                       fontSize: 14,
-                      color:
-                          isMe ? Colors.white : AppColors.darkText,
+                      color: isMe ? Colors.white : context.palette.darkText,
                       height: 1.4,
                     ),
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  message.time,
-                  style: const TextStyle(
-                      fontSize: 10, color: AppColors.mutedText),
+                  time,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: context.palette.mutedText,
+                  ),
                 ),
               ],
             ),
@@ -254,10 +274,7 @@ class _MessageBubble extends StatelessWidget {
 }
 
 class _InputBar extends StatelessWidget {
-  const _InputBar({
-    required this.controller,
-    required this.onSend,
-  });
+  const _InputBar({required this.controller, required this.onSend});
 
   final TextEditingController controller;
   final VoidCallback onSend;
@@ -271,34 +288,37 @@ class _InputBar extends StatelessWidget {
         12,
         8 + MediaQuery.of(context).padding.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: context.palette.surface,
+        border: Border(top: BorderSide(color: context.palette.border)),
       ),
       child: Row(
         children: [
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: context.palette.background,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: context.palette.border),
               ),
               child: TextField(
                 controller: controller,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onSend(),
-                decoration: const InputDecoration(
-                  hintText: 'Nhắn tin...',
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context).chatInputHint,
                   hintStyle: TextStyle(
-                      fontSize: 14, color: AppColors.mutedText),
+                    fontSize: 14,
+                    color: context.palette.mutedText,
+                  ),
                   border: InputBorder.none,
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   isDense: true,
                 ),
-                style: const TextStyle(
-                    fontSize: 14, color: AppColors.darkText),
+                style: TextStyle(fontSize: 14, color: context.palette.darkText),
                 maxLines: null,
               ),
             ),
@@ -313,8 +333,11 @@ class _InputBar extends StatelessWidget {
                 color: AppColors.primary,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.send_rounded,
-                  color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.send_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
         ],

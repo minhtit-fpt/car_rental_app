@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
 
 class LoadingOverlay extends StatelessWidget {
   const LoadingOverlay({
@@ -28,13 +29,13 @@ class LoadingOverlay extends StatelessWidget {
                   vertical: 20,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.palette.surface,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
-                      color: AppColors.cardShadowColor,
+                      color: context.palette.cardShadowColor,
                       blurRadius: 20,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
@@ -49,9 +50,9 @@ class LoadingOverlay extends StatelessWidget {
                       const SizedBox(height: 14),
                       Text(
                         message!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: AppColors.secondaryText,
+                          color: context.palette.secondaryText,
                         ),
                       ),
                     ],

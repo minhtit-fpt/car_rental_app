@@ -1,162 +1,227 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/features/notification/domain/entities/notification.dart';
+import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
+import 'package:frontend/features/notification/presentation/screens/notification_detail_screen.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
-enum _NotifType { booking, payment, system, promo }
-
-class _Notif {
-  const _Notif({
-    required this.title,
-    required this.body,
-    required this.time,
-    required this.type,
-    this.isRead = false,
-  });
-  final String title;
-  final String body;
-  final String time;
-  final _NotifType type;
-  final bool isRead;
-}
-
-const _kNotifs = [
-  _Notif(
-    title: 'Chuyến đi được xác nhận',
-    body: 'Tesla Model 3 đã được xác nhận cho ngày 20/05. Chúc bạn có chuyến đi vui vẻ!',
-    time: 'Vừa xong',
-    type: _NotifType.booking,
-  ),
-  _Notif(
-    title: 'Thanh toán thành công',
-    body: 'Giao dịch 890K VNĐ đã được xử lý thành công qua VNPay.',
-    time: '5 phút trước',
-    type: _NotifType.payment,
-  ),
-  _Notif(
-    title: 'Nhắc nhở trả xe',
-    body: 'Chuyến đi của bạn kết thúc vào ngày mai. Vui lòng trả xe đúng giờ.',
-    time: '1 giờ trước',
-    type: _NotifType.booking,
-    isRead: true,
-  ),
-  _Notif(
-    title: 'Ưu đãi dành cho bạn',
-    body: 'Giảm 15% cho chuyến đi cuối tuần. Áp dụng mã WEEKEND15 khi đặt xe.',
-    time: 'Hôm qua',
-    type: _NotifType.promo,
-    isRead: true,
-  ),
-  _Notif(
-    title: 'KYC đã được duyệt',
-    body: 'Tài khoản của bạn đã được xác minh thành công. Bạn có thể thuê xe ngay!',
-    time: '2 ngày trước',
-    type: _NotifType.system,
-    isRead: true,
-  ),
-  _Notif(
-    title: 'Đánh giá mới',
-    body: 'Minh T. đã để lại đánh giá 5 sao cho chuyến đi của bạn.',
-    time: '3 ngày trước',
-    type: _NotifType.booking,
-    isRead: true,
-  ),
-];
-
-class NotificationListScreen extends StatelessWidget {
+/// Dùng [NotificationCubit] singleton (provide ở app root). Mở màn hình →
+/// refresh danh sách để phản ánh ngay các mục mới nhất.
+class NotificationListScreen extends StatefulWidget {
   const NotificationListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final unreadCount = _kNotifs.where((n) => !n.isRead).length;
+  State<NotificationListScreen> createState() => _NotificationListScreenState();
+}
 
+class _NotificationListScreenState extends State<NotificationListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    sl<NotificationCubit>().load();
+  }
+
+  @override
+  Widget build(BuildContext context) => const _NotificationView();
+}
+
+class _NotificationView extends StatelessWidget {
+  const _NotificationView();
+
+  // Đánh dấu đã đọc rồi mở màn chi tiết. Dùng cubit gốc của list (giữ state khi quay lại).
+  void _openDetail(BuildContext context, AppNotification notif) {
+    final cubit = context.read<NotificationCubit>();
+    if (!notif.isRead) cubit.markRead(notif.id);
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => NotificationDetailScreen(notif: notif),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.palette.background,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.palette.surface,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
-          title: Row(
-            children: [
-              Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  gradient: AppColors.logoGradient,
-                  borderRadius: BorderRadius.circular(7),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Thông báo',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkText,
-                ),
-              ),
-              if (unreadCount > 0) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '$unreadCount',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+          title: BlocBuilder<NotificationCubit, NotificationState>(
+            builder: (context, state) {
+              final unread = state is NotificationLoaded
+                  ? state.data.unreadCount
+                  : 0;
+              return Row(
+                children: [
+                  Container(
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.logoGradient,
+                      borderRadius: BorderRadius.circular(7),
                     ),
                   ),
-                ),
-              ],
-            ],
+                  const SizedBox(width: 8),
+                  Text(
+                    AppLocalizations.of(context).settingsNotifications,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: context.palette.darkText,
+                    ),
+                  ),
+                  if (unread > 0) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '$unread',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
           actions: [
             TextButton(
-              onPressed: () {},
-              child: const Text(
-                'Đọc tất cả',
-                style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600),
+              onPressed: () => context.read<NotificationCubit>().markAllRead(),
+              child: Text(
+                AppLocalizations.of(context).notifMarkAllRead,
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppColors.border),
+            child: Container(height: 1, color: context.palette.border),
           ),
         ),
-        body: ListView.separated(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: _kNotifs.length,
-          separatorBuilder: (_, _) =>
-              const Divider(color: AppColors.border, height: 1, indent: 68),
-          itemBuilder: (context, index) =>
-              _NotifTile(notif: _kNotifs[index]),
+        body: BlocBuilder<NotificationCubit, NotificationState>(
+          builder: (context, state) => switch (state) {
+            NotificationLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            NotificationError(:final message) => _ErrorView(
+              message: message,
+              onRetry: () => context.read<NotificationCubit>().load(),
+            ),
+            NotificationLoaded(:final data) =>
+              data.items.isEmpty
+                  ? const _EmptyView()
+                  : RefreshIndicator(
+                      onRefresh: () => context.read<NotificationCubit>().load(),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: data.items.length,
+                        separatorBuilder: (_, _) => Divider(
+                          color: context.palette.border,
+                          height: 1,
+                          indent: 68,
+                        ),
+                        itemBuilder: (context, index) => _NotifTile(
+                          notif: data.items[index],
+                          onTap: () =>
+                              _onTapNotif(context, data.items[index]),
+                        ),
+                      ),
+                    ),
+          },
         ),
       ),
     );
   }
 }
 
-class _NotifTile extends StatelessWidget {
-  const _NotifTile({required this.notif});
-  final _Notif notif;
+class _EmptyView extends StatelessWidget {
+  const _EmptyView();
 
   @override
   Widget build(BuildContext context) {
-    final info = _typeInfo(notif.type);
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('🔔', style: TextStyle(fontSize: 40)),
+          const SizedBox(height: 12),
+          Text(
+            AppLocalizations.of(context).notifEmpty,
+            style: TextStyle(fontSize: 14, color: context.palette.mutedText),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: context.palette.secondaryText,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context).commonRetry),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotifTile extends StatelessWidget {
+  const _NotifTile({required this.notif, required this.onTap});
+  final AppNotification notif;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final info = _typeInfo(context, notif.type);
 
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       child: Container(
         color: notif.isRead ? null : AppColors.primary.withAlpha(7),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -171,8 +236,7 @@ class _NotifTile extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Text(info.emoji,
-                    style: const TextStyle(fontSize: 20)),
+                child: Text(info.emoji, style: const TextStyle(fontSize: 20)),
               ),
             ),
             const SizedBox(width: 12),
@@ -191,29 +255,33 @@ class _NotifTile extends StatelessWidget {
                             fontWeight: notif.isRead
                                 ? FontWeight.w500
                                 : FontWeight.bold,
-                            color: AppColors.darkText,
+                            color: context.palette.darkText,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        notif.time,
-                        style: const TextStyle(
-                            fontSize: 11, color: AppColors.mutedText),
+                        _relativeTime(notif.createdAt),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: context.palette.mutedText,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    notif.body,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.secondaryText,
-                      height: 1.4,
+                  if (notif.body != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      notif.body!,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: context.palette.secondaryText,
+                        height: 1.4,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -235,24 +303,35 @@ class _NotifTile extends StatelessWidget {
     );
   }
 
-  ({String emoji, Color color}) _typeInfo(_NotifType type) {
+  ({String emoji, Color color}) _typeInfo(
+    BuildContext context,
+    NotificationType type,
+  ) {
     return switch (type) {
-      _NotifType.booking => (
-          emoji: '🚗',
-          color: AppColors.primary,
-        ),
-      _NotifType.payment => (
-          emoji: '💳',
-          color: AppColors.success,
-        ),
-      _NotifType.system => (
-          emoji: '🛡️',
-          color: AppColors.teal,
-        ),
-      _NotifType.promo => (
-          emoji: '🎁',
-          color: AppColors.orange,
-        ),
+      NotificationType.booking => (emoji: '🚗', color: AppColors.primary),
+      NotificationType.payment => (emoji: '💳', color: AppColors.success),
+      NotificationType.kyc => (emoji: '🛡️', color: AppColors.teal),
+      NotificationType.chat => (emoji: '💬', color: AppColors.primary),
+      NotificationType.promotion => (emoji: '🎁', color: AppColors.orange),
+      NotificationType.system => (emoji: '🔔', color: context.palette.mutedText),
     };
   }
+}
+
+/// Đánh dấu đã đọc + điều hướng tới màn hình liên quan (nếu có).
+void _onTapNotif(BuildContext context, AppNotification notif) {
+  context.read<NotificationCubit>().markRead(notif.id);
+  final route = notif.targetRoute;
+  if (route != null) context.push(route);
+}
+
+/// Định dạng thời gian tương đối ngắn gọn (tiếng Việt).
+String _relativeTime(DateTime time) {
+  final diff = DateTime.now().difference(time);
+  if (diff.inMinutes < 1) return 'Vừa xong';
+  if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
+  if (diff.inHours < 24) return '${diff.inHours} giờ trước';
+  if (diff.inDays == 1) return 'Hôm qua';
+  if (diff.inDays < 7) return '${diff.inDays} ngày trước';
+  return '${time.day}/${time.month}';
 }

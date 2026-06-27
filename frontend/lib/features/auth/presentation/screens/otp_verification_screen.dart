@@ -4,10 +4,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/core/theme/app_palette.dart';
+import 'package:frontend/features/auth/presentation/cubit/otp_cubit.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/otp_input_field.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 
+/// Màn OTP — hiện chạy mock ([OtpCubit]) vì backend OTP chưa có.
+/// Để dành cho giai đoạn "OTP sau" (vd xác thực SĐT / quên mật khẩu).
 class OtpVerificationScreen extends StatelessWidget {
   const OtpVerificationScreen({super.key, required this.phone});
 
@@ -16,7 +20,7 @@ class OtpVerificationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => AuthCubit(),
+      create: (_) => OtpCubit(),
       child: _OtpView(phone: phone),
     );
   }
@@ -63,26 +67,27 @@ class _OtpViewState extends State<_OtpView> {
   }
 
   void _resend() {
-    context.read<AuthCubit>().sendOtp(widget.phone);
+    context.read<OtpCubit>().sendOtp(widget.phone);
     _startCountdown();
   }
 
   void _verify() {
     if (_otp.length != 6) return;
-    context.read<AuthCubit>().verifyOtp(_otp);
+    context.read<OtpCubit>().verifyOtp(_otp);
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
+    final l10n = AppLocalizations.of(context);
+    return BlocListener<OtpCubit, OtpState>(
       listener: (context, state) {
-        if (state is AuthSuccess) {
+        if (state is OtpVerified) {
           context.go('/');
         }
-        if (state is AuthError) {
+        if (state is OtpFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(l10n.authOtpInvalid),
               backgroundColor: AppColors.danger,
             ),
           );
@@ -91,13 +96,15 @@ class _OtpViewState extends State<_OtpView> {
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.dark,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.palette.background,
           appBar: AppBar(
-            backgroundColor: AppColors.background,
+            backgroundColor: context.palette.background,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded,
-                  color: AppColors.darkText),
+              icon: Icon(
+                Icons.arrow_back_rounded,
+                color: context.palette.darkText,
+              ),
               onPressed: () => context.pop(),
             ),
           ),
@@ -108,28 +115,28 @@ class _OtpViewState extends State<_OtpView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  const Text(
-                    'Xác thực OTP',
+                  Text(
+                    l10n.authOtpTitle,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.darkText,
+                      color: context.palette.darkText,
                     ),
                   ),
                   const SizedBox(height: 8),
                   RichText(
                     text: TextSpan(
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.mutedText,
+                        color: context.palette.mutedText,
                       ),
                       children: [
-                        const TextSpan(text: 'Nhập mã 6 số đã gửi tới '),
+                        TextSpan(text: l10n.authOtpSentToPrefix),
                         TextSpan(
                           text: '+84 ${widget.phone}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: AppColors.darkText,
+                            color: context.palette.darkText,
                           ),
                         ),
                       ],
@@ -142,11 +149,11 @@ class _OtpViewState extends State<_OtpView> {
                     onChanged: (otp) => setState(() => _otp = otp),
                   ),
                   const SizedBox(height: 32),
-                  BlocBuilder<AuthCubit, AuthState>(
+                  BlocBuilder<OtpCubit, OtpState>(
                     builder: (context, state) => PrimaryButton(
-                      label: 'Xác nhận',
+                      label: l10n.authOtpConfirm,
                       onPressed: _otp.length == 6 ? _verify : null,
-                      isLoading: state is AuthLoading,
+                      isLoading: state is OtpVerifying,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -154,14 +161,14 @@ class _OtpViewState extends State<_OtpView> {
                     child: _secondsLeft > 0
                         ? RichText(
                             text: TextSpan(
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.mutedText,
+                                color: context.palette.mutedText,
                               ),
                               children: [
-                                const TextSpan(text: 'Gửi lại sau '),
+                                TextSpan(text: l10n.authOtpResendInPrefix),
                                 TextSpan(
-                                  text: '$_secondsLeft giây',
+                                  text: l10n.authOtpSeconds(_secondsLeft),
                                   style: const TextStyle(
                                     color: AppColors.primary,
                                     fontWeight: FontWeight.w600,
@@ -172,9 +179,9 @@ class _OtpViewState extends State<_OtpView> {
                           )
                         : GestureDetector(
                             onTap: _resend,
-                            child: const Text(
-                              'Gửi lại mã OTP',
-                              style: TextStyle(
+                            child: Text(
+                              l10n.authOtpResend,
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w600,
@@ -192,15 +199,18 @@ class _OtpViewState extends State<_OtpView> {
                         color: AppColors.primary.withAlpha(40),
                       ),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.info_outline_rounded,
-                            size: 16, color: AppColors.primary),
-                        SizedBox(width: 8),
+                        const Icon(
+                          Icons.info_outline_rounded,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Dùng mã 123456 để test trong môi trường demo.',
-                            style: TextStyle(
+                            l10n.authOtpDemoHint,
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.primary,
                             ),

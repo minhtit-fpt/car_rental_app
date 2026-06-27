@@ -1,0 +1,812 @@
+{
+  "@@locale": "en",
+  "appTitle": "RideVN",
+  "@appTitle": {
+    "description": "Application name shown in headers"
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Settings row label for the language picker"
+  },
+  "languagePickerTitle": "Select language",
+  "@languagePickerTitle": {
+    "description": "Title of the language selection bottom sheet"
+  },
+  "languageVietnamese": "Tiếng Việt",
+  "@languageVietnamese": {
+    "description": "Display name for the Vietnamese language option (shown in its own language)"
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "Display name for the English language option (shown in its own language)"
+  },
+
+  "phoneLabel": "Phone number",
+  "@phoneLabel": {
+    "description": "Label for phone number input fields"
+  },
+  "phoneRequired": "Please enter your phone number",
+  "phoneInvalid": "Invalid phone number",
+  "passwordLabel": "Password",
+  "@passwordLabel": {
+    "description": "Label for password input fields"
+  },
+  "passwordRequired": "Please enter your password",
+
+  "authLoginTitle": "Log in",
+  "@authLoginTitle": {
+    "description": "Login screen heading and submit button"
+  },
+  "authLoginSubtitle": "Enter your phone number and password to continue",
+  "authNoAccount": "Don't have an account? ",
+  "authRegisterNow": "Register now",
+
+  "authRegisterTitle": "Create account",
+  "@authRegisterTitle": {
+    "description": "Register screen app bar title and submit button"
+  },
+  "authRegisterSectionAccount": "Account information",
+  "authEmailOptionalLabel": "Email (optional)",
+  "authEmailInvalid": "Invalid email",
+  "authPasswordHintMin": "At least 8 characters",
+  "authPasswordMinLength": "Password must be at least 8 characters",
+  "authConfirmPasswordLabel": "Confirm password",
+  "authConfirmPasswordHint": "Re-enter your password",
+  "authPasswordMismatch": "Passwords do not match",
+  "authAlreadyHaveAccount": "Already have an account? ",
+  "authAgreeTermsRequired": "Please agree to the terms of use",
+  "authTermsPrefix": "I agree to the ",
+  "authTermsOfUse": "Terms of Use",
+  "authTermsAnd": " and ",
+  "authPrivacyPolicy": "Privacy Policy",
+  "authTermsSuffix": " of RideVN",
+
+  "authOtpTitle": "OTP Verification",
+  "authOtpSentToPrefix": "Enter the 6-digit code sent to ",
+  "authOtpConfirm": "Confirm",
+  "authOtpResendInPrefix": "Resend in ",
+  "authOtpSeconds": "{seconds}s",
+  "@authOtpSeconds": {
+    "description": "Resend countdown remaining seconds",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "authOtpResend": "Resend OTP code",
+  "authOtpDemoHint": "Use code 123456 to test in the demo environment.",
+  "authOtpInvalid": "Invalid OTP code. Please try again.",
+
+  "commonError": "An error occurred",
+  "commonRetry": "Retry",
+  "commonReset": "Reset",
+  "commonApply": "Apply",
+  "commonCancel": "Cancel",
+  "commonEdit": "Edit",
+  "commonDelete": "Delete",
+  "commonUser": "User",
+
+  "roleRenter": "Renter",
+  "roleOwner": "Owner",
+  "profileEdit": "Edit profile",
+
+  "kycVerified": "✓ KYC Verified",
+  "kycPending": "⏳ KYC Under review",
+  "kycRejected": "✕ KYC Rejected",
+  "kycUnverified": "! KYC Not verified",
+  "kycUnverifiedShort": "KYC not verified",
+
+  "vehicleTypeCar": "Car",
+  "vehicleTypeMotorbike": "Motorbike",
+  "vehicleTypeBicycle": "Bicycle",
+  "vehicleTransmissionAutomatic": "Automatic",
+  "vehicleTransmissionManual": "Manual",
+  "vehicleElectric": "Electric",
+  "vehicleFuelGas": "Petrol",
+  "vehiclePerDay": "/day",
+  "vehicleAvailable": "Available",
+  "vehicleInStock": "Available",
+  "vehicleRented": "Rented",
+  "vehicleDelivery": "Delivery",
+  "vehicleFindCars": "Find a car",
+  "vehicleFavoriteError": "Couldn't update favorites, please try again later",
+  "vehicleSeats": "{count} seats",
+  "@vehicleSeats": {
+    "description": "Seat count spec on a vehicle",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vehicleDoors": "{count} doors",
+  "@vehicleDoors": {
+    "description": "Door count spec on a vehicle",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vehicleNoLocation": "Location not updated",
+  "vehicleNotUpdated": "Not updated",
+  "vehicleOwnerFallback": "Owner",
+  "vehicleMessage": "Message",
+  "vehicleShare": "Share",
+  "vehicleShareMessage": "Check out {title} — only {price} VNĐ/day on RideVN 🚗\n{link}",
+  "@vehicleShareMessage": {
+    "description": "Text shared from the vehicle detail screen. price is already formatted (e.g. 890K, 1.2M).",
+    "placeholders": {
+      "title": { "type": "String" },
+      "price": { "type": "String" },
+      "link": { "type": "String" }
+    }
+  },
+  "vehicleBookNow": "Book now",
+  "vehicleOwnerMetaSample": " · 36 trips · Fast response",
+  "vehicleBadgeInstant": "⚡ Instant book",
+  "vehicleBadgeElectric": "🔋 Electric",
+  "vehicleBadgeWeekendDiscount": "🏷 −15% weekends",
+  "vehicleTripRulesTitle": "Trip rules",
+  "vehicleRuleNoSmoking": "No smoking in the car",
+  "vehicleRuleNoBulkyGoods": "No bulky cargo",
+  "vehicleRuleReturnOnTime": "Return on time, at the right place",
+  "vehicleRuleCleanBeforeReturn": "Clean the car before returning",
+  "vehiclePickupLocationTitle": "Pick-up location",
+
+  "vehicleFilterAll": "All",
+  "vehicleFilterSaved": "❤️ Saved",
+  "vehicleFilterInstant": "⚡ Instant book",
+  "vehicleFilterAuto": "⚙️ Automatic",
+  "vehicleFilterElectric": "🔋 Electric",
+  "vehicleFilter5Seats": "5 seats",
+  "vehicleFilter7Seats": "7+ seats",
+  "vehicleSortPopular": "Most popular",
+  "vehicleSortPriceLow": "Lowest price",
+  "vehicleSortRatingHigh": "Highest rated",
+  "vehicleSortNearest": "Nearest",
+  "vehicleCountMatched": "{count} matching cars",
+  "@vehicleCountMatched": {
+    "description": "Number of vehicles matching the filters",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vehicleCountSaved": "{count} saved cars",
+  "@vehicleCountSaved": {
+    "description": "Number of saved vehicles",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vehicleListView": "List",
+  "vehicleMapView": "View map",
+  "vehicleLocationLabel": "LOCATION",
+  "vehicleLocationPlaceholder": "District 1, HCMC",
+  "vehicleTimeLabel": "TIME",
+  "vehicleEmptyTitle": "No matching cars",
+  "vehicleEmptySubtitle": "Try changing the filters or another search",
+  "vehicleEmptySavedTitle": "No saved cars yet",
+  "vehicleEmptySavedSubtitle": "Tap the heart icon on a car to save it for later",
+  "vehicleListErrorTitle": "Couldn't load the car list",
+  "vehicleFilterTitle": "Filters",
+  "vehicleFilterMaxPrice": "Max price / day",
+  "vehicleFilterMinRating": "Minimum rating",
+
+  "homeGreeting": "Hello there",
+  "homeGreetingQuestion": "Where are you going today?",
+  "homeLocationLabel": "PICK-UP POINT",
+  "homePickupDateLabel": "PICK-UP",
+  "homeReturnDateLabel": "RETURN",
+  "homeSelectDate": "Select date",
+  "homeCityPickerTitle": "Select pick-up location",
+  "homeExploreByCity": "Explore by city",
+  "homeFeaturedTitle": "Featured cars near you",
+  "homeSeeAll": "See all",
+  "homeFeaturedError": "Couldn't load featured cars",
+  "homeTrustTitle": "Every trip is insured",
+  "homeTrustSubtitle": "Up to 200 million VND coverage for any damage.",
+
+  "dashboardMyProfile": "My profile",
+  "dashboardRenterSubtitle": "Account & loyalty points",
+  "dashboardActiveRenting": "Renting",
+  "dashboardUpcoming": "Upcoming",
+  "dashboardTotalTrips": "Total trips",
+  "dashboardLoyaltyPoints": "Loyalty points",
+  "unitVehicles": "cars",
+  "unitTrips": "trips",
+
+  "ownerDashboardTitle": "Owner home",
+  "ownerDashboardSubtitle": "Manage your rental cars and trips",
+  "ownerRevenueMonth": "Monthly revenue",
+  "ownerYourCars": "Your cars",
+  "ownerTripsThisMonth": "Trips this month",
+  "ownerMyCarsTitle": "My Cars",
+  "ownerMyCarsSubtitle": "Cars you're renting out",
+  "ownerAddCar": "Add a car",
+  "ownerNoCars": "You haven't listed any cars yet",
+  "ownerPricePerHour": "{price}đ/hour",
+  "@ownerPricePerHour": {
+    "description": "Owner's car price per hour (price already formatted)",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "ownerStatusReady": "Available",
+  "ownerStatusHidden": "Hidden",
+  "ownerDeleteTitle": "Delete car?",
+  "ownerDeleteConfirm": "Are you sure you want to remove \"{title}\"?",
+  "@ownerDeleteConfirm": {
+    "description": "Delete vehicle confirmation dialog body",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "ownerDeleteSuccess": "Vehicle deleted",
+
+  "commonNo": "No",
+  "commonContinue": "Continue",
+  "commonBack": "Back",
+  "commonConfirm": "Confirm",
+
+  "bookingStatusPendingPayment": "Pending payment",
+  "bookingStatusConfirmed": "Confirmed",
+  "bookingStatusInProgress": "Renting",
+  "bookingStatusCompleted": "Completed",
+  "bookingStatusCancelled": "Cancelled",
+
+  "tripsTitle": "My trips",
+  "tripsSubtitle": "Manage your bookings",
+  "tripsEmpty": "You don't have any trips yet.",
+  "tripsOrderNumber": "Order #{id}",
+  "@tripsOrderNumber": {
+    "description": "Short booking order number shown on a trip card",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "tripsCancelling": "Cancelling...",
+  "tripsCancel": "Cancel booking",
+  "tripsCancelTitle": "Cancel this booking?",
+  "tripsCancelConfirm": "Are you sure you want to cancel this booking?",
+
+  "bookingPickDatesTitle": "Select rental dates",
+  "bookingPickDatesSubtitle": "Choose the start and end times",
+  "bookingRentalPeriod": "Rental period",
+  "bookingPickupDateLabel": "Pick-up date",
+  "bookingReturnDateLabel": "Return date",
+  "bookingChangeDate": "Change dates",
+  "bookingDays": "{count} days",
+  "@bookingDays": {
+    "description": "Number of rental days",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bookingDelivery": "Door-to-door delivery",
+  "bookingDeliveryAddressHint": "Enter the delivery address...",
+  "bookingEstimatedCost": "Estimated cost",
+  "bookingRentalLine": "{price}K × {days} days",
+  "@bookingRentalLine": {
+    "description": "Rental cost line: price per day times number of days (price already formatted)",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "bookingDeliveryFeeLabel": "Delivery fee",
+  "bookingInsuranceLabel": "Insurance (5%)",
+  "bookingTotal": "Total",
+
+  "bookingConfirmTitle": "Confirm booking",
+  "bookingConfirmSubtitle": "Review the details before booking",
+  "bookingFailed": "Booking failed",
+  "bookingConfirmAndPay": "Confirm & Pay",
+  "bookingTermsNote": "By continuing, you agree to RideVN's Terms of Service and Privacy Policy.",
+  "bookingTripDetails": "Trip details",
+  "bookingPickup": "Pick-up",
+  "bookingReturn": "Return",
+  "bookingDuration": "Duration",
+  "bookingDeliveryTo": "Deliver to",
+  "bookingDeliveryAddressFallback": "Delivery address",
+  "bookingRentalCarLine": "Car rental ({price}K × {days} days)",
+  "@bookingRentalCarLine": {
+    "description": "Car rental summary line with price per day and number of days (price already formatted)",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "bookingDeliveryShort": "Delivery",
+  "bookingServiceFee": "Service fee (3%)",
+  "bookingTotalPayment": "Total payment",
+  "bookingDepositTitle": "Deposit & Cancellation",
+  "bookingDepositBody": "30% deposit on confirmation. Full refund if cancelled at least 24h before pick-up.",
+
+  "contractTitle": "Electronic contract",
+  "contractSubtitle": "Read carefully and sign",
+  "contractHeading": "Rental contract",
+  "contractCode": "Contract no.: {code}",
+  "@contractCode": {
+    "description": "Contract reference code shown on the contract header",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "contractPartiesTitle": "I. PARTIES INVOLVED",
+  "contractPartiesBody": "• Party A (Owner): Verified through the RideVN KYC system\n• Party B (Renter): Completed identity verification",
+  "contractVehicleTitle": "II. VEHICLE INFORMATION",
+  "contractVehicleBody": "The vehicle is delivered in the described condition. The renter is responsible for inspecting the vehicle before pick-up and confirming in the app.",
+  "contractTermsTitle": "III. TERMS OF USE",
+  "contractTermsBody": "• Do not use the vehicle for unlawful purposes\n• Do not let others drive without the owner's consent\n• Return the vehicle on time, at the agreed location\n• Take good care of the vehicle, no unauthorized repairs",
+  "contractCompensationTitle": "IV. DAMAGE COMPENSATION",
+  "contractCompensationBody": "Any damage outside the insurance coverage will be the responsibility of Party B, compensated according to the valuation of an appointed third party.",
+  "contractAgree": "I have read carefully and agree to all the terms in this rental contract.",
+  "contractSign": "Sign contract",
+
+  "activeTripTitle": "Trip in progress",
+  "activeTripSubtitle": "Manage your trip",
+  "activeTripReturn": "Return car",
+  "activeTripEmergency": "Emergency support",
+  "activeTripReturnTitle": "Confirm car return?",
+  "activeTripReturnBody": "Do you confirm that you've returned the car and ended this trip?",
+  "activeTripNotYet": "Not yet",
+  "activeTripRunning": "🟢 Running",
+  "activeTripRemaining": "Remaining",
+  "activeTripProgress": "Trip progress",
+  "activeTripDaysProgress": "{elapsed}/{total} days",
+  "@activeTripDaysProgress": {
+    "description": "Elapsed vs total rental days progress",
+    "placeholders": {
+      "elapsed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTripVehicleInfo": "Vehicle info",
+  "activeTripLicensePlate": "Plate: {plate}",
+  "@activeTripLicensePlate": {
+    "description": "Vehicle license plate label",
+    "placeholders": {
+      "plate": {
+        "type": "String"
+      }
+    }
+  },
+  "activeTripCall": "Call",
+  "activeTripCallOwner": "Call owner",
+  "activeTripMap": "Map",
+  "activeTripPhoto": "Take photo",
+  "activeTripReport": "Report issue",
+
+  "reportSheetTitle": "Report a problem",
+  "reportSheetSubtitle": "Add a photo of the issue (optional), then chat with our support team.",
+  "reportCamera": "Camera",
+  "reportGallery": "Gallery",
+  "reportPhotoAttached": "Photo attached",
+  "reportRemovePhoto": "Remove",
+  "reportContinueToSupport": "Chat with support",
+
+  "emergencySheetTitle": "Emergency",
+  "emergencySheetSubtitle": "Tap a number to copy it, then call from your phone.",
+  "emergencyPolice": "Police",
+  "emergencyFire": "Fire & rescue",
+  "emergencyAmbulance": "Ambulance",
+  "emergencyNumberCopied": "{label} number {number} copied",
+  "@emergencyNumberCopied": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "number": { "type": "String" }
+    }
+  },
+  "emergencyTipsTitle": "Safety tips",
+  "emergencyTipSafePlace": "Move to a safe place before making a call.",
+  "emergencyTipShareLocation": "Share your live location with someone you trust.",
+  "emergencyTipNoteDetails": "Note the vehicle plate, your location, and what happened.",
+
+  "commonYes": "Yes",
+  "vehicleTransmissionNone": "Not applicable",
+
+  "ownerCalendarTitle": "Vehicle calendar",
+  "ownerCalendarSubtitle": "Manage your rental schedule",
+  "ownerPendingApproval": "Pending",
+  "ownerToday": "Today",
+  "ownerNeedsResponse": "Needs response",
+  "ownerNoPendingRequests": "No requests pending",
+  "ownerReject": "Reject",
+  "ownerApprove": "Approve",
+
+  "ownerRequestDetailTitle": "Request details",
+  "ownerRequestDetailSubtitle": "Review and handle the rental request",
+  "ownerNoRequestData": "No request data",
+  "ownerRequestApproved": "Request approved",
+  "ownerRequestRejected": "Request rejected",
+  "ownerSentOn": "Sent {date}",
+  "@ownerSentOn": {
+    "description": "When the rental request was sent",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "ownerHours": "{count} hours",
+  "@ownerHours": {
+    "description": "Trip duration in hours",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ownerTotalRental": "Total rental",
+  "ownerPlatformFee": "Platform fee (10%)",
+  "ownerYouReceive": "You receive",
+  "ownerProcessing": "Processing…",
+  "ownerApproveRequest": "Approve request",
+  "ownerRequestHandled": "This request has already been handled.",
+  "ownerStatusPendingConfirm": "🟡 Awaiting confirmation",
+  "ownerStatusConfirmed": "✅ Confirmed",
+  "ownerStatusInProgress": "🚗 Renting",
+  "ownerStatusCompleted": "✔ Completed",
+  "ownerStatusCancelled": "✖ Cancelled",
+  "ownerStatusUnknown": "Unknown",
+
+  "ownerRevenueTitle": "Revenue report",
+  "ownerRevenueSubtitle": "Track your income",
+  "ownerIncomeThisMonth": "Income this month",
+  "ownerPaidTrips": "{count} paid trips",
+  "@ownerPaidTrips": {
+    "description": "Number of paid trips this month",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ownerRevenueChart": "Revenue chart",
+  "ownerNoRevenue": "No revenue in this period yet",
+  "ownerRecentTransactions": "Recent transactions",
+  "ownerNoTransactions": "No transactions yet",
+
+  "ownerVehicleNameRequired": "Please enter the vehicle name",
+  "ownerVehiclePriceInvalid": "Rental price must be greater than 0",
+  "ownerVehicleCoordsInvalid": "Invalid coordinates",
+  "ownerVehicleUpdateSuccess": "Vehicle updated successfully",
+  "ownerVehicleCreateSuccess": "Vehicle published successfully",
+  "ownerVehicleEditTitle": "Edit vehicle",
+  "ownerVehicleAddTitle": "List a new vehicle",
+  "ownerVehicleEditSubtitle": "Update your vehicle's information",
+  "ownerVehicleAddSubtitle": "Fill in the details to list your vehicle",
+  "ownerVehicleSaveChanges": "Save changes",
+  "ownerVehiclePublish": "Publish",
+  "ownerVehiclePhotos": "Vehicle photos",
+  "ownerVehiclePhotosHint": "Up to 10 photos · The first is the cover",
+  "ownerVehicleAddPhoto": "Add photo",
+  "ownerVehicleBasicInfo": "Basic information",
+  "ownerVehicleName": "Vehicle name",
+  "ownerVehicleNameHint": "e.g. Toyota Camry 2024",
+  "ownerVehiclePricePerHour": "Price/hour (VND)",
+  "ownerVehiclePriceHint": "e.g. 50000",
+  "ownerVehicleType": "Vehicle type",
+  "ownerVehicleLocation": "Vehicle location",
+  "ownerVehicleLat": "Latitude (lat)",
+  "ownerVehicleLatHint": "e.g. 21.0278",
+  "ownerVehicleLng": "Longitude (lng)",
+  "ownerVehicleLngHint": "e.g. 105.8342",
+  "ownerVehicleMapSoon": "Picking a location on the map is coming soon.",
+  "ownerVehicleSpecs": "Specifications",
+  "ownerVehicleSpecsHint": "Can be left empty if not applicable (e.g. motorbike, bicycle).",
+  "ownerVehicleSeats": "Seats",
+  "ownerVehicleSeatsHint": "e.g. 5",
+  "ownerVehicleDoors": "Doors",
+  "ownerVehicleDoorsHint": "e.g. 4",
+  "ownerVehicleTransmission": "Transmission",
+  "ownerVehicleCity": "City",
+  "ownerVehicleCityHint": "e.g. HCMC",
+  "ownerVehicleDescription": "Vehicle description",
+  "ownerVehicleDescriptionHint": "Describe the condition and standout features...",
+  "ownerVehicleOptions": "Options",
+  "ownerVehicleEv": "Electric (EV)",
+  "ownerVehicleEvSubtitle": "Show the EV badge on the listing",
+  "ownerVehicleDeliverySubtitle": "Allow delivery to the customer's address",
+
+  "commonComingSoon": "Coming soon",
+
+  "settingsTitle": "Settings",
+  "settingsLogout": "Log out",
+  "settingsLogoutConfirm": "Are you sure you want to log out of this account?",
+  "settingsSectionPreferences": "Preferences",
+  "settingsSectionAccount": "Account",
+  "settingsSectionOther": "Other",
+  "settingsNotifications": "Notifications",
+  "settingsNotificationsSubtitle": "Receive push notifications",
+  "settingsDarkMode": "Dark mode",
+  "themePickerTitle": "Display mode",
+  "settingsThemeSystem": "System default",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsChangePassword": "Change password",
+  "settingsDeleteAccount": "Delete account",
+  "settingsAbout": "About",
+  "settingsAboutSubtitle": "RideVN · Version {version}",
+  "@settingsAboutSubtitle": {
+    "description": "About row subtitle with app version",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsVersionLabel": "Version {version}",
+  "@settingsVersionLabel": {
+    "description": "App version label in the about dialog",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTermsPolicies": "Terms & policies",
+
+  "termsScreenTitle": "Terms & Policies",
+  "termsUpdatedLabel": "Last updated June 2026",
+  "termsIntroHeading": "1. Acceptance of terms",
+  "termsIntroBody": "By creating an account or using RideVN, you agree to these Terms & Policies. If you do not agree, please stop using the app. We may update these terms from time to time and will note the date of the latest revision above.",
+  "termsAccountHeading": "2. Your account",
+  "termsAccountBody": "You are responsible for keeping your login credentials secure and for all activity under your account. You must provide accurate information and complete identity verification (KYC) before renting or listing a vehicle. You may hold both renter and owner roles on one account.",
+  "termsBookingHeading": "3. Bookings & payments",
+  "termsBookingBody": "A booking is a contract between the renter and the vehicle owner; RideVN facilitates the transaction. Prices, deposits and any surge adjustments are shown before you confirm. Payments are processed through our supported gateways. Cancellation and refund eligibility depend on the timing of the cancellation and the owner's policy shown at checkout.",
+  "termsConductHeading": "4. Vehicle use & conduct",
+  "termsConductBody": "Renters must hold a valid licence, drive lawfully, and return the vehicle on time, in the agreed condition, and at the agreed location. Owners must keep their vehicles roadworthy, insured, and accurately described. Prohibited use includes illegal activity, subletting, and removing tracking or safety equipment.",
+  "termsPrivacyHeading": "5. Privacy & your data",
+  "termsPrivacyBody": "We collect the data needed to operate the service — account details, KYC documents, location used for nearby search, bookings and payments. KYC documents are stored privately and are never shared publicly. We do not sell your personal data. You can request access to or deletion of your account data from Settings.",
+  "termsContactHeading": "6. Contact us",
+  "termsContactBody": "Questions about these terms or your data? Reach our support team from the in-app chat, or email support@ridevn.app.",
+
+  "changePasswordCurrent": "Current password",
+  "changePasswordNew": "New password",
+  "changePasswordConfirm": "Confirm new password",
+  "changePasswordSubmit": "Update password",
+  "changePasswordSuccess": "Password updated",
+  "changePasswordFillAll": "Please fill in all fields",
+  "changePasswordTooShort": "New password must be at least 8 characters",
+  "changePasswordMismatch": "New passwords do not match",
+  "changePasswordSameAsCurrent": "New password must be different from the current one",
+
+  "deleteAccountWarning": "This permanently deletes your account and all related data — bookings, vehicles, reviews and messages. This cannot be undone.",
+  "deleteAccountConfirmCheckbox": "I understand this action is permanent.",
+  "deleteAccountConfirmButton": "Delete my account",
+
+  "profileEditSubtitle": "Update your personal information",
+  "profileUpdateSuccess": "Profile updated",
+  "profileUpdateFailed": "Update failed",
+  "profileChangeAvatar": "Change avatar",
+  "profilePersonalInfo": "Personal information",
+  "profileFullName": "Full name",
+  "profileEmail": "Email",
+  "profilePhoneReadonly": "Phone number can't be changed",
+  "profileBio": "About you",
+  "profileBioHint": "Share a little about yourself...",
+
+  "commonComingSoonSnack": "{feature} coming soon",
+  "@commonComingSoonSnack": {
+    "description": "Snackbar shown when tapping a not-yet-available feature",
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+
+  "navFindCar": "Find a car",
+  "navVehicles": "Cars",
+  "navTrips": "Trips",
+  "navMap": "Map",
+  "navMe": "Me",
+  "shellAccountTitle": "Account",
+
+  "mapScreenTitle": "Nearby cars",
+  "mapNearbyCount": "{count, plural, =0{No cars nearby} =1{1 car nearby} other{{count} cars nearby}}",
+  "@mapNearbyCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "mapEmptyTitle": "No cars nearby",
+  "mapEmptySubtitle": "Try moving the map or widening your search area.",
+  "mapMyLocationTooltip": "My location",
+  "mapRefreshTooltip": "Refresh",
+  "mapOpenInTab": "View full map",
+
+  "notifMarkAllRead": "Mark all read",
+  "notifEmpty": "No notifications yet",
+  "notifDetailTitle": "Notification details",
+  "notifViewTrip": "View my trips",
+
+  "loyaltySubtitle": "Earn points for every trip",
+  "loyaltyPointsUnit": "reward points",
+  "loyaltyTier": "Tier",
+  "loyaltyPointsToNext": "{points} more points to {tier}",
+  "@loyaltyPointsToNext": {
+    "description": "Points remaining to reach the next loyalty tier",
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "loyaltyHistory": "Points history",
+  "loyaltyNoHistory": "No points history yet",
+  "loyaltyPointsShort": "{points} pts",
+  "@loyaltyPointsShort": {
+    "description": "Compact points amount in the history list",
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+
+  "communityTitle": "Community",
+  "communityLatestStories": "Latest stories",
+  "communityEmpty": "No stories yet",
+  "communityShareTrip": "Share a trip",
+  "communityComposerHint": "Tell us about your trip...",
+  "communityPost": "Post",
+  "communityBannerPrompt": "Share your trip...",
+
+  "chatTitle": "Messages",
+  "chatEmpty": "No conversations yet",
+  "chatStartConversation": "Start a conversation",
+  "chatNoMessages": "No messages yet",
+  "chatInputHint": "Type a message...",
+
+  "paymentTitle": "Payment",
+  "paymentSubtitle": "Choose a payment method",
+  "paymentPayAmount": "Pay {amount} VNĐ",
+  "@paymentPayAmount": {
+    "description": "Pay button label with the formatted amount",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentAmount": "Payment amount",
+  "paymentSslBadge": "🔒  Secure SSL payment",
+  "paymentMethod": "Payment method",
+  "paymentMethodVnpayDesc": "VNPay wallet & domestic ATM",
+  "paymentMethodMomoDesc": "MoMo e-wallet",
+  "paymentMethodZalopayDesc": "ZaloPay e-wallet",
+  "paymentMethodCard": "International card",
+  "paymentSslEncryption": "Transactions encrypted with 256-bit SSL",
+  "paymentVnpayTitle": "VNPay payment",
+  "paymentResultSuccessTitle": "Payment successful!",
+  "paymentResultFailTitle": "Payment failed",
+  "paymentResultSuccessBody": "Your trip has been confirmed.\nEnjoy your trip!",
+  "paymentResultFailBody": "The transaction was unsuccessful.\nPlease try again or choose another method.",
+  "paymentViewTrip": "View trip",
+  "paymentBackHome": "Back home",
+  "paymentAmountLabel": "Amount",
+  "paymentTxnId": "Transaction ID",
+  "paymentTime": "Time",
+  "paymentStatusLabel": "Status",
+  "paymentStatusSuccess": "✅ Success",
+
+  "reviewTitle": "Rate your trip",
+  "reviewSubtitle": "Share your experience",
+  "reviewVehicleQuality": "Vehicle quality",
+  "reviewTagClean": "Clean car",
+  "reviewTagOnTime": "On time",
+  "reviewTagFriendlyOwner": "Friendly owner",
+  "reviewTagAsDescribed": "As described",
+  "reviewTagDelivery": "Door-to-door delivery",
+  "reviewTagFairPrice": "Fair price",
+  "reviewRatingBad": "Bad",
+  "reviewRatingPoor": "Poor",
+  "reviewRatingOk": "Okay",
+  "reviewRatingGood": "Good",
+  "reviewRatingExcellent": "Excellent",
+  "reviewCompleted": "✅ Completed",
+  "reviewHighlights": "Highlights",
+  "reviewCommentLabel": "Additional comments (optional)",
+  "reviewCommentHint": "Share your experience...",
+  "reviewSubmit": "Submit review",
+
+  "reviewsTitle": "Reviews",
+  "reviewsAboutUser": "Reviews about {name}",
+  "@reviewsAboutUser": {
+    "description": "Reviews screen subtitle naming the reviewed user",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewsAllReceived": "All received reviews",
+  "reviewsEmpty": "No reviews yet",
+  "reviewsCount": "{count} reviews",
+  "@reviewsCount": {
+    "description": "Total number of reviews",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewsLoadError": "Couldn't load reviews. Try again later.",
+  "reviewsViewAll": "View all {count} reviews",
+  "@reviewsViewAll": {
+    "description": "Link to view all reviews",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "kycTitle": "Identity verification",
+  "kycSubtitle": "Complete KYC to rent and list vehicles",
+  "kycStepCccd": "National ID card",
+  "kycStepLicense": "Driver's license",
+  "kycStepSelfie": "Portrait photo (selfie)",
+  "kycSelfieHint": "Face the camera, with good lighting",
+  "kycSubmit": "Submit verification",
+  "kycInfoBanner": "Your information is encrypted and secure. Used only for identity verification.",
+  "kycUploaded": "Uploaded",
+  "kycUploading": "Uploading...",
+  "kycTapToUpload": "Tap to upload a photo",
+  "kycStatusTitle": "KYC status",
+  "kycStatusSubtitle": "Your identity verification",
+  "kycStatusUnverifiedTitle": "No documents submitted",
+  "kycStatusUnverifiedSubtitle": "You haven't submitted verification documents.\nSubmit your ID, license and selfie to begin.",
+  "kycStatusPendingTitle": "Under review",
+  "kycStatusPendingSubtitle": "Your documents are being reviewed.\nUsually takes 1–2 business days.",
+  "kycStatusApprovedTitle": "Verified",
+  "kycStatusApprovedSubtitle": "Your account is verified.\nYou can rent a car now.",
+  "kycStatusRejectedTitle": "Verification failed",
+  "kycStatusRejectedSubtitle": "Your documents were rejected. Please\nresubmit with clearer photos.",
+  "kycTimelineTitle": "Review progress",
+  "kycStepSubmit": "Submit documents",
+  "kycStepReview": "Under review",
+  "kycStepComplete": "Verification complete",
+  "kycStepRejected": "Rejected",
+  "kycNotSubmitted": "Not submitted",
+  "kycProcessing": "Processing...",
+  "kycPending": "Pending",
+  "kycRejectReason": "Rejection reason",
+  "kycSubmitDocs": "Submit KYC documents",
+  "kycFindCarNow": "Find a car now",
+  "kycResubmit": "Resubmit documents",
+  "kycContactSupport": "Contact support"
+}
