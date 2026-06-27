@@ -20,15 +20,30 @@ class AppNotification {
   final DateTime createdAt;
   final DateTime? readAt;
 
-  /// Ngữ cảnh kèm theo (vd `{ "bookingId": "..." }`) — dùng để điều hướng.
+  /// Dữ liệu điều hướng kèm theo (vd `bookingId`, `conversationId`, `role`).
   final Map<String, dynamic>? payload;
 
   bool get isRead => readAt != null;
 
-  /// Mã chuyến đặt liên quan, nếu có.
-  String? get bookingId {
-    final value = payload?['bookingId'];
-    return value is String ? value : null;
+  /// Route đích khi mở thông báo (in-app tap hoặc tap popup khay OS).
+  /// `null` nếu không có đích cụ thể.
+  String? get targetRoute {
+    switch (type) {
+      case NotificationType.chat:
+        final conversationId = payload?['conversationId'];
+        return conversationId is String ? '/chat/$conversationId' : null;
+      case NotificationType.kyc:
+        return '/kyc/status';
+      case NotificationType.booking:
+        return payload?['role'] == 'owner'
+            ? '/owner/booking-request'
+            : '/trips';
+      case NotificationType.payment:
+        return '/trips';
+      case NotificationType.promotion:
+      case NotificationType.system:
+        return null;
+    }
   }
 }
 

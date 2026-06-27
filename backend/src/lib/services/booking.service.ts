@@ -7,8 +7,7 @@ import {
   type ListBookingsParams,
 } from "@/lib/repositories/booking.repository";
 import { vehicleRepository } from "@/lib/repositories/vehicle.repository";
-import { userRepository } from "@/lib/repositories/user.repository";
-import { notificationEvents } from "@/lib/services/notification.events";
+import { notificationService } from "@/lib/services/notification.service";
 import type { CreateBookingInput } from "@/lib/validators/booking.validator";
 
 const MS_PER_HOUR = 3_600_000;
@@ -165,11 +164,25 @@ export const bookingService = {
       totalPrice,
       deliveryRequested: input.deliveryRequested,
     });
-    await notificationEvents.bookingCreated({
-      bookingId: booking.id,
-      renterId,
-      ownerId: vehicle.ownerId,
+
+    // Báo cho NGƯỜI THUÊ: đặt xe thành công, cần thanh toán.
+    await notificationService.notify({
+      userId: renterId,
+      type: "BOOKING",
+      title: "Đặt xe thành công",
+      body: `Bạn đã đặt ${vehicle.title}. Vui lòng thanh toán để hoàn tất.`,
+      payload: { bookingId: booking.id, role: "renter" },
     });
+    // Báo cho CHỦ XE có yêu cầu đặt mới (bỏ qua nếu tự đặt xe của mình).
+    if (vehicle.ownerId !== renterId) {
+      await notificationService.notify({
+        userId: vehicle.ownerId,
+        type: "BOOKING",
+        title: "Yêu cầu đặt xe mới",
+        body: `${vehicle.title} có yêu cầu đặt mới đang chờ xác nhận.`,
+        payload: { bookingId: booking.id, role: "owner" },
+      });
+    }
     return toPublicBooking(booking);
   },
 
@@ -238,9 +251,13 @@ export const bookingService = {
       }
       throw error;
     }
-    await notificationEvents.bookingApproved({
-      bookingId: booking.id,
-      renterId: booking.renterId,
+    // Báo cho người thuê đơn đã được chủ xe xác nhận.
+    await notificationService.notify({
+      userId: booking.renterId,
+      type: "BOOKING",
+      title: "Đơn đặt đã được xác nhận",
+      body: `${booking.vehicle.title} đã được chủ xe xác nhận. Vui lòng thanh toán để hoàn tất.`,
+      payload: { bookingId: booking.id, role: "renter" },
     });
     return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
   },
@@ -256,9 +273,13 @@ export const bookingService = {
       );
     }
     await bookingRepository.updateStatus(id, BookingStatus.CANCELLED);
-    await notificationEvents.bookingRejected({
-      bookingId: booking.id,
-      renterId: booking.renterId,
+    // Báo cho người thuê đơn đã bị chủ xe từ chối.
+    await notificationService.notify({
+      userId: booking.renterId,
+      type: "BOOKING",
+      title: "Đơn đặt bị từ chối",
+      body: `${booking.vehicle.title} đã bị chủ xe từ chối.`,
+      payload: { bookingId: booking.id, role: "renter" },
     });
     return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
   },
@@ -368,11 +389,15 @@ export const bookingService = {
       id,
       BookingStatus.CANCELLED,
     );
-    const vehicle = await vehicleRepository.findById(updated.vehicleId);
-    if (vehicle) {
-      await notificationEvents.bookingCancelled({
-        bookingId: updated.id,
-        ownerId: vehicle.ownerId,
+    // Báo cho chủ xe rằng người thuê đã huỷ đơn.
+    const vehicle = await vehicleRepository.findById(booking.vehicleId);
+    if (vehicle && vehicle.ownerId !== renterId) {
+      await notificationService.notify({
+        userId: vehicle.ownerId,
+        type: "BOOKING",
+        title: "Khách đã huỷ đơn",
+        body: `Một đơn đặt ${vehicle.title} vừa bị người thuê huỷ.`,
+        payload: { bookingId: updated.id, role: "owner" },
       });
     }
     return toPublicBooking(updated);

@@ -7,6 +7,10 @@ import {
   type Vehicle,
 } from "@prisma/client";
 
+vi.mock("@/lib/services/notification.service", () => ({
+  notificationService: { notify: vi.fn() },
+}));
+
 vi.mock("@/lib/repositories/booking.repository", () => ({
   bookingRepository: {
     create: vi.fn(),

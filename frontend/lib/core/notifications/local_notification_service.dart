@@ -1,95 +1,98 @@
-import 'dart:async';
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:frontend/features/notification/domain/entities/notification.dart';
 
-/// Bọc plugin `flutter_local_notifications` để hiện thông báo ở khay hệ thống.
-///
-/// Đây là cơ chế **poll-based** (NotificationCubit quét định kỳ rồi gọi [show]),
-/// chưa phải push thật từ server. Hoạt động khi app đang foreground/background;
-/// app bị kill thì timer không chạy nên sẽ không có popup tới khi mở lại.
-class LocalNotificationService {
-  LocalNotificationService();
+/// Hợp đồng tối thiểu để phát popup — giúp tầng cubit không phụ thuộc trực tiếp
+/// vào package `flutter_local_notifications`.
+abstract interface class NotificationPopup {
+  Future<void> show({
+    required int id,
+    required String title,
+    String? body,
+    String? payload,
+  });
+}
+
+/// Phát popup thông báo trên khay hệ thống (OS) qua `flutter_local_notifications`.
+class LocalNotificationService implements NotificationPopup {
+  static const _channelId = 'ridevn_default';
+  static const _channelName = 'Thông báo RideVN';
+  static const _channelDesc = 'Thông báo đặt xe, thanh toán, KYC và tin nhắn';
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
-  bool _initialized = false;
+  bool _ready = false;
 
-  // Channel mặc định (Android 8+). Tên/desc hiển thị trong cài đặt hệ thống.
-  static const String _channelId = 'ridevn_default';
-  static const String _channelName = 'Thông báo RideVN';
-  static const String _channelDescription =
-      'Thông báo đặt xe, thanh toán và hệ thống';
-
-  /// Khởi tạo plugin + tạo channel + xin quyền. An toàn khi gọi nhiều lần.
-  /// [onSelect] nhận payload (bookingId) khi người dùng chạm vào thông báo.
-  Future<void> init({void Function(String? payload)? onSelect}) async {
-    if (_initialized) return;
-
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const darwinInit = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+  /// Khởi tạo plugin + tạo channel Android. [onTap] nhận `payload` (route đích)
+  /// khi người dùng chạm vào popup ở khay hệ thống.
+  Future<void> init({void Function(String? payload)? onTap}) async {
+    if (_ready) return;
+    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const darwin = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
-    const settings = InitializationSettings(
-      android: androidInit,
-      iOS: darwinInit,
-    );
-
     await _plugin.initialize(
-      settings,
+      const InitializationSettings(
+        android: android,
+        iOS: darwin,
+        macOS: darwin,
+      ),
       onDidReceiveNotificationResponse: (response) =>
-          onSelect?.call(response.payload),
+          onTap?.call(response.payload),
     );
 
-    final android = _plugin
+    await _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
-        >();
-    await android?.createNotificationChannel(
-      const AndroidNotificationChannel(
-        _channelId,
-        _channelName,
-        description: _channelDescription,
-        importance: Importance.high,
-      ),
-    );
-    // Android 13+ cần xin POST_NOTIFICATIONS lúc runtime.
-    await android?.requestNotificationsPermission();
-
-    _initialized = true;
+        >()
+        ?.createNotificationChannel(
+          const AndroidNotificationChannel(
+            _channelId,
+            _channelName,
+            description: _channelDesc,
+            importance: Importance.high,
+          ),
+        );
+    _ready = true;
   }
 
-  /// Hiện 1 thông báo ở khay hệ thống cho [notif]. No-op nếu chưa [init].
-  Future<void> show(AppNotification notif) async {
-    if (!_initialized) return;
+  /// Xin quyền thông báo (Android 13+ và iOS). An toàn gọi nhiều lần.
+  Future<void> requestPermissions() async {
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestNotificationsPermission();
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
+  }
 
-    const androidDetails = AndroidNotificationDetails(
-      _channelId,
-      _channelName,
-      channelDescription: _channelDescription,
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    const darwinDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: darwinDetails,
-    );
-
-    // id ổn định theo notif.id để tránh hiện trùng cùng 1 thông báo.
-    final id = notif.id.hashCode & 0x7fffffff;
+  @override
+  Future<void> show({
+    required int id,
+    required String title,
+    String? body,
+    String? payload,
+  }) async {
+    if (!_ready) return;
     await _plugin.show(
       id,
-      notif.title,
-      notif.body,
-      details,
-      payload: notif.bookingId,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          _channelId,
+          _channelName,
+          channelDescription: _channelDesc,
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      payload: payload,
     );
   }
 }

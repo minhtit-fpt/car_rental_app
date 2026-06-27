@@ -6,6 +6,7 @@ import {
   type ConversationWithDetails,
 } from "@/lib/repositories/chat.repository";
 import { vehicleRepository } from "@/lib/repositories/vehicle.repository";
+import { notificationService } from "@/lib/services/notification.service";
 import type {
   CreateConversationInput,
   ListMessagesQuery,
@@ -182,12 +183,29 @@ export const chatService = {
     conversationId: string,
     input: SendMessageInput,
   ): Promise<PublicMessage> {
-    await ensureParticipant(conversationId, userId);
+    const conversation = await ensureParticipant(conversationId, userId);
     const message = await chatRepository.createMessage(
       conversationId,
       userId,
       input.body,
     );
+
+    // Báo cho (các) thành viên còn lại trong hội thoại có tin nhắn mới.
+    const recipients = conversation.participants
+      .map((p) => p.userId)
+      .filter((id) => id !== userId);
+    await Promise.all(
+      recipients.map((recipientId) =>
+        notificationService.notify({
+          userId: recipientId,
+          type: "CHAT",
+          title: "Tin nhắn mới",
+          body: input.body.length > 80 ? `${input.body.slice(0, 80)}…` : input.body,
+          payload: { conversationId },
+        }),
+      ),
+    );
+
     return toMessage(message);
   },
 };

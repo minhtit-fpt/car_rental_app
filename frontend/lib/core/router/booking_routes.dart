@@ -8,6 +8,11 @@ import 'package:frontend/features/booking/presentation/screens/my_trips_screen.d
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 
 final bookingRoutes = [
+  // Mở danh sách chuyến độc lập (dùng khi điều hướng từ thông báo).
+  GoRoute(
+    path: '/trips',
+    builder: (context, state) => const MyTripsScreen(),
+  ),
   GoRoute(
     path: '/trips',
     builder: (context, state) => const MyTripsScreen(),

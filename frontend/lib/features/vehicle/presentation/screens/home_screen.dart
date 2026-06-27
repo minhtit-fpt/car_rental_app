@@ -193,8 +193,8 @@ class _TopBar extends StatelessWidget {
 }
 
 /// Chuông thông báo: mở danh sách `/notifications` và hiển thị badge số chưa
-/// đọc. Đọc [NotificationCubit] singleton (cấp ở gốc app + tự poll nền) nên
-/// badge luôn phản ánh số chưa đọc mới nhất, không cần tự nạp lại.
+/// đọc. Dùng [NotificationCubit] singleton (provide ở app root) để badge luôn
+/// đồng bộ với polling + popup.
 class _NotificationBell extends StatelessWidget {
   const _NotificationBell();
 

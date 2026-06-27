@@ -11,68 +11,58 @@ import 'package:frontend/features/notification/presentation/cubit/notification_s
 
 export 'package:frontend/features/notification/presentation/cubit/notification_state.dart';
 
-/// Chu kỳ tự quét thông báo mới (poll) khi app đang mở.
-const Duration _pollInterval = Duration(seconds: 30);
+/// Chu kỳ tự kiểm tra thông báo mới khi app đang mở (foreground).
+const _pollInterval = Duration(seconds: 30);
 
-/// Quản lý danh sách thông báo + đánh dấu đã đọc + tự làm mới định kỳ và
-/// hiện popup (local notification) cho thông báo mới chưa đọc.
-///
-/// Là **singleton** dùng chung toàn app: badge ở mọi nơi đọc cùng 1 state, và
-/// chỉ 1 vòng poll chạy nền. Cơ chế poll (chưa phải push thật) nên popup chỉ
-/// xuất hiện khi app còn sống (foreground/background ngắn).
+/// Quản lý danh sách thông báo + tự refresh định kỳ + phát popup khay OS khi có
+/// thông báo chưa đọc mới. Là **singleton** (provide ở app root).
 class NotificationCubit extends Cubit<NotificationState> {
   NotificationCubit({
     required ListNotificationsUseCase listNotifications,
     required MarkNotificationReadUseCase markRead,
     required MarkAllNotificationsReadUseCase markAllRead,
-    required LocalNotificationService localNotifications,
+    required NotificationPopup popup,
   }) : _listNotifications = listNotifications,
        _markRead = markRead,
        _markAllRead = markAllRead,
-       _localNotifications = localNotifications,
+       _popup = popup,
        super(const NotificationLoading());
 
   final ListNotificationsUseCase _listNotifications;
   final MarkNotificationReadUseCase _markRead;
   final MarkAllNotificationsReadUseCase _markAllRead;
-  final LocalNotificationService _localNotifications;
+  final NotificationPopup _popup;
 
-  Timer? _pollTimer;
-  // ID đã thấy — để phát hiện thông báo MỚI mà chưa popup lần nào.
-  final Set<String> _seenIds = <String>{};
-  // Lần fetch đầu chỉ lập "mốc nền", không popup hàng loạt noti cũ.
+  Timer? _timer;
+  bool _polling = false;
+  // Lần fetch đầu sau khi đăng nhập chỉ tạo "mốc" — không popup thông báo cũ.
   bool _baselineSet = false;
+  final Set<String> _poppedIds = {};
 
-  /// Bắt đầu tự làm mới định kỳ + bật popup cho noti mới. Gọi khi đăng nhập /
-  /// khi app quay lại foreground. An toàn khi gọi lại (huỷ timer cũ trước).
+  /// Bắt đầu tự refresh (gọi khi đăng nhập / app quay lại foreground).
   void startAutoRefresh() {
-    _pollTimer?.cancel();
-    unawaited(_fetch(allowPopups: true));
-    _pollTimer = Timer.periodic(
-      _pollInterval,
-      (_) => unawaited(_fetch(allowPopups: true)),
-    );
+    if (_polling) return;
+    _polling = true;
+    unawaited(_poll());
+    _timer = Timer.periodic(_pollInterval, (_) => unawaited(_poll()));
   }
 
-  /// Dừng vòng poll (app vào nền / đăng xuất).
+  /// Dừng tự refresh (gọi khi app vào nền). Giữ nguyên mốc đã đọc.
   void stopAutoRefresh() {
-    _pollTimer?.cancel();
-    _pollTimer = null;
+    _timer?.cancel();
+    _timer = null;
+    _polling = false;
   }
 
-  /// Làm mới một lần (có thể bật popup cho noti mới) — không động tới timer.
-  Future<void> refreshNow() => _fetch(allowPopups: true);
-
-  /// Xoá trạng thái khi đăng xuất — tránh rò thông báo sang phiên khác.
+  /// Xoá trạng thái khi đăng xuất — lần đăng nhập sau sẽ tạo mốc lại.
   void reset() {
     stopAutoRefresh();
-    _seenIds.clear();
     _baselineSet = false;
+    _poppedIds.clear();
     emit(const NotificationLoading());
   }
 
-  /// Nạp có spinner (mở màn danh sách / kéo làm mới). Không popup vì người
-  /// dùng đang chủ động xem.
+  /// Tải có hiển thị trạng thái (dùng khi mở màn hình thông báo).
   Future<void> load() async {
     emit(const NotificationLoading());
     await _fetch(allowPopups: false);
@@ -80,22 +70,48 @@ class NotificationCubit extends Cubit<NotificationState> {
 
   Future<void> _fetch({required bool allowPopups}) async {
     try {
-      final list = await _listNotifications();
-      // Chỉ popup khi đã có mốc nền (đã từng fetch trước đó).
-      if (allowPopups && _baselineSet) {
-        for (final n in list.items) {
-          if (!n.isRead && !_seenIds.contains(n.id)) {
-            unawaited(_localNotifications.show(n));
-          }
-        }
-      }
-      _seenIds.addAll(list.items.map((n) => n.id));
-      _baselineSet = true;
-      emit(NotificationLoaded(list));
+      _handleData(await _listNotifications());
     } on ApiException catch (e) {
       // Lỗi khi poll không được xoá danh sách đang hiển thị.
       if (state is! NotificationLoaded) emit(NotificationError(e.message));
     }
+  }
+
+  /// Refresh ngay lập tức — gọi sau khi người dùng vừa đặt xe / thanh toán
+  /// xong để dấu đỏ ở chuông + popup tới ngay, không phải đợi chu kỳ poll 30s.
+  Future<void> refresh() => _poll();
+
+  /// Refresh nền — im lặng, không lật sang Loading/Error để tránh nhấp nháy.
+  Future<void> _poll() async {
+    try {
+      _handleData(await _listNotifications());
+    } on ApiException {
+      // Bỏ qua lỗi mạng tạm thời khi chạy nền.
+    }
+  }
+
+  void _handleData(NotificationList data) {
+    final unread = data.items.where((n) => !n.isRead);
+    if (_baselineSet) {
+      for (final n in unread) {
+        if (_poppedIds.add(n.id)) _showPopup(n);
+      }
+    } else {
+      _poppedIds.addAll(unread.map((n) => n.id));
+      _baselineSet = true;
+    }
+    emit(NotificationLoaded(data));
+  }
+
+  void _showPopup(AppNotification n) {
+    unawaited(
+      _popup.show(
+        id: n.id.hashCode,
+        title: n.title,
+        body: n.body,
+        payload: n.targetRoute,
+      ),
+    );
   }
 
   Future<void> markRead(String id) async {
@@ -153,7 +169,7 @@ class NotificationCubit extends Cubit<NotificationState> {
 
   @override
   Future<void> close() {
-    _pollTimer?.cancel();
+    _timer?.cancel();
     return super.close();
   }
 }

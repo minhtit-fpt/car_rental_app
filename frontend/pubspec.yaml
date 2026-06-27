@@ -50,13 +50,8 @@ dependencies:
   image_picker: ^1.1.2
   share_plus: ^12.0.2
 
-  # Bản đồ trực tiếp (Phase C) — Google Maps SDK + vị trí hiện tại
-  google_maps_flutter: ^2.10.0
-  geolocator: ^13.0.2
-
-  # Thông báo cục bộ (khay hệ thống) — popup khi app foreground/background.
-  # Poll-based (chưa phải push thật từ server).
-  flutter_local_notifications: ^19.0.0
+  # Popup thông báo khay hệ thống (OS) khi có thông báo mới (polling 30s)
+  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_test:

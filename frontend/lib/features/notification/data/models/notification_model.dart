@@ -20,8 +20,8 @@ abstract final class NotificationModel {
     readAt: json['readAt'] == null
         ? null
         : DateTime.parse(json['readAt'] as String),
-    payload: json['payload'] is Map<String, dynamic>
-        ? json['payload'] as Map<String, dynamic>
+    payload: json['payload'] is Map
+        ? Map<String, dynamic>.from(json['payload'] as Map)
         : null,
   );
 

@@ -7,13 +7,45 @@ import 'package:frontend/features/notification/domain/usecases/mark_all_read_use
 import 'package:frontend/features/notification/domain/usecases/mark_notification_read_usecase.dart';
 import 'package:frontend/features/notification/presentation/cubit/notification_cubit.dart';
 
+class _FakeRepo implements NotificationRepository {
+  NotificationList result = const NotificationList(
+    items: [],
+    total: 0,
+    unreadCount: 0,
+    page: 1,
+    limit: 20,
+  );
+
+  @override
+  Future<NotificationList> list({int page = 1, int limit = 20}) async => result;
+
+  @override
+  Future<int> markRead(String id) async => 0;
+
+  @override
+  Future<void> markAllRead() async {}
+}
+
+class _RecordingPopup implements NotificationPopup {
+  final List<String> shownTitles = [];
+
+  @override
+  Future<void> show({
+    required int id,
+    required String title,
+    String? body,
+    String? payload,
+  }) async {
+    shownTitles.add(title);
+  }
+}
+
 AppNotification _notif(String id, {bool read = false}) => AppNotification(
   id: id,
-  type: NotificationType.payment,
-  title: 'Thông báo $id',
-  body: 'Nội dung',
-  createdAt: DateTime.utc(2026, 1, 1),
-  readAt: read ? DateTime.utc(2026, 1, 1) : null,
+  type: NotificationType.booking,
+  title: 'Noti $id',
+  createdAt: DateTime(2026, 6, 27),
+  readAt: read ? DateTime(2026, 6, 27) : null,
 );
 
 NotificationList _list(List<AppNotification> items) => NotificationList(
@@ -24,111 +56,73 @@ NotificationList _list(List<AppNotification> items) => NotificationList(
   limit: 20,
 );
 
-/// Fake repo trả về `listResult` (đổi được giữa các lần gọi để mô phỏng poll).
-class _FakeNotificationRepository implements NotificationRepository {
-  NotificationList listResult = _list(const []);
-
-  @override
-  Future<NotificationList> list({int page = 1, int limit = 20}) async =>
-      listResult;
-
-  @override
-  Future<int> markRead(String id) async => 0;
-
-  @override
-  Future<void> markAllRead() async {}
-}
-
-/// Fake service ghi lại các thông báo đã được "popup".
-class _FakeLocalNotificationService extends LocalNotificationService {
-  final List<String> shownIds = <String>[];
-
-  @override
-  Future<void> init({void Function(String? payload)? onSelect}) async {}
-
-  @override
-  Future<void> show(AppNotification notif) async => shownIds.add(notif.id);
-}
-
-NotificationCubit _build(
-  _FakeNotificationRepository repo,
-  _FakeLocalNotificationService local,
-) => NotificationCubit(
-  listNotifications: ListNotificationsUseCase(repo),
-  markRead: MarkNotificationReadUseCase(repo),
-  markAllRead: MarkAllNotificationsReadUseCase(repo),
-  localNotifications: local,
-);
-
 void main() {
-  group('NotificationCubit', () {
-    late _FakeNotificationRepository repo;
-    late _FakeLocalNotificationService local;
+  late _FakeRepo repo;
+  late _RecordingPopup popup;
+  late NotificationCubit cubit;
 
-    setUp(() {
-      repo = _FakeNotificationRepository();
-      local = _FakeLocalNotificationService();
-    });
+  setUp(() {
+    repo = _FakeRepo();
+    popup = _RecordingPopup();
+    cubit = NotificationCubit(
+      listNotifications: ListNotificationsUseCase(repo),
+      markRead: MarkNotificationReadUseCase(repo),
+      markAllRead: MarkAllNotificationsReadUseCase(repo),
+      popup: popup,
+    );
+  });
 
-    test('load emits loaded and never pops up (user is viewing)', () async {
-      repo.listResult = _list([_notif('a'), _notif('b')]);
-      final cubit = _build(repo, local);
+  tearDown(() => cubit.close());
 
-      await cubit.load();
+  test('first load sets a baseline and does NOT popup existing unread', () async {
+    repo.result = _list([_notif('a'), _notif('b')]);
 
-      expect(cubit.state, isA<NotificationLoaded>());
-      expect(local.shownIds, isEmpty);
-      await cubit.close();
-    });
+    await cubit.load();
 
-    test('first poll only sets a baseline — no popup for existing unread',
-        () async {
-      repo.listResult = _list([_notif('a'), _notif('b')]);
-      final cubit = _build(repo, local);
+    expect(cubit.state, isA<NotificationLoaded>());
+    expect(popup.shownTitles, isEmpty);
+  });
 
-      await cubit.refreshNow(); // baseline
-      await cubit.refreshNow(); // nothing new since
+  test('a new unread notification on a later refresh fires a popup', () async {
+    repo.result = _list([_notif('a')]);
+    await cubit.load(); // baseline
 
-      expect(local.shownIds, isEmpty);
-      await cubit.close();
-    });
+    repo.result = _list([_notif('b'), _notif('a')]); // 'b' is new
+    await cubit.load();
 
-    test('pops up only for newly arrived unread notifications', () async {
-      repo.listResult = _list([_notif('a')]);
-      final cubit = _build(repo, local);
+    expect(popup.shownTitles, ['Noti b']);
+  });
 
-      await cubit.refreshNow(); // baseline sees {a}
-      repo.listResult = _list([_notif('c'), _notif('a')]); // c is new
-      await cubit.refreshNow();
+  test('the same unread notification is not popped twice', () async {
+    repo.result = _list([_notif('a')]);
+    await cubit.load(); // baseline
 
-      expect(local.shownIds, ['c']);
-      await cubit.close();
-    });
+    repo.result = _list([_notif('b'), _notif('a')]);
+    await cubit.load(); // pops 'b'
+    await cubit.load(); // 'b' already popped
 
-    test('does not pop up for already-read new notifications', () async {
-      repo.listResult = _list([_notif('a')]);
-      final cubit = _build(repo, local);
+    expect(popup.shownTitles, ['Noti b']);
+  });
 
-      await cubit.refreshNow();
-      repo.listResult = _list([_notif('d', read: true), _notif('a')]);
-      await cubit.refreshNow();
+  test('refresh() pops a newly created notification immediately', () async {
+    repo.result = _list([_notif('a')]);
+    await cubit.load(); // baseline
 
-      expect(local.shownIds, isEmpty);
-      await cubit.close();
-    });
+    repo.result = _list([_notif('pay'), _notif('a')]); // new after payment
+    await cubit.refresh();
 
-    test('reset clears the baseline so the next poll does not pop old items',
-        () async {
-      repo.listResult = _list([_notif('a')]);
-      final cubit = _build(repo, local);
+    expect(popup.shownTitles, ['Noti pay']);
+    expect(cubit.state, isA<NotificationLoaded>());
+  });
 
-      await cubit.refreshNow(); // baseline {a}
-      cubit.reset();
-      await cubit.refreshNow(); // baseline again, no popup for a
+  test('reset re-baselines so old unread does not re-popup', () async {
+    repo.result = _list([_notif('a')]);
+    await cubit.load(); // baseline with 'a'
 
-      expect(local.shownIds, isEmpty);
-      expect(cubit.state, isA<NotificationLoaded>());
-      await cubit.close();
-    });
+    cubit.reset();
+    repo.result = _list([_notif('a')]); // same 'a' after re-login
+    await cubit.load();
+
+    expect(popup.shownTitles, isEmpty);
   });
 }

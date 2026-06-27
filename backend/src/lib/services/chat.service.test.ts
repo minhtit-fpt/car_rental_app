@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@/lib/services/notification.service", () => ({
+  notificationService: { notify: vi.fn() },
+}));
+
 vi.mock("@/lib/repositories/chat.repository", () => ({
   chatRepository: {
     findConversationsForUser: vi.fn(),

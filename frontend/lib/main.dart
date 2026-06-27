@@ -58,6 +58,8 @@ class _RideVNAppState extends State<RideVNApp> with WidgetsBindingObserver {
   final LocaleCubit _localeCubit = sl<LocaleCubit>();
   final ThemeModeCubit _themeModeCubit = sl<ThemeModeCubit>();
   final NotificationCubit _notificationCubit = sl<NotificationCubit>();
+  final LocalNotificationService _localNotifications =
+      sl<LocalNotificationService>();
 
   bool get _isAuthenticated =>
       widget.authCubit.state.status == AuthStatus.authenticated;
@@ -66,16 +68,18 @@ class _RideVNAppState extends State<RideVNApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Khởi tạo local notification; chạm vào popup → mở danh sách thông báo.
+    // Khởi tạo popup khay OS; chạm popup → điều hướng theo route trong payload.
     unawaited(
-      sl<LocalNotificationService>().init(
-        onSelect: (_) => _router.go('/notifications'),
+      _localNotifications.init(
+        onTap: (payload) {
+          if (payload != null && payload.isNotEmpty) _router.push(payload);
+        },
       ),
     );
-    // Phiên khôi phục sẵn (token còn hạn) → nạp yêu thích + bật poll thông báo.
+    // Phiên khôi phục sẵn (token còn hạn) → nạp ngay + bật polling thông báo.
     if (_isAuthenticated) {
       _favoriteCubit.load();
-      _notificationCubit.startAutoRefresh();
+      _startNotifications();
     }
   }
 
@@ -85,21 +89,21 @@ class _RideVNAppState extends State<RideVNApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // App vào nền → dừng poll; quay lại foreground → bật lại + làm mới ngay.
+  // Tạm dừng polling khi app vào nền, chạy lại khi quay về (chỉ khi đã đăng nhập).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
     if (!_isAuthenticated) return;
-    switch (state) {
-      case AppLifecycleState.resumed:
-        _notificationCubit.startAutoRefresh();
-      case AppLifecycleState.paused:
-      case AppLifecycleState.detached:
-      case AppLifecycleState.hidden:
-        _notificationCubit.stopAutoRefresh();
-      case AppLifecycleState.inactive:
-        break;
+    if (state == AppLifecycleState.resumed) {
+      _notificationCubit.startAutoRefresh();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _notificationCubit.stopAutoRefresh();
     }
+  }
+
+  Future<void> _startNotifications() async {
+    await _localNotifications.requestPermissions();
+    _notificationCubit.startAutoRefresh();
   }
 
   @override
@@ -108,19 +112,19 @@ class _RideVNAppState extends State<RideVNApp> with WidgetsBindingObserver {
       providers: [
         BlocProvider<AuthCubit>.value(value: widget.authCubit),
         BlocProvider<FavoriteCubit>.value(value: _favoriteCubit),
+        BlocProvider<NotificationCubit>.value(value: _notificationCubit),
         BlocProvider<LocaleCubit>.value(value: _localeCubit),
         BlocProvider<ThemeModeCubit>.value(value: _themeModeCubit),
         BlocProvider<NotificationCubit>.value(value: _notificationCubit),
       ],
-      // Đồng bộ theo phiên: đăng nhập → nạp yêu thích + bật poll thông báo;
-      // đăng xuất → xoá yêu thích + dừng poll + xoá thông báo.
+      // Đồng bộ theo phiên: đăng nhập → nạp + bật polling thông báo; đăng xuất → xoá.
       child: BlocListener<AuthCubit, AuthState>(
         listenWhen: (prev, curr) => prev.status != curr.status,
         listener: (context, state) {
           switch (state.status) {
             case AuthStatus.authenticated:
               _favoriteCubit.load();
-              _notificationCubit.startAutoRefresh();
+              unawaited(_startNotifications());
             case AuthStatus.unauthenticated:
               _favoriteCubit.clear();
               _notificationCubit.reset();
