@@ -4,6 +4,7 @@ import 'package:frontend/core/location/app_geo.dart';
 import 'package:frontend/core/location/location_service.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/features/map/presentation/cubit/map_cubit.dart';
+import 'package:frontend/features/map/presentation/vehicle_marker.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
 import 'package:frontend/features/vehicle/domain/usecases/list_nearby_vehicles_usecase.dart';
@@ -121,6 +122,48 @@ void main() {
     expect: () => [
       isA<MapLoading>(),
       isA<MapError>().having((s) => s.message, 'message', 'network down'),
+    ],
+  );
+
+  group('MapFilter', () {
+    const marker = VehicleMarker(
+      vehicleId: 'a',
+      position: GeoPoint(21.0, 105.0),
+      title: 'x',
+      pricePerHour: 1,
+      type: 'CAR',
+    );
+
+    test('empty filter matches everything', () {
+      expect(const MapFilter().matches(marker), isTrue);
+    });
+
+    test('toggleType adds then removes a type', () {
+      final added = const MapFilter().toggleType('CAR');
+      expect(added.types, {'CAR'});
+      expect(added.matches(marker), isTrue);
+      expect(added.toggleType('CAR').types, isEmpty);
+    });
+
+    test('a filter on another type excludes the marker', () {
+      expect(const MapFilter(types: {'MOTORBIKE'}).matches(marker), isFalse);
+    });
+  });
+
+  blocTest<MapCubit, MapState>(
+    'toggleType narrows the visible markers without refetching',
+    build: () {
+      repo.nearbyResult = [_vehicle('a', lat: 21.0, lng: 105.0)]; // CAR
+      return build();
+    },
+    act: (c) async {
+      await c.load();
+      c.toggleType('MOTORBIKE'); // không khớp CAR → ẩn hết
+    },
+    expect: () => [
+      isA<MapLoading>(),
+      isA<MapLoaded>().having((s) => s.markers, 'markers', isNotEmpty),
+      isA<MapLoaded>().having((s) => s.markers, 'filtered markers', isEmpty),
     ],
   );
 }

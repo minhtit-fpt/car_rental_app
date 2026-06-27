@@ -100,6 +100,12 @@ class _MapViewState extends State<_MapView> {
                     _ => l10n.mapScreenTitle,
                   },
                 ),
+                if (state is MapLoaded && state.availableTypes.length > 1)
+                  _FilterBar(
+                    types: state.availableTypes,
+                    selected: state.filter.types,
+                    onToggle: (t) => context.read<MapCubit>().toggleType(t),
+                  ),
                 Positioned(
                   right: 16,
                   bottom: 24,
@@ -222,6 +228,88 @@ class _TopBar extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Hàng chip lọc theo loại xe, đặt ngay dưới thanh tiêu đề.
+class _FilterBar extends StatelessWidget {
+  const _FilterBar({
+    required this.types,
+    required this.selected,
+    required this.onToggle,
+  });
+
+  final List<String> types;
+  final Set<String> selected;
+  final ValueChanged<String> onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 64, left: 16, right: 16),
+        child: SizedBox(
+          height: 36,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: types.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            itemBuilder: (context, i) {
+              final type = types[i];
+              return _TypeChip(
+                label: _typeLabelL10n(l10n, type),
+                active: selected.contains(type),
+                onTap: () => onToggle(type),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _typeLabelL10n(AppLocalizations l10n, String type) => switch (type) {
+  'MOTORBIKE' => l10n.vehicleTypeMotorbike,
+  'BICYCLE' => l10n.vehicleTypeBicycle,
+  _ => l10n.vehicleTypeCar,
+};
+
+class _TypeChip extends StatelessWidget {
+  const _TypeChip({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: active ? AppColors.accent : context.palette.surface,
+      borderRadius: BorderRadius.circular(20),
+      elevation: 2,
+      shadowColor: context.palette.cardShadowColor,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: active ? Colors.white : context.palette.darkText,
+            ),
+          ),
         ),
       ),
     );

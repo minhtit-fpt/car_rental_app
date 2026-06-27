@@ -24,6 +24,11 @@ class MapCubit extends Cubit<MapState> {
   /// Mở/refresh bản đồ. [LocationService] luôn trả toạ độ (fallback tâm mặc
   /// định) nên phần định vị không ném; chỉ lỗi mạng mới chuyển sang [MapError].
   Future<void> load() async {
+    // Giữ bộ lọc qua mỗi lần refresh để không reset lựa chọn của người dùng.
+    final previousFilter = switch (state) {
+      MapLoaded(:final filter) => filter,
+      _ => const MapFilter(),
+    };
     emit(const MapLoading());
     final center = await _locationService.currentLocation();
     try {
@@ -32,9 +37,23 @@ class MapCubit extends Cubit<MapState> {
         lng: center.longitude,
         radius: AppGeo.nearbyRadiusMeters,
       );
-      emit(MapLoaded(center: center, markers: vehicleMarkers(vehicles)));
+      emit(
+        MapLoaded(
+          center: center,
+          allMarkers: vehicleMarkers(vehicles),
+          filter: previousFilter,
+        ),
+      );
     } on ApiException catch (e) {
       emit(MapError(e.message));
+    }
+  }
+
+  /// Bật/tắt một loại xe trong bộ lọc (chỉ khi đã có dữ liệu bản đồ).
+  void toggleType(String type) {
+    final current = state;
+    if (current is MapLoaded) {
+      emit(current.copyWith(filter: current.filter.toggleType(type)));
     }
   }
 }

@@ -53,6 +53,11 @@ dependencies:
   # Popup thông báo khay hệ thống (OS) khi có thông báo mới (polling 30s)
   flutter_local_notifications: ^18.0.1
 
+  # Bản đồ trực tiếp + định vị (Workstream E). Cần Google Maps API key cấu hình
+  # cục bộ (gitignored) để render — xem memory maps-key-wiring.
+  google_maps_flutter: ^2.10.0
+  geolocator: ^13.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
