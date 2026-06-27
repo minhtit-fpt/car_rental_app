@@ -24,10 +24,15 @@ ai-service/
 │   ├── config.py       # settings RAG_* (LM Studio URL, model, corpus path)
 │   ├── corpus.py       # Chunk + load_corpus(JSONL)
 │   ├── vectorstore.py  # VectorStore interface + InMemoryVectorStore (cosine)
-│   ├── embedder.py     # [TODO B2] client LM Studio /v1/embeddings (bge-m3)
-│   ├── chat_engine.py  # [TODO B3/B5] Qwen + vòng tool-calling
-│   └── main.py         # [TODO B6] FastAPI: POST /chat (streaming)
-└── tests/              # pytest pure-Python (không cần LM Studio)
+│   ├── embedder.py     # B2: client LM Studio /v1/embeddings (bge-m3)
+│   ├── index.py        # B2: build_index(corpus → embedding → store)
+│   ├── tools.py        # B5: tool-calling read-only vào backend Next.js
+│   ├── llm.py          # B3: client Qwen /v1/chat/completions (+ SSE stream)
+│   ├── chat_engine.py  # B3/B5: RAG retrieval + vòng tool-calling
+│   └── main.py         # B6: FastAPI POST /chat (streaming) + GET /health
+├── data/
+│   └── corpus_vi.jsonl # B4: corpus tri thức tĩnh (62 chunk, có keywords)
+└── tests/              # pytest mock httpx (không cần LM Studio)
 ```
 
 ## Chạy
@@ -35,19 +40,31 @@ ai-service/
 cd ai-service
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python3 -m pytest tests/ -q          # test pure-Python (không cần LM Studio)
-# uvicorn app.main:app --reload      # [TODO B6]
+python3 -m pytest tests/ -q          # 35 test mock httpx (không cần LM Studio)
+
+# Khi đã bật LM Studio (Workstream A) + backend Next.js:
+python3 -m app.index                 # build index từ corpus qua bge-m3
+uvicorn app.main:app --reload --port 8001
+# POST /chat  {"message": "...", "history": [], "stream": true}
+#   header tùy chọn: Authorization: Bearer <jwt>  (cho get_my_bookings)
 ```
 
 ## Trạng thái plan B
 - [x] **B1** — interface `VectorStore` + `InMemoryVectorStore` (cosine, pure Python, đã test)
-- [x] **B4 (phần loader)** — `load_corpus` đọc `.claude/rag/car_rag_corpus_vi.jsonl` (21 chunk)
-- [ ] **B4 (mở rộng)** — nâng corpus lên 60–100 chunk, thêm `keywords` (cách user hay hỏi)
-- [ ] **B2** — `embedder.py` gọi LM Studio bge-m3 (⚠ đổi embedding → BẮT BUỘC rebuild index)
-- [ ] **B3** — `chat_engine.py` Qwen qua `/v1/chat/completions` (format OpenAI messages)
-- [ ] **B5** — tool-calling vào DB: `search_available_vehicles`, `get_vehicle_price`,
-      `get_my_bookings`. Bảo mật: `userId` lấy từ phiên auth, KHÔNG để LLM tự bịa.
-- [ ] **B6** — FastAPI `POST /chat` + streaming; giữ contract cũ để FE Flutter gọi.
+- [x] **B4** — corpus `data/corpus_vi.jsonl` **62 chunk** + `keywords`; categories: thông số
+      dòng xe, nhận/trả xe, hủy theo bậc, phạt nguội, sạc EV, giao xe, bảo hiểm, FAQ.
+- [x] **B2** — `embedder.py` gọi LM Studio bge-m3 + `index.py` build index
+      (⚠ đổi embedding model → BẮT BUỘC rebuild index).
+- [x] **B3** — `llm.py` (Qwen `/v1/chat/completions`, non-stream + SSE) + `chat_engine.py`
+      (RAG retrieval + vòng tool-calling, format OpenAI messages).
+- [x] **B5** — `tools.py`: `search_available_vehicles`, `get_vehicle_price` (qua endpoint
+      dynamic pricing của C), `get_my_bookings`. Bảo mật: `userId` lấy từ token phiên,
+      LLM KHÔNG truyền được userId (đã có test chống lộ dữ liệu).
+- [x] **B6** — FastAPI `POST /chat` (+ streaming) & `GET /health`.
+
+> Tất cả code B2–B6 đã viết + unit test (mock httpx). Việc còn lại thuần vận hành
+> (Workstream A): bật LM Studio + tải `bge-m3`/`qwen2.5-14b-instruct`, rồi build index
+> và chạy thật. Tùy chọn nâng cao: rerank `bge-reranker`, mở corpus 60→100, Qwen 7B cho tốc độ.
 
 ## Phụ thuộc ngoài (Workstream A — việc thủ công)
 Cần LM Studio chạy + đã tải `bge-m3`, `qwen2.5-14b-instruct`, bật headless server

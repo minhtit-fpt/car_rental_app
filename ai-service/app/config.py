@@ -14,8 +14,8 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# ai-service/app/config.py -> repo root là 2 cấp lên.
-_REPO_ROOT = Path(__file__).resolve().parents[2]
+# ai-service/app/config.py -> thư mục ai-service là 1 cấp lên.
+_SERVICE_ROOT = Path(__file__).resolve().parents[1]
 
 
 class Settings(BaseSettings):
@@ -30,8 +30,8 @@ class Settings(BaseSettings):
     embedding_model: str = "text-embedding-bge-m3"
     chat_model: str = "qwen2.5-14b-instruct"
 
-    # Đường dẫn corpus (JSONL) — tái dùng corpus đã có ở .claude/rag.
-    corpus_path: Path = _REPO_ROOT / ".claude" / "rag" / "car_rag_corpus_vi.jsonl"
+    # Đường dẫn corpus (JSONL) — đặt trong service để self-contained + version-control.
+    corpus_path: Path = _SERVICE_ROOT / "data" / "corpus_vi.jsonl"
 
     # Backend Next.js để tool-calling truy vấn dữ liệu sống (xe trống, giá, booking).
     backend_base_url: str = "http://localhost:3000"
