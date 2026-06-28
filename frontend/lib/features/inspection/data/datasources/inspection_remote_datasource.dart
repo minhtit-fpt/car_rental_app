@@ -26,15 +26,19 @@ class InspectionRemoteDataSource {
     required String contentType,
   }) => _client.putBinary(uploadUrl, bytes, contentType: contentType);
 
-  /// `PUT /api/bookings/:id/inspections` → lưu bộ ảnh của một phase.
-  Future<void> submit({
+  /// `PUT /api/bookings/:id/inspections` → lưu bộ ảnh + chạy VLM soi lượt này.
+  /// Trả `{phase, photoCount, findings}` (findings có thể null nếu VLM lỗi).
+  Future<Map<String, dynamic>> submit({
     required String bookingId,
     required String phase,
     required List<String> photoKeys,
-  }) => _client.put(
-    '/api/bookings/$bookingId/inspections',
-    data: {'phase': phase, 'photoKeys': photoKeys},
-  );
+  }) async {
+    final data = await _client.put(
+      '/api/bookings/$bookingId/inspections',
+      data: {'phase': phase, 'photoKeys': photoKeys},
+    );
+    return data as Map<String, dynamic>;
+  }
 
   /// `POST /api/bookings/:id/damage-report` → chạy VLM, trả báo cáo.
   Future<Map<String, dynamic>> analyze(String bookingId) async {

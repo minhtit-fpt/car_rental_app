@@ -532,6 +532,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to cancel this booking?';
 
   @override
+  String get tripsDetailTitle => 'Trip details';
+
+  @override
+  String get tripsDetailSubtitle => 'Full booking information';
+
+  @override
+  String tripsBookedOn(String date) {
+    return 'Booked on $date';
+  }
+
+  @override
+  String get tripsInspectionCta => 'Vehicle inspection (AI)';
+
+  @override
   String get bookingPickDatesTitle => 'Select rental dates';
 
   @override

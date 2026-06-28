@@ -280,6 +280,18 @@
   "tripsCancel": "Cancel booking",
   "tripsCancelTitle": "Cancel this booking?",
   "tripsCancelConfirm": "Are you sure you want to cancel this booking?",
+  "tripsDetailTitle": "Trip details",
+  "tripsDetailSubtitle": "Full booking information",
+  "tripsBookedOn": "Booked on {date}",
+  "@tripsBookedOn": {
+    "description": "Date the booking was created",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tripsInspectionCta": "Vehicle inspection (AI)",
 
   "bookingPickDatesTitle": "Select rental dates",
   "bookingPickDatesSubtitle": "Choose the start and end times",

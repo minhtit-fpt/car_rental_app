@@ -3,6 +3,7 @@ import type { InspectionPhase } from "@prisma/client";
 import { AppError } from "@/lib/errors/app-error";
 import { bookingRepository } from "@/lib/repositories/booking.repository";
 import { inspectionRepository } from "@/lib/repositories/inspection.repository";
+import { notificationEvents } from "@/lib/services/notification.events";
 import { storage } from "@/lib/storage";
 import {
   vlmClient,
@@ -45,6 +46,18 @@ export interface DamageReportResult {
   afterPhotos: string[];
 }
 
+// Kết quả VLM soi 1 lượt (nhận/trả). null khi VLM lỗi/tắt → submit vẫn thành công.
+export interface PhaseFindings {
+  summary: string;
+  damageCount: number;
+}
+
+export interface SubmitInspectionResult {
+  phase: InspectionPhase;
+  photoCount: number;
+  findings: PhaseFindings | null;
+}
+
 // Tải đơn và xác nhận người gọi là một bên của đơn (người thuê HOẶC chủ xe).
 // Cả hai đều có mặt khi giao/trả xe nên đều được phép chụp ảnh kiểm tra.
 async function loadBookingParty(bookingId: string, userId: string) {
@@ -72,6 +85,41 @@ async function loadImages(photoKeys: string[]): Promise<InspectionImage[]> {
   );
 }
 
+// VLM soi 1 lượt kiểm tra → lưu findings + báo cả 2 bên nếu có hư hỏng.
+// ponytail: best-effort, chạy đồng bộ trong submit (VLM có thể tới ~120s). VLM/
+// storage lỗi KHÔNG được chặn việc lưu ảnh handover → trả null. Chuyển sang job
+// nền nếu submit chậm/đắt khi tải tăng.
+async function detectPhaseDamage(
+  bookingId: string,
+  renterId: string,
+  ownerId: string,
+  phase: InspectionPhase,
+  photoKeys: string[],
+): Promise<PhaseFindings | null> {
+  try {
+    const images = await loadImages(photoKeys);
+    const analysis = await vlmClient.detectDamage(images);
+    await inspectionRepository.updateFindings(
+      bookingId,
+      phase,
+      analysis.summary,
+      analysis.items,
+    );
+    if (analysis.items.length > 0) {
+      await notificationEvents.inspectionDamageFound({
+        bookingId,
+        renterId,
+        ownerId,
+        phase,
+        summary: analysis.summary,
+      });
+    }
+    return { summary: analysis.summary, damageCount: analysis.items.length };
+  } catch {
+    return null;
+  }
+}
+
 export const inspectionService = {
   // Cấp presigned PUT cho 1 ảnh. Key luôn nằm dưới prefix của đơn → submit về
   // sau kiểm tra quyền sở hữu.
@@ -88,12 +136,13 @@ export const inspectionService = {
   },
 
   // Lưu bộ ảnh đã upload cho một phase. Mọi key phải nằm dưới prefix của đơn.
+  // Sau khi lưu, VLM soi ngay lượt này → nếu có hư hỏng thì báo cả 2 bên.
   async submit(
     userId: string,
     bookingId: string,
     input: SubmitInspectionInput,
-  ): Promise<{ phase: InspectionPhase; photoCount: number }> {
-    await loadBookingParty(bookingId, userId);
+  ): Promise<SubmitInspectionResult> {
+    const booking = await loadBookingParty(bookingId, userId);
     const prefix = inspectionKeyPrefix(bookingId);
     for (const key of input.photoKeys) {
       if (!key.startsWith(prefix)) {
@@ -106,7 +155,14 @@ export const inspectionService = {
       input.photoKeys,
       userId,
     );
-    return { phase: record.phase, photoCount: record.photoKeys.length };
+    const findings = await detectPhaseDamage(
+      booking.id,
+      booking.renterId,
+      booking.vehicle.ownerId,
+      input.phase,
+      input.photoKeys,
+    );
+    return { phase: record.phase, photoCount: record.photoKeys.length, findings };
   },
 
   // So ảnh CHECKIN ↔ CHECKOUT bằng VLM → lưu báo cáo hư hỏng. Cần đủ cả hai bộ.

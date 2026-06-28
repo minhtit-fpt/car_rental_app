@@ -90,6 +90,7 @@ describe("PUT /api/bookings/[id]/inspections", () => {
     vi.mocked(inspectionService.submit).mockResolvedValue({
       phase: "CHECKOUT",
       photoCount: 2,
+      findings: { summary: "Không phát hiện hư hỏng", damageCount: 0 },
     });
     const res = await submitPUT(
       bodyReq("PUT", {

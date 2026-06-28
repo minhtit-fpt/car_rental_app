@@ -1,4 +1,5 @@
 import 'package:frontend/features/inspection/domain/entities/damage_report.dart';
+import 'package:frontend/features/inspection/domain/entities/inspection_finding.dart';
 
 /// Hợp đồng cho luồng kiểm tra xe (check-in/check-out) + báo cáo hư hỏng AI.
 abstract interface class InspectionRepository {
@@ -11,8 +12,9 @@ abstract interface class InspectionRepository {
     required String contentType,
   });
 
-  /// Lưu bộ ảnh đã upload cho một phase.
-  Future<void> submitInspection({
+  /// Lưu bộ ảnh đã upload cho một phase. Trả về kết quả VLM soi lượt này
+  /// (null nếu AI chưa chạy được).
+  Future<InspectionFinding?> submitInspection({
     required String bookingId,
     required String phase,
     required List<String> photoKeys,

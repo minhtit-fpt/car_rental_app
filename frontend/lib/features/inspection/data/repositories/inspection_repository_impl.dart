@@ -1,6 +1,7 @@
 import 'package:frontend/features/inspection/data/datasources/inspection_remote_datasource.dart';
 import 'package:frontend/features/inspection/data/models/damage_report_model.dart';
 import 'package:frontend/features/inspection/domain/entities/damage_report.dart';
+import 'package:frontend/features/inspection/domain/entities/inspection_finding.dart';
 import 'package:frontend/features/inspection/domain/repositories/inspection_repository.dart';
 
 class InspectionRepositoryImpl implements InspectionRepository {
@@ -29,15 +30,23 @@ class InspectionRepositoryImpl implements InspectionRepository {
   }
 
   @override
-  Future<void> submitInspection({
+  Future<InspectionFinding?> submitInspection({
     required String bookingId,
     required String phase,
     required List<String> photoKeys,
-  }) => _remote.submit(
-    bookingId: bookingId,
-    phase: phase,
-    photoKeys: photoKeys,
-  );
+  }) async {
+    final res = await _remote.submit(
+      bookingId: bookingId,
+      phase: phase,
+      photoKeys: photoKeys,
+    );
+    final findings = res['findings'];
+    if (findings is! Map<String, dynamic>) return null;
+    return InspectionFinding(
+      summary: (findings['summary'] as String?) ?? '',
+      damageCount: (findings['damageCount'] as num?)?.toInt() ?? 0,
+    );
+  }
 
   @override
   Future<DamageReport> analyzeDamage(String bookingId) async =>

@@ -6,6 +6,7 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/inspection/domain/entities/damage_report.dart';
+import 'package:frontend/features/inspection/domain/entities/inspection_finding.dart';
 import 'package:frontend/features/inspection/domain/repositories/inspection_repository.dart';
 import 'package:frontend/features/inspection/presentation/cubit/inspection_cubit.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
@@ -71,6 +72,8 @@ class _InspectionView extends StatelessWidget {
                           count: state.checkinCount,
                           onPick: cubit.pickCheckinPhotos,
                         ),
+                        if (state.checkinFinding != null)
+                          _FindingBanner(finding: state.checkinFinding!),
                         const SizedBox(height: 16),
                         _PhaseCard(
                           icon: Icons.logout_rounded,
@@ -80,6 +83,8 @@ class _InspectionView extends StatelessWidget {
                           count: state.checkoutCount,
                           onPick: cubit.pickCheckoutPhotos,
                         ),
+                        if (state.checkoutFinding != null)
+                          _FindingBanner(finding: state.checkoutFinding!),
                         const SizedBox(height: 20),
                         PrimaryButton(
                           label: state.isAnalyzing
@@ -111,6 +116,68 @@ class _InspectionView extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+/// Kết quả AI soi 1 lượt (nhận/trả): cảnh báo hư hỏng (cam) hoặc xác nhận sạch
+/// (xanh). Hiển thị ngay dưới phase card sau khi submit ảnh.
+class _FindingBanner extends StatelessWidget {
+  const _FindingBanner({required this.finding});
+
+  final InspectionFinding finding;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasDamage = finding.hasDamage;
+    final color = hasDamage ? AppColors.accent : AppColors.teal;
+    final title = hasDamage
+        ? 'AI phát hiện ${finding.damageCount} hư hỏng'
+        : 'AI: không phát hiện hư hỏng';
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withAlpha(26),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withAlpha(77)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            hasDamage ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+            size: 18,
+            color: color,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+                if (hasDamage && finding.summary.trim().isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    finding.summary,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.palette.secondaryText,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
