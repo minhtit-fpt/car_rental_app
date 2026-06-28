@@ -75,16 +75,16 @@ def _extract_bearer(authorization: str | None) -> str | None:
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
-    # Dựng index lúc khởi động (cần LM Studio). Lỗi → để None, /chat trả 503.
+    # Tải index lúc khởi động: từ cache nếu có, không thì build (cần LM Studio).
+    # Lỗi → để None, /chat trả 503.
     try:
         from app.embedder import LMStudioEmbedder
-        from app.index import build_index
-        from app.corpus import load_corpus
+        from app.index import build_default_index
         from app.llm import LMStudioChat
 
         settings = get_settings()
+        store = build_default_index(use_cache=True)
         embedder = LMStudioEmbedder.from_settings(settings)
-        store = build_index(load_corpus(settings.corpus_path), embedder)
         app.state.components = ChatComponents(
             embedder=embedder, store=store, llm=LMStudioChat.from_settings(settings)
         )

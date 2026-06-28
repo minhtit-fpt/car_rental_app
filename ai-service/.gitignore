@@ -3,6 +3,7 @@ __pycache__/
 .venv/
 venv/
 .env
-# Index nhị phân sinh ra khi build (embedding bge-m3) — không commit.
+# Index cache sinh ra khi build (embedding bge-m3) — không commit.
+data/index.pkl
 data/index/
 *.index

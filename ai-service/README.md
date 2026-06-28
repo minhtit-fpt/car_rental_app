@@ -43,10 +43,19 @@ pip install -r requirements.txt
 python3 -m pytest tests/ -q          # 35 test mock httpx (không cần LM Studio)
 
 # Khi đã bật LM Studio (Workstream A) + backend Next.js:
-python3 -m app.index                 # build index từ corpus qua bge-m3
-uvicorn app.main:app --reload --port 8001
+
+# Lần đầu: build + cache index (cần LM Studio chạy)
+python3 -m app.index                 # → lưu vào data/index.pkl
+
+# Chạy service (load từ cache, nhanh hơn build lại)
+# Port 8000 (backend Next.js chiếm 8001). --host 0.0.0.0 để máy thật cùng Wi-Fi
+# truy cập được; bỏ --host nếu chỉ chạy emulator/USB qua localhost.
+uvicorn app.main:app --reload --port 8000 --host 0.0.0.0
 # POST /chat  {"message": "...", "history": [], "stream": true}
 #   header tùy chọn: Authorization: Bearer <jwt>  (cho get_my_bookings)
+
+# Nếu đổi embedding model → rebuild cache (lỗi chiều vector)
+python3 -m app.index --rebuild       # force rebuild + save cache mới
 ```
 
 ## Trạng thái plan B
@@ -54,7 +63,8 @@ uvicorn app.main:app --reload --port 8001
 - [x] **B4** — corpus `data/corpus_vi.jsonl` **62 chunk** + `keywords`; categories: thông số
       dòng xe, nhận/trả xe, hủy theo bậc, phạt nguội, sạc EV, giao xe, bảo hiểm, FAQ.
 - [x] **B2** — `embedder.py` gọi LM Studio bge-m3 + `index.py` build index
-      (⚠ đổi embedding model → BẮT BUỘC rebuild index).
+      (⚠ đổi embedding model → chạy `python3 -m app.index --rebuild` để cache mới).
+      **+ Caching**: lưu index vào `data/index.pkl` → reuse, tránh embed lại mỗi khởi động.
 - [x] **B3** — `llm.py` (Qwen `/v1/chat/completions`, non-stream + SSE) + `chat_engine.py`
       (RAG retrieval + vòng tool-calling, format OpenAI messages).
 - [x] **B5** — `tools.py`: `search_available_vehicles`, `get_vehicle_price` (qua endpoint

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  CHI AP DUNG CHO BAN DEBUG (flutter run / debug build).
+
+  Tai nguyen cung ten trong build-type "debug" se ghi de ban o src/main, nen
+  AndroidManifest van tro @xml/network_security_config nhu cu; ban release tu
+  dung file strict o src/main (chi cho cleartext toi 10.0.2.2 va localhost).
+
+  Mo cleartext cho moi host khi debug => chay duoc tren may that cung Wi-Fi voi
+  IP LAN bat ky (vd 192.168.0.x) ma khong can hardcode IP. Khong lot ra release.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
