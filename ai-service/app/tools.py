@@ -22,6 +22,24 @@ from app.config import Settings, get_settings
 
 _DEFAULT_TIMEOUT = 30.0
 
+# Giá niêm yết hiện tại là giá NGÀY: cột DB `pricePerHour` đang giữ giá theo giờ,
+# quy ước 1 ngày = 24 giờ → giá ngày = pricePerHour × 24. Tính sẵn để LLM khỏi
+# tự làm toán (hay chia sai). ponytail: bỏ phép nhân này khi DB có cột giá ngày riêng.
+_HOURS_PER_DAY = 24
+
+
+def _with_daily_price(vehicles: Any) -> Any:
+    """Gắn `pricePerDay` (VND/ngày) cho mỗi xe từ `pricePerHour`."""
+    if not isinstance(vehicles, list):
+        return vehicles
+    out = []
+    for v in vehicles:
+        if isinstance(v, dict) and isinstance(v.get("pricePerHour"), (int, float)):
+            out.append({**v, "pricePerDay": round(v["pricePerHour"] * _HOURS_PER_DAY)})
+        else:
+            out.append(v)
+    return out
+
 
 def _unwrap(resp: httpx.Response) -> Any:
     """Bóc envelope chuẩn {success, data} | {success, error}. Trả dict lỗi nếu fail."""
@@ -78,7 +96,10 @@ class BackendToolClient:
         data = _unwrap(self._client.get("/api/vehicles", params=params))
         if isinstance(data, dict) and "error" in data:
             return data
-        return {"vehicles": data}
+        # /api/vehicles trả {items, total}; bóc `items` ra để LLM thấy thẳng danh
+        # sách xe (kèm pricePerHour) thay vì object lồng → tránh bịa giá.
+        vehicles = data["items"] if isinstance(data, dict) and "items" in data else data
+        return {"vehicles": _with_daily_price(vehicles)}
 
     def get_vehicle_price(self, vehicle_id: str, start_time: str, end_time: str) -> dict:
         data = _unwrap(
@@ -111,7 +132,7 @@ TOOL_SPECS: list[dict] = [
         "type": "function",
         "function": {
             "name": "search_available_vehicles",
-            "description": "Tìm xe đang cho thuê theo loại và khoảng giá. Trả về danh sách xe kèm giá gốc từ DB.",
+            "description": "Tìm xe đang cho thuê theo loại và khoảng giá. Trả về mảng xe; mỗi xe có 'pricePerDay' là GIÁ THUÊ THEO NGÀY (VND/ngày) — đây là giá niêm yết phải báo cho khách. Báo đúng con số 'pricePerDay', KHÔNG dùng 'pricePerHour' và KHÔNG tự quy đổi.",
             "parameters": {
                 "type": "object",
                 "properties": {

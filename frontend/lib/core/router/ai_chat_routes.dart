@@ -8,8 +8,10 @@ import 'package:frontend/features/ai_chat/presentation/screens/ai_chat_screen.da
 final aiChatRoutes = [
   GoRoute(
     path: '/ai-chat',
-    builder: (context, state) => BlocProvider(
-      create: (_) => sl<AiChatCubit>(),
+    // .value: cubit là singleton (giữ hội thoại qua điều hướng), không tạo mới
+    // mỗi lần vào route và không bị đóng khi rời màn.
+    builder: (context, state) => BlocProvider.value(
+      value: sl<AiChatCubit>(),
       child: const AiChatScreen(),
     ),
   ),

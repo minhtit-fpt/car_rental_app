@@ -86,4 +86,27 @@ void main() {
     expect(repo.capturedHistory!.last.content, 'ok');
     await cubit.close();
   });
+
+  test('startNewChat xoá sạch hội thoại', () async {
+    repo.deltas = ['ok'];
+    final cubit = build();
+    await cubit.send('câu 1');
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    expect(cubit.state.messages, isNotEmpty);
+    cubit.startNewChat();
+    expect(cubit.state.messages, isEmpty);
+    await cubit.close();
+  });
+
+  test('history gửi đi cắt còn tối đa 10 tin gần nhất', () async {
+    repo.deltas = ['ok'];
+    final cubit = build();
+    // 6 lượt hỏi-đáp = 12 tin hoàn tất trước lượt thứ 7.
+    for (var i = 0; i < 7; i++) {
+      await cubit.send('câu $i');
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(repo.capturedHistory!.length, 10);
+    await cubit.close();
+  });
 }

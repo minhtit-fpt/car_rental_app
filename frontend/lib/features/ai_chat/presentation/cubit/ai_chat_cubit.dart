@@ -17,12 +17,45 @@ class AiChatCubit extends Cubit<AiChatState> {
   final StreamAiReplyUseCase _streamReply;
   StreamSubscription<String>? _sub;
 
+  /// Cubit là singleton (sống qua điều hướng) nên hội thoại được giữ khi thoát
+  /// màn chat. Quá [_retentionWindow] kể từ lượt cuối → coi như phiên cũ, tự xoá
+  /// khi mở lại. ponytail: chỉ giữ trong RAM, không bền qua khi tắt app.
+  static const _retentionWindow = Duration(minutes: 10);
+
+  /// Số tin gần nhất gửi kèm làm ngữ cảnh cho LLM (~5 lượt hỏi-đáp). Cắt bớt để
+  /// không vượt cửa sổ ngữ cảnh của model local (đang để 8192 token).
+  static const _maxHistoryMessages = 10;
+
+  DateTime? _lastActivityAt;
+
+  /// Gọi khi mở lại màn chat: xoá hội thoại nếu đã quá [_retentionWindow].
+  void resumeOrReset() {
+    final last = _lastActivityAt;
+    if (last != null &&
+        DateTime.now().difference(last) > _retentionWindow &&
+        !state.isStreaming) {
+      startNewChat();
+    }
+  }
+
+  /// Bắt đầu hội thoại mới (nút reset trên màn chat).
+  void startNewChat() {
+    _sub?.cancel();
+    _lastActivityAt = null;
+    emit(const AiChatState());
+  }
+
   Future<void> send(String text) async {
     final message = text.trim();
     if (message.isEmpty || state.isStreaming) return;
+    _lastActivityAt = DateTime.now();
 
-    // Lịch sử = các lượt đã hoàn tất trước khi thêm lượt mới.
-    final history = List<ChatMessage>.unmodifiable(state.messages);
+    // Lịch sử = các lượt đã hoàn tất, cắt còn [_maxHistoryMessages] tin gần nhất.
+    final completed = state.messages;
+    final recent = completed.length > _maxHistoryMessages
+        ? completed.sublist(completed.length - _maxHistoryMessages)
+        : completed;
+    final history = List<ChatMessage>.unmodifiable(recent);
     final withUser = [
       ...state.messages,
       ChatMessage(role: ChatRole.user, content: message),
@@ -48,6 +81,7 @@ class AiChatCubit extends Cubit<AiChatState> {
         } else {
           _updateLastAssistant(finalText, isStreaming: false);
         }
+        _lastActivityAt = DateTime.now();
         emit(state.copyWith(isStreaming: false));
       },
       cancelOnError: true,
