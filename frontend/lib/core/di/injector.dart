@@ -95,7 +95,6 @@ import 'package:frontend/features/kyc/domain/usecases/get_kyc_status_usecase.dar
 import 'package:frontend/features/kyc/domain/usecases/submit_kyc_usecase.dart';
 import 'package:frontend/features/kyc/domain/usecases/upload_kyc_document_usecase.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_status_cubit.dart';
-import 'package:frontend/core/notifications/local_notification_service.dart';
 import 'package:frontend/features/kyc/presentation/cubit/kyc_upload_cubit.dart';
 import 'package:frontend/features/notification/data/datasources/notification_remote_datasource.dart';
 import 'package:frontend/features/notification/data/repositories/notification_repository_impl.dart';

@@ -16,7 +16,7 @@ class NotificationDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final info = _typeInfo(context, notif.type);
-    final bookingId = notif.bookingId;
+    final bookingId = notif.payload?['bookingId'];
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,

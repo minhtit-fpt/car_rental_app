@@ -4,6 +4,9 @@ import 'package:frontend/features/booking/domain/entities/booking.dart';
 import 'package:frontend/features/booking/domain/repositories/booking_repository.dart';
 import 'package:frontend/features/booking/domain/usecases/create_booking_usecase.dart';
 import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart';
+import 'package:frontend/features/vehicle/domain/entities/price_quote.dart';
+import 'package:frontend/features/vehicle/domain/repositories/vehicle_repository.dart';
+import 'package:frontend/features/vehicle/domain/usecases/get_price_quote_usecase.dart';
 
 Booking _booking(String id) => Booking(
   id: id,
@@ -46,8 +49,30 @@ class _FakeBookingRepository implements BookingRepository {
   Future<Booking> cancelBooking(String id) async => _booking(id);
 }
 
-BookingCubit _cubit(_FakeBookingRepository repo) =>
-    BookingCubit(createBooking: CreateBookingUseCase(repo));
+class _StubVehicleRepository implements VehicleRepository {
+  @override
+  Future<PriceQuote> getPriceQuote({
+    required String vehicleId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) async =>
+      const PriceQuote(
+        basePricePerHour: 50000,
+        hours: 1,
+        basePrice: 50000,
+        factors: [],
+        finalPrice: 50000,
+        currency: 'VND',
+      );
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
+}
+
+BookingCubit _cubit(_FakeBookingRepository repo) => BookingCubit(
+      createBooking: CreateBookingUseCase(repo),
+      getPriceQuote: GetPriceQuoteUseCase(_StubVehicleRepository()),
+    );
 
 void main() {
   group('BookingCubit.confirmBooking — chống đặt trùng', () {
