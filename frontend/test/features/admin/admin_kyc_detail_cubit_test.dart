@@ -12,12 +12,20 @@ import 'package:frontend/features/admin/domain/entities/admin_booking_detail.dar
 import 'package:frontend/features/admin/domain/entities/admin_booking_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_risk_item.dart';
 import 'package:frontend/features/admin/domain/repositories/admin_repository.dart';
+import 'package:frontend/features/admin/domain/entities/admin_analytics_answer.dart';
+import 'package:frontend/features/admin/domain/entities/admin_dispute_analysis.dart';
 import 'package:frontend/features/admin/domain/usecases/get_kyc_documents_usecase.dart';
 import 'package:frontend/features/admin/domain/usecases/review_kyc_usecase.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_kyc_detail_cubit.dart';
 
 /// Fake cấu hình được — chỉ hiện thực 2 method KYC detail cần.
 class _FakeAdminRepository implements AdminRepository {
+  @override
+  Future<({String? explanation, String? aiError})> explainRisk(String userId) => throw UnimplementedError();
+  @override
+  Future<DisputeAnalysis> analyzeDispute(String id) => throw UnimplementedError();
+  @override
+  Future<AnalyticsAnswer> askAnalytics(String question) => throw UnimplementedError();
   @override
   Future<List<AdminRiskItem>> listRiskFlags() => throw UnimplementedError();
   @override

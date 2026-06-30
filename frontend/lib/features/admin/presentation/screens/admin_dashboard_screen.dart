@@ -360,6 +360,8 @@ class _DashboardTab extends StatelessWidget {
         const SizedBox(height: 16),
         const _RiskAlertCard(),
         const SizedBox(height: 16),
+        const _AnalyticsCard(),
+        const SizedBox(height: 16),
         _DisputesCard(),
         const SizedBox(height: 16),
         _RecentUsersCard(onSeeAll: () => onTabChanged(2)),
@@ -482,6 +484,68 @@ class _RiskAlertCard extends StatelessWidget {
                   SizedBox(height: 2),
                   Text(
                     'Tài khoản bị cờ gian lận (rule-engine)',
+                    style: TextStyle(color: AppColors.adminMuted, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.adminMuted,
+              size: 22,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AnalyticsCard extends StatelessWidget {
+  const _AnalyticsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/admin/analytics'),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.adminSurface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.adminBorder),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.accent.withAlpha(38),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.insights_rounded,
+                color: AppColors.accent,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hỏi đáp số liệu',
+                    style: TextStyle(
+                      color: AppColors.adminText,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Hỏi nhanh số liệu bằng ngôn ngữ tự nhiên (AI)',
                     style: TextStyle(color: AppColors.adminMuted, fontSize: 12),
                   ),
                 ],

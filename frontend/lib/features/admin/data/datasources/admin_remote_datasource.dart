@@ -103,6 +103,27 @@ class AdminRemoteDataSource {
     return data as List<dynamic>;
   }
 
+  /// 5b-tail: AI giải thích vì sao user bị cờ rủi ro. Trả {explanation, aiError}.
+  Future<Map<String, dynamic>> explainRisk(String userId) async {
+    final data = await _client.post('/api/admin/risk/$userId/explain');
+    return data as Map<String, dynamic>;
+  }
+
+  /// Phase 4: trợ lý AI phân tích tranh chấp. Trả {facts, anchoredRefund, ai, aiError}.
+  Future<Map<String, dynamic>> analyzeDispute(String id) async {
+    final data = await _client.post('/api/admin/disputes/$id/analyze');
+    return data as Map<String, dynamic>;
+  }
+
+  /// Phase 5a: hỏi đáp số liệu. Trả {templateKey, answer, data}.
+  Future<Map<String, dynamic>> askAnalytics(String question) async {
+    final data = await _client.post(
+      '/api/admin/analytics',
+      data: {'question': question},
+    );
+    return data as Map<String, dynamic>;
+  }
+
   /// Danh sách đơn — phần `items` của envelope phân trang. Lọc tuỳ chọn theo
   /// trạng thái + khoảng ngày (ISO).
   Future<List<dynamic>> bookings({

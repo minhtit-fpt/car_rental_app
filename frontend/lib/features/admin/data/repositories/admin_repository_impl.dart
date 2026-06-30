@@ -9,6 +9,8 @@ import 'package:frontend/features/admin/data/models/admin_risk_item_model.dart';
 import 'package:frontend/features/admin/data/models/admin_vehicle_item_model.dart';
 import 'package:frontend/features/admin/data/models/admin_stats_model.dart';
 import 'package:frontend/features/admin/data/models/admin_user_item_model.dart';
+import 'package:frontend/features/admin/domain/entities/admin_analytics_answer.dart';
+import 'package:frontend/features/admin/domain/entities/admin_dispute_analysis.dart';
 import 'package:frontend/features/admin/domain/entities/admin_booking_detail.dart';
 import 'package:frontend/features/admin/domain/entities/admin_booking_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_dispute_item.dart';
@@ -151,5 +153,61 @@ class AdminRepositoryImpl implements AdminRepository {
     return items
         .map((e) => AdminRiskItemModel.fromJson(e as Map<String, dynamic>))
         .toList(growable: false);
+  }
+
+  @override
+  Future<({String? explanation, String? aiError})> explainRisk(
+    String userId,
+  ) async {
+    final json = await _remote.explainRisk(userId);
+    return (
+      explanation: json['explanation'] as String?,
+      aiError: json['aiError'] as String?,
+    );
+  }
+
+  @override
+  Future<DisputeAnalysis> analyzeDispute(String id) async {
+    final json = await _remote.analyzeDispute(id);
+    final f = json['facts'] as Map<String, dynamic>;
+    final aiJson = json['ai'] as Map<String, dynamic>?;
+    return DisputeAnalysis(
+      anchoredRefund: (json['anchoredRefund'] as num).toDouble(),
+      aiError: json['aiError'] as String?,
+      facts: DisputeFacts(
+        raisedByRole: f['raisedByRole'] as String,
+        bookingStatus: f['bookingStatus'] as String,
+        vehicleTitle: f['vehicleTitle'] as String,
+        paymentStatus: f['paymentStatus'] as String?,
+        paidAmount: (f['paidAmount'] as num?)?.toDouble(),
+        contractSigned: f['contractSigned'] as bool,
+        hasCheckin: f['hasCheckin'] as bool,
+        hasCheckout: f['hasCheckout'] as bool,
+        damageSummary: f['damageSummary'] as String?,
+        estimatedCost: (f['estimatedCost'] as num).toInt(),
+        messageCount: (f['messageCount'] as num).toInt(),
+      ),
+      ai: aiJson == null
+          ? null
+          : DisputeAi(
+              summary: aiJson['summary'] as String? ?? '',
+              timeline: ((aiJson['timeline'] as List<dynamic>?) ?? const [])
+                  .map((e) => e as String)
+                  .toList(growable: false),
+              faultParty: aiJson['faultParty'] as String? ?? 'unclear',
+              confidence: aiJson['confidence'] as String? ?? 'low',
+              recommendation: aiJson['recommendation'] as String? ?? '',
+            ),
+    );
+  }
+
+  @override
+  Future<AnalyticsAnswer> askAnalytics(String question) async {
+    final json = await _remote.askAnalytics(question);
+    return AnalyticsAnswer(
+      answer: json['answer'] as String,
+      templateKey: json['templateKey'] as String?,
+      data: json['data'],
+    );
   }
 }

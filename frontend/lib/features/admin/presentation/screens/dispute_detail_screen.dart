@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/admin/domain/entities/admin_dispute_analysis.dart';
 import 'package:frontend/features/admin/domain/entities/admin_dispute_item.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_dispute_detail_cubit.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
@@ -51,6 +52,8 @@ class DisputeDetailScreen extends StatelessWidget {
                         _DisputeHeaderCard(item: item),
                         const SizedBox(height: 16),
                         _DisputeInfoCard(item: item),
+                        const SizedBox(height: 16),
+                        _AiAssistantPanel(state: state, bookingId: item?.bookingId),
                         const SizedBox(height: 20),
                         _DisputeActionButtons(
                           submitting: state.submitting,
@@ -362,6 +365,210 @@ Future<String?> _showNoteDialog(
             'Xác nhận',
             style: TextStyle(
               color: isResolve ? AppColors.success : AppColors.danger,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+String _money(num v) {
+  final s = v.round().toString();
+  final buf = StringBuffer();
+  for (var i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
+    buf.write(s[i]);
+  }
+  buf.write('đ');
+  return buf.toString();
+}
+
+/// Phase 4 — panel trợ lý AI (advisory). Hiện nút phân tích; sau khi có kết quả
+/// hiển thị fact cứng + mức hoàn tiền NEO + suy luận AI (hoặc thông báo offline).
+/// Nút "Áp dụng → Hoàn tiền" chỉ điều hướng sang luồng Phase 3 (admin vẫn confirm).
+class _AiAssistantPanel extends StatelessWidget {
+  const _AiAssistantPanel({required this.state, required this.bookingId});
+  final AdminDisputeDetailState state;
+  final String? bookingId;
+
+  @override
+  Widget build(BuildContext context) {
+    final analysis = state.analysis;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.adminCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.adminBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.auto_awesome_rounded,
+                  color: AppColors.accent, size: 18),
+              SizedBox(width: 8),
+              Text(
+                'Trợ lý AI',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.adminText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Tổng hợp ngữ cảnh để tham khảo. Mọi quyết định do admin thực hiện.',
+            style: TextStyle(fontSize: 11, color: AppColors.adminMuted),
+          ),
+          const SizedBox(height: 12),
+          if (analysis == null) ...[
+            SecondaryButton(
+              label: state.analyzing ? 'Đang phân tích…' : 'Phân tích bằng AI',
+              icon: Icons.psychology_alt_rounded,
+              onPressed: state.analyzing
+                  ? null
+                  : () => context.read<AdminDisputeDetailCubit>().analyze(),
+            ),
+            if (state.analyzeError != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                state.analyzeError!,
+                style: const TextStyle(fontSize: 12, color: AppColors.danger),
+              ),
+            ],
+          ] else
+            _AnalysisBody(analysis: analysis, bookingId: bookingId),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnalysisBody extends StatelessWidget {
+  const _AnalysisBody({required this.analysis, required this.bookingId});
+  final DisputeAnalysis analysis;
+  final String? bookingId;
+
+  @override
+  Widget build(BuildContext context) {
+    final f = analysis.facts;
+    final ai = analysis.ai;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fact('Bên khiếu nại', f.raisedByRole),
+        _fact('Hợp đồng đã ký', f.contractSigned ? 'Có' : 'Chưa'),
+        _fact('Thanh toán',
+            f.paymentStatus == null ? 'Chưa có' : f.paymentStatus!),
+        _fact('Ảnh nhận/trả',
+            '${f.hasCheckin ? "✓" : "✗"} / ${f.hasCheckout ? "✓" : "✗"}'),
+        _fact('Hư hỏng', f.damageSummary ?? 'Không có'),
+        _fact('Chi phí ước tính', _money(f.estimatedCost)),
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.accent.withAlpha(26),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Mức hoàn tiền đề xuất (neo theo chi phí hư hỏng)',
+                style: TextStyle(fontSize: 11, color: AppColors.adminMuted),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                _money(analysis.anchoredRefund),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.accent,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (ai == null)
+          Text(
+            analysis.aiError ?? 'Chưa phân tích được bằng AI.',
+            style: const TextStyle(fontSize: 12, color: AppColors.warning),
+          )
+        else ...[
+          Text(
+            ai.summary,
+            style: const TextStyle(fontSize: 13, color: AppColors.adminText),
+          ),
+          const SizedBox(height: 8),
+          if (ai.timeline.isNotEmpty)
+            ...ai.timeline.map(
+              (t) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  '• $t',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.adminMuted),
+                ),
+              ),
+            ),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 8,
+            children: [
+              StatusChip(
+                label: 'Lỗi: ${ai.faultParty}',
+                color: AppColors.warning,
+              ),
+              StatusChip(
+                label: 'Tin cậy: ${ai.confidence}',
+                color: AppColors.adminMuted,
+              ),
+            ],
+          ),
+          if (ai.recommendation.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Đề xuất: ${ai.recommendation}',
+              style: const TextStyle(fontSize: 12, color: AppColors.adminText),
+            ),
+          ],
+        ],
+        if (bookingId != null) ...[
+          const SizedBox(height: 12),
+          SecondaryButton(
+            label: 'Áp dụng → Hoàn tiền',
+            icon: Icons.payments_outlined,
+            onPressed: () => context.push('/admin/booking/$bookingId'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _fact(String label, String value) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 12, color: AppColors.adminMuted)),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.adminText,
             ),
           ),
         ),

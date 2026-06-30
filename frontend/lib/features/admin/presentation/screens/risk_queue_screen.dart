@@ -55,7 +55,11 @@ class RiskQueueScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               itemCount: items.length,
               separatorBuilder: (_, _) => const SizedBox(height: 12),
-              itemBuilder: (context, i) => _RiskCard(item: items[i]),
+              itemBuilder: (context, i) => _RiskCard(
+                item: items[i],
+                explanation: state.explanations[items[i].userId],
+                explaining: state.explainingUserId == items[i].userId,
+              ),
             ),
           },
         ),
@@ -65,9 +69,17 @@ class RiskQueueScreen extends StatelessWidget {
 }
 
 class _RiskCard extends StatelessWidget {
-  const _RiskCard({required this.item});
+  const _RiskCard({
+    required this.item,
+    this.explanation,
+    this.explaining = false,
+  });
 
   final AdminRiskItem item;
+
+  /// 5b-tail: lời giải thích AI (null = chưa yêu cầu).
+  final String? explanation;
+  final bool explaining;
 
   @override
   Widget build(BuildContext context) {
@@ -145,6 +157,54 @@ class _RiskCard extends StatelessWidget {
                 )
                 .toList(),
           ),
+          const SizedBox(height: 10),
+          if (explanation != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withAlpha(26),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.auto_awesome_rounded,
+                      color: AppColors.accent, size: 14),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      explanation!,
+                      style: const TextStyle(
+                          color: AppColors.adminText, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: explaining
+                    ? null
+                    : () => context.read<AdminRiskCubit>().explain(item.userId),
+                icon: explaining
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: AppColors.accent),
+                      )
+                    : const Icon(Icons.auto_awesome_rounded,
+                        size: 14, color: AppColors.accent),
+                label: Text(
+                  explaining ? 'Đang tạo…' : 'Giải thích bằng AI',
+                  style: const TextStyle(
+                      color: AppColors.accent, fontSize: 12),
+                ),
+              ),
+            ),
         ],
       ),
     );

@@ -1,5 +1,7 @@
 import 'package:frontend/features/admin/domain/entities/admin_booking_detail.dart';
 import 'package:frontend/features/admin/domain/entities/admin_booking_item.dart';
+import 'package:frontend/features/admin/domain/entities/admin_analytics_answer.dart';
+import 'package:frontend/features/admin/domain/entities/admin_dispute_analysis.dart';
 import 'package:frontend/features/admin/domain/entities/admin_dispute_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_kyc_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_metrics.dart';
@@ -73,4 +75,13 @@ abstract interface class AdminRepository {
 
   /// Hàng đợi tài khoản bị cờ rủi ro (đã xếp điểm giảm dần).
   Future<List<AdminRiskItem>> listRiskFlags();
+
+  /// 5b-tail: AI giải thích vì sao user bị cờ. `explanation` null khi offline.
+  Future<({String? explanation, String? aiError})> explainRisk(String userId);
+
+  /// Phase 4: trợ lý AI phân tích một tranh chấp (advisory).
+  Future<DisputeAnalysis> analyzeDispute(String id);
+
+  /// Phase 5a: hỏi đáp số liệu bằng ngôn ngữ tự nhiên.
+  Future<AnalyticsAnswer> askAnalytics(String question);
 }

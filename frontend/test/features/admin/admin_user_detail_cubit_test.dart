@@ -12,11 +12,19 @@ import 'package:frontend/features/admin/domain/entities/admin_booking_detail.dar
 import 'package:frontend/features/admin/domain/entities/admin_booking_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_risk_item.dart';
 import 'package:frontend/features/admin/domain/repositories/admin_repository.dart';
+import 'package:frontend/features/admin/domain/entities/admin_analytics_answer.dart';
+import 'package:frontend/features/admin/domain/entities/admin_dispute_analysis.dart';
 import 'package:frontend/features/admin/domain/usecases/update_user_role_usecase.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_user_detail_cubit.dart';
 
 /// Fake chỉ hiện thực updateUserRole; method khác không dùng → ném.
 class _FakeAdminRepository implements AdminRepository {
+  @override
+  Future<({String? explanation, String? aiError})> explainRisk(String userId) => throw UnimplementedError();
+  @override
+  Future<DisputeAnalysis> analyzeDispute(String id) => throw UnimplementedError();
+  @override
+  Future<AnalyticsAnswer> askAnalytics(String question) => throw UnimplementedError();
   @override
   Future<List<AdminRiskItem>> listRiskFlags() => throw UnimplementedError();
   @override
