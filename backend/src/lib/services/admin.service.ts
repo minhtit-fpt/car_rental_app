@@ -2,18 +2,29 @@ import { DisputeStatus, UserRole, VehicleApprovalStatus } from "@prisma/client";
 import type {
   BookingStatus,
   DisputePriority,
+  InspectionPhase,
   KycStatus,
   PaymentMethod,
+  PaymentStatus,
   VehicleType,
 } from "@prisma/client";
+import { PaymentStatus as PaymentStatusEnum } from "@prisma/client";
 import { adminRepository } from "@/lib/repositories/admin.repository";
 import { notificationService } from "@/lib/services/notification.service";
+import {
+  RISK_FLAG_MIN_SCORE,
+  scoreRisk,
+  type RiskReason,
+  type RiskTier,
+} from "@/lib/services/risk.scoring";
 import { AppError } from "@/lib/errors/app-error";
 import type {
+  ListBookingsInput,
   ListDisputesInput,
   ListKycInput,
   ListUsersInput,
   ListVehiclesInput,
+  RefundPaymentInput,
   ResolveDisputeInput,
   ReviewVehicleInput,
   UpdateUserRoleInput,
@@ -95,6 +106,56 @@ export interface AdminVehicleItem {
   rejectionReason: string | null;
   createdAt: string;
   owner: { id: string; phone: string; email: string | null };
+}
+
+export interface AdminBookingItem {
+  id: string;
+  vehicleTitle: string;
+  status: BookingStatus;
+  totalPrice: number;
+  startTime: string;
+  endTime: string;
+  createdAt: string;
+  paymentStatus: PaymentStatus | null;
+}
+
+export interface AdminBookingDetail {
+  id: string;
+  status: BookingStatus;
+  startTime: string;
+  endTime: string;
+  totalPrice: number;
+  deliveryRequested: boolean;
+  createdAt: string;
+  vehicle: { id: string; title: string; type: VehicleType };
+  renter: { id: string; phone: string; email: string | null };
+  payment: {
+    method: PaymentMethod;
+    status: PaymentStatus;
+    amount: number;
+    gatewayRef: string | null;
+    paidAt: string | null;
+  } | null;
+  contract: { pdfUrl: string; signedAt: string | null } | null;
+  inspections: { phase: InspectionPhase; photoCount: number; createdAt: string }[];
+  disputes: {
+    id: string;
+    title: string;
+    status: DisputeStatus;
+    priority: DisputePriority;
+    createdAt: string;
+  }[];
+  damageReport: { summary: string; estimatedCost: number } | null;
+}
+
+export interface AdminRiskItem {
+  userId: string;
+  phone: string;
+  email: string | null;
+  roles: UserRole[];
+  score: number;
+  tier: RiskTier;
+  reasons: RiskReason[];
 }
 
 export interface AdminKycItem {
@@ -444,6 +505,162 @@ export const adminService = {
     });
 
     return updated;
+  },
+
+  async listBookings(
+    input: ListBookingsInput,
+  ): Promise<Paginated<AdminBookingItem>> {
+    const skip = (input.page - 1) * input.limit;
+    const [rows, total] = await adminRepository.findBookings({
+      status: input.status,
+      from: input.from,
+      to: input.to,
+      skip,
+      take: input.limit,
+    });
+    return {
+      items: rows.map((b) => ({
+        id: b.id,
+        vehicleTitle: b.vehicle.title,
+        status: b.status,
+        totalPrice: b.totalPrice.toNumber(),
+        startTime: b.startTime.toISOString(),
+        endTime: b.endTime.toISOString(),
+        createdAt: b.createdAt.toISOString(),
+        paymentStatus: b.payment?.status ?? null,
+      })),
+      total,
+      page: input.page,
+      limit: input.limit,
+    };
+  },
+
+  async getBookingDetail(id: string): Promise<AdminBookingDetail> {
+    const b = await adminRepository.findBookingDetail(id);
+    if (!b) {
+      throw new AppError(404, "BOOKING_NOT_FOUND", "Không tìm thấy đơn");
+    }
+    return {
+      id: b.id,
+      status: b.status,
+      startTime: b.startTime.toISOString(),
+      endTime: b.endTime.toISOString(),
+      totalPrice: b.totalPrice.toNumber(),
+      deliveryRequested: b.deliveryRequested,
+      createdAt: b.createdAt.toISOString(),
+      vehicle: b.vehicle,
+      renter: b.renter,
+      payment: b.payment
+        ? {
+            method: b.payment.method,
+            status: b.payment.status,
+            amount: b.payment.amount.toNumber(),
+            gatewayRef: b.payment.gatewayRef,
+            paidAt: b.payment.paidAt?.toISOString() ?? null,
+          }
+        : null,
+      contract: b.contract
+        ? {
+            pdfUrl: b.contract.pdfUrl,
+            signedAt: b.contract.signedAt?.toISOString() ?? null,
+          }
+        : null,
+      // photoKeys là object key bucket private → chỉ lộ số lượng, không lộ key.
+      inspections: b.inspections.map((i) => ({
+        phase: i.phase,
+        photoCount: i.photoKeys.length,
+        createdAt: i.createdAt.toISOString(),
+      })),
+      disputes: b.disputes.map((d) => ({
+        id: d.id,
+        title: d.title,
+        status: d.status,
+        priority: d.priority,
+        createdAt: d.createdAt.toISOString(),
+      })),
+      damageReport: b.damageReport,
+    };
+  },
+
+  // ADMIN hoàn tiền: đánh dấu Payment REFUNDED + audit + báo người thuê. Chỉ
+  // hoàn được payment đã PAID; amount phải ≤ số đã trả. KHÔNG gọi cổng thật.
+  async refundPayment(
+    adminId: string,
+    bookingId: string,
+    input: RefundPaymentInput,
+  ): Promise<{ bookingId: string; status: PaymentStatus; amount: number }> {
+    const booking = await adminRepository.findBookingForRefund(bookingId);
+    if (!booking) {
+      throw new AppError(404, "BOOKING_NOT_FOUND", "Không tìm thấy đơn");
+    }
+    if (!booking.payment) {
+      throw new AppError(409, "NO_PAYMENT", "Đơn chưa có thanh toán");
+    }
+    if (booking.payment.status !== PaymentStatusEnum.PAID) {
+      throw new AppError(
+        409,
+        "PAYMENT_NOT_REFUNDABLE",
+        "Chỉ hoàn được thanh toán đã thanh toán thành công",
+      );
+    }
+    if (input.amount > booking.payment.amount.toNumber()) {
+      throw new AppError(
+        400,
+        "INVALID_REFUND_AMOUNT",
+        "Số tiền hoàn vượt quá số tiền đã thanh toán",
+      );
+    }
+
+    const updated = await adminRepository.refundPayment(
+      bookingId,
+      input.amount,
+      adminId,
+      input.reason,
+    );
+
+    await notificationService.notify({
+      userId: booking.renterId,
+      type: "PAYMENT",
+      title: "Đơn của bạn đã được hoàn tiền",
+      body: `Đã hoàn ${input.amount.toLocaleString("vi-VN")}đ. Lý do: ${input.reason}`,
+    });
+
+    return { bookingId, status: updated.status, amount: input.amount };
+  },
+
+  // Hàng đợi rủi ro: chấm điểm mọi user qua rule-engine, chỉ giữ tier ≥ MEDIUM,
+  // xếp điểm giảm dần. Lời giải thích = các rule đã kích hoạt (explainable).
+  async listRiskFlags(): Promise<AdminRiskItem[]> {
+    const rows = await adminRepository.getUserRiskFacts();
+    const now = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    return rows
+      .map((r) => {
+        const result = scoreRisk({
+          accountAgeDays: Math.floor((now - r.createdAt.getTime()) / dayMs),
+          totalBookings: r.total_bookings,
+          cancelledBookings: r.cancelled,
+          completedBookings: r.completed,
+          maxBookingValue: r.max_value,
+          failedPayments: r.failed,
+          selfRentals: r.self_rentals,
+          ownedBookings: r.owned_total,
+          ownedCompleted: r.owned_completed,
+          roles: r.roles,
+        });
+        return {
+          userId: r.id,
+          phone: r.phone,
+          email: r.email,
+          roles: r.roles,
+          score: result.score,
+          tier: result.tier,
+          reasons: result.reasons,
+        };
+      })
+      .filter((x) => x.score >= RISK_FLAG_MIN_SCORE)
+      .sort((a, b) => b.score - a.score);
   },
 
   async listKyc(input: ListKycInput): Promise<Paginated<AdminKycItem>> {

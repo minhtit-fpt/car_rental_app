@@ -97,6 +97,47 @@ class AdminRemoteDataSource {
     await _client.patch('/api/admin/vehicles/$id', data: body);
   }
 
+  /// Hàng đợi rủi ro (endpoint trả mảng phẳng đã xếp điểm giảm dần).
+  Future<List<dynamic>> risk() async {
+    final data = await _client.get('/api/admin/risk');
+    return data as List<dynamic>;
+  }
+
+  /// Danh sách đơn — phần `items` của envelope phân trang. Lọc tuỳ chọn theo
+  /// trạng thái + khoảng ngày (ISO).
+  Future<List<dynamic>> bookings({
+    required int limit,
+    String? status,
+    String? from,
+    String? to,
+  }) async {
+    final query = <String, dynamic>{'limit': limit};
+    if (status != null) query['status'] = status;
+    if (from != null) query['from'] = from;
+    if (to != null) query['to'] = to;
+    final data = await _client.get('/api/admin/bookings', query: query);
+    return (data as Map<String, dynamic>)['items'] as List<dynamic>;
+  }
+
+  /// Chi tiết một đơn (payment/contract/inspection/dispute).
+  Future<Map<String, dynamic>> bookingDetail(String id) async {
+    final data = await _client.get('/api/admin/bookings/$id');
+    return data as Map<String, dynamic>;
+  }
+
+  /// Hoàn tiền một đơn (đánh dấu REFUNDED). `reason` bắt buộc.
+  Future<Map<String, dynamic>> refundPayment(
+    String id, {
+    required double amount,
+    required String reason,
+  }) async {
+    final data = await _client.post(
+      '/api/admin/bookings/$id/refund',
+      data: {'amount': amount, 'reason': reason},
+    );
+    return data as Map<String, dynamic>;
+  }
+
   /// Bật/tắt vai trò user. `role` = 'OWNER'; `action` ∈ {add, remove}.
   Future<Map<String, dynamic>> updateUserRole(
     String id, {

@@ -26,6 +26,9 @@ vi.mock("@/lib/repositories/admin.repository", () => ({
     recentBookings: vi.fn(),
     findVehicleOwner: vi.fn(),
     setVehicleApproval: vi.fn(),
+    findBookingForRefund: vi.fn(),
+    refundPayment: vi.fn(),
+    getUserRiskFacts: vi.fn(),
   },
 }));
 
@@ -327,5 +330,130 @@ describe("adminService.getMetrics", () => {
     expect(m.kpi.totalVehicles).toBe(9);
     expect(m.kpi.electricVehicles).toBe(3);
     expect(m.kpi.completionRate).toBe(0); // 0 booking → không chia 0
+  });
+});
+
+describe("adminService.refundPayment", () => {
+  const BOOKING_ID = "booking-1";
+  const dec = (n: number) => ({ toNumber: () => n });
+
+  beforeEach(() => vi.clearAllMocks());
+
+  it("ném 404 khi không tìm thấy đơn", async () => {
+    vi.mocked(adminRepository.findBookingForRefund).mockResolvedValue(null);
+    await expect(
+      adminService.refundPayment(ADMIN_ID, BOOKING_ID, {
+        amount: 100,
+        reason: "x",
+      }),
+    ).rejects.toBeInstanceOf(AppError);
+  });
+
+  it("ném 409 khi đơn chưa có thanh toán", async () => {
+    vi.mocked(adminRepository.findBookingForRefund).mockResolvedValue({
+      id: BOOKING_ID,
+      renterId: "u1",
+      payment: null,
+    } as never);
+    await expect(
+      adminService.refundPayment(ADMIN_ID, BOOKING_ID, {
+        amount: 100,
+        reason: "x",
+      }),
+    ).rejects.toMatchObject({ code: "NO_PAYMENT" });
+  });
+
+  it("ném 409 khi payment chưa PAID", async () => {
+    vi.mocked(adminRepository.findBookingForRefund).mockResolvedValue({
+      id: BOOKING_ID,
+      renterId: "u1",
+      payment: { status: "PENDING", amount: dec(500) },
+    } as never);
+    await expect(
+      adminService.refundPayment(ADMIN_ID, BOOKING_ID, {
+        amount: 100,
+        reason: "x",
+      }),
+    ).rejects.toMatchObject({ code: "PAYMENT_NOT_REFUNDABLE" });
+  });
+
+  it("ném 400 khi amount vượt số đã trả", async () => {
+    vi.mocked(adminRepository.findBookingForRefund).mockResolvedValue({
+      id: BOOKING_ID,
+      renterId: "u1",
+      payment: { status: "PAID", amount: dec(500) },
+    } as never);
+    await expect(
+      adminService.refundPayment(ADMIN_ID, BOOKING_ID, {
+        amount: 600,
+        reason: "x",
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_REFUND_AMOUNT" });
+  });
+
+  it("hoàn tiền hợp lệ → REFUNDED + báo người thuê", async () => {
+    vi.mocked(adminRepository.findBookingForRefund).mockResolvedValue({
+      id: BOOKING_ID,
+      renterId: "u1",
+      payment: { status: "PAID", amount: dec(500) },
+    } as never);
+    vi.mocked(adminRepository.refundPayment).mockResolvedValue({
+      status: "REFUNDED",
+    } as never);
+
+    const r = await adminService.refundPayment(ADMIN_ID, BOOKING_ID, {
+      amount: 500,
+      reason: "Xe hỏng",
+    });
+
+    expect(r).toEqual({
+      bookingId: BOOKING_ID,
+      status: "REFUNDED",
+      amount: 500,
+    });
+    expect(adminRepository.refundPayment).toHaveBeenCalledWith(
+      BOOKING_ID,
+      500,
+      ADMIN_ID,
+      "Xe hỏng",
+    );
+    expect(notificationService.notify).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "u1", type: "PAYMENT" }),
+    );
+  });
+});
+
+describe("adminService.listRiskFlags", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  const fact = (over: Record<string, unknown>) => ({
+    id: "u",
+    phone: "0",
+    email: null,
+    roles: ["RENTER"],
+    createdAt: new Date("2020-01-01"),
+    total_bookings: 0,
+    cancelled: 0,
+    completed: 0,
+    max_value: 0,
+    self_rentals: 0,
+    failed: 0,
+    owned_total: 0,
+    owned_completed: 0,
+    ...over,
+  });
+
+  it("lọc bỏ user dưới ngưỡng + xếp điểm giảm dần", async () => {
+    vi.mocked(adminRepository.getUserRiskFacts).mockResolvedValue([
+      fact({ id: "clean" }), // score 0 → loại
+      fact({ id: "med", failed: 3 }), // +2 MEDIUM
+      fact({ id: "high", self_rentals: 1, failed: 3 }), // +5 HIGH
+    ] as never);
+
+    const result = await adminService.listRiskFlags();
+
+    expect(result.map((r) => r.userId)).toEqual(["high", "med"]);
+    expect(result[0].tier).toBe("HIGH");
+    expect(result[0].reasons.length).toBeGreaterThan(0);
   });
 });

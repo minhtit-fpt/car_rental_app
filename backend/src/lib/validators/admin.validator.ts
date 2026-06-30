@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  BookingStatus,
   DisputeStatus,
   KycStatus,
   UserRole,
@@ -73,3 +74,20 @@ export const reviewVehicleSchema = z
     path: ["rejectionReason"],
   });
 export type ReviewVehicleInput = z.infer<typeof reviewVehicleSchema>;
+
+// Danh sách đơn cho ADMIN: lọc theo trạng thái + khoảng ngày tạo (tuỳ chọn).
+export const listBookingsSchema = z.object({
+  ...pagination,
+  status: z.nativeEnum(BookingStatus).optional(),
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional(),
+});
+export type ListBookingsInput = z.infer<typeof listBookingsSchema>;
+
+// ADMIN hoàn tiền: thao tác TIỀN → reason bắt buộc (ghi audit). amount > 0;
+// chặn trên amount ≤ số đã trả nằm ở service (cần biết Payment.amount).
+export const refundPaymentSchema = z.object({
+  amount: z.coerce.number().positive(),
+  reason: z.string().trim().min(1).max(500),
+});
+export type RefundPaymentInput = z.infer<typeof refundPaymentSchema>;

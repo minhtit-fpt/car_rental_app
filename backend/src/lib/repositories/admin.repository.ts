@@ -1,10 +1,12 @@
 import type {
+  BookingStatus,
   DisputeStatus,
   KycStatus,
   Prisma,
   UserRole,
   VehicleApprovalStatus,
 } from "@prisma/client";
+import { PaymentStatus } from "@prisma/client";
 import { prisma } from "@/db/prisma";
 
 // Tầng truy cập DB cho các truy vấn tổng hợp của ADMIN (stats / users / KYC queue).
@@ -307,6 +309,71 @@ export const adminRepository = {
     });
   },
 
+  // ── Phase 5b: facts cho rule-engine chấm điểm rủi ro ────────────────────
+  // 1 query gom facts mỗi user (non-admin) qua CTE để tránh fan-out khi join
+  // nhiều bảng. ponytail: full scan toàn bộ user — ổn ở quy mô này; thêm
+  // prefilter ứng viên nếu số user lớn lên.
+  getUserRiskFacts(): Promise<
+    {
+      id: string;
+      phone: string;
+      email: string | null;
+      roles: UserRole[];
+      createdAt: Date;
+      total_bookings: number;
+      cancelled: number;
+      completed: number;
+      max_value: number;
+      self_rentals: number;
+      failed: number;
+      owned_total: number;
+      owned_completed: number;
+    }[]
+  > {
+    return prisma.$queryRaw`
+      WITH renter_stats AS (
+        SELECT b."renterId" AS uid,
+               COUNT(*)::int AS total_bookings,
+               COUNT(*) FILTER (WHERE b.status = 'CANCELLED')::int AS cancelled,
+               COUNT(*) FILTER (WHERE b.status = 'COMPLETED')::int AS completed,
+               COALESCE(MAX(b."totalPrice"), 0)::float8 AS max_value,
+               COUNT(*) FILTER (WHERE v."ownerId" = b."renterId")::int AS self_rentals
+        FROM "Booking" b
+        JOIN "Vehicle" v ON v.id = b."vehicleId"
+        GROUP BY b."renterId"
+      ),
+      fail_stats AS (
+        SELECT b."renterId" AS uid, COUNT(*)::int AS failed
+        FROM "Payment" p
+        JOIN "Booking" b ON b.id = p."bookingId"
+        WHERE p.status = 'FAILED'
+        GROUP BY b."renterId"
+      ),
+      owner_stats AS (
+        SELECT v."ownerId" AS uid,
+               COUNT(b.id)::int AS owned_total,
+               COUNT(b.id) FILTER (WHERE b.status = 'COMPLETED')::int AS owned_completed
+        FROM "Vehicle" v
+        LEFT JOIN "Booking" b ON b."vehicleId" = v.id
+        GROUP BY v."ownerId"
+      )
+      SELECT u.id, u.phone, u.email, u.roles, u."createdAt",
+             COALESCE(r.total_bookings, 0) AS total_bookings,
+             COALESCE(r.cancelled, 0) AS cancelled,
+             COALESCE(r.completed, 0) AS completed,
+             COALESCE(r.max_value, 0) AS max_value,
+             COALESCE(r.self_rentals, 0) AS self_rentals,
+             COALESCE(f.failed, 0) AS failed,
+             COALESCE(o.owned_total, 0) AS owned_total,
+             COALESCE(o.owned_completed, 0) AS owned_completed
+      FROM "User" u
+      LEFT JOIN renter_stats r ON r.uid = u.id
+      LEFT JOIN fail_stats f ON f.uid = u.id
+      LEFT JOIN owner_stats o ON o.uid = u.id
+      WHERE NOT (u.roles @> ARRAY['ADMIN']::"UserRole"[])
+    `;
+  },
+
   recentBookings(limit: number) {
     return prisma.booking.findMany({
       orderBy: { createdAt: "desc" },
@@ -318,6 +385,123 @@ export const adminRepository = {
         createdAt: true,
         vehicle: { select: { title: true } },
       },
+    });
+  },
+
+  // ── Phase 3: quản lý đơn / thanh toán + hoàn tiền ───────────────────────
+
+  findBookings(filter: {
+    status?: BookingStatus;
+    from?: Date;
+    to?: Date;
+    skip: number;
+    take: number;
+  }) {
+    const where: Prisma.BookingWhereInput = {};
+    if (filter.status) where.status = filter.status;
+    if (filter.from || filter.to) {
+      where.createdAt = {};
+      if (filter.from) where.createdAt.gte = filter.from;
+      if (filter.to) where.createdAt.lte = filter.to;
+    }
+    return prisma.$transaction([
+      prisma.booking.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: filter.skip,
+        take: filter.take,
+        select: {
+          id: true,
+          status: true,
+          totalPrice: true,
+          startTime: true,
+          endTime: true,
+          createdAt: true,
+          vehicle: { select: { title: true } },
+          payment: { select: { status: true } },
+        },
+      }),
+      prisma.booking.count({ where }),
+    ]);
+  },
+
+  findBookingDetail(id: string) {
+    return prisma.booking.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        status: true,
+        startTime: true,
+        endTime: true,
+        totalPrice: true,
+        deliveryRequested: true,
+        createdAt: true,
+        vehicle: { select: { id: true, title: true, type: true } },
+        renter: { select: { id: true, phone: true, email: true } },
+        payment: {
+          select: {
+            method: true,
+            status: true,
+            amount: true,
+            gatewayRef: true,
+            paidAt: true,
+          },
+        },
+        contract: { select: { pdfUrl: true, signedAt: true } },
+        inspections: {
+          orderBy: { createdAt: "asc" },
+          select: { phase: true, photoKeys: true, createdAt: true },
+        },
+        disputes: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            createdAt: true,
+          },
+        },
+        damageReport: { select: { summary: true, estimatedCost: true } },
+      },
+    });
+  },
+
+  // Đủ dữ liệu để service quyết định + báo người thuê khi hoàn tiền.
+  findBookingForRefund(id: string) {
+    return prisma.booking.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        renterId: true,
+        payment: { select: { status: true, amount: true } },
+      },
+    });
+  },
+
+  // Đánh dấu Payment.status = REFUNDED + ghi AuditLog (nguyên tử). KHÔNG gọi
+  // cổng thanh toán thật trong đợt này — tích hợp gateway sau.
+  refundPayment(
+    bookingId: string,
+    amount: number,
+    adminId: string,
+    reason: string,
+  ) {
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.payment.update({
+        where: { bookingId },
+        data: { status: PaymentStatus.REFUNDED },
+        select: { status: true },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: adminId,
+          action: "PAYMENT_REFUNDED",
+          target: `booking:${bookingId}`,
+          metadata: { amount, reason },
+        },
+      });
+      return updated;
     });
   },
 };

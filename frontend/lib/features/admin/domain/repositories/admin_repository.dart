@@ -1,7 +1,10 @@
+import 'package:frontend/features/admin/domain/entities/admin_booking_detail.dart';
+import 'package:frontend/features/admin/domain/entities/admin_booking_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_dispute_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_kyc_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_metrics.dart';
 import 'package:frontend/features/admin/domain/entities/admin_revenue_point.dart';
+import 'package:frontend/features/admin/domain/entities/admin_risk_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_stats.dart';
 import 'package:frontend/features/admin/domain/entities/admin_user_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_vehicle_item.dart';
@@ -53,4 +56,21 @@ abstract interface class AdminRepository {
     required String decision,
     String? rejectionReason,
   });
+
+  Future<List<AdminBookingItem>> listBookings({
+    String? status,
+    int limit,
+  });
+
+  Future<AdminBookingDetail> getBookingDetail(String id);
+
+  /// Hoàn tiền một đơn. `reason` bắt buộc (ghi audit ở backend).
+  Future<void> refundPayment(
+    String id, {
+    required double amount,
+    required String reason,
+  });
+
+  /// Hàng đợi tài khoản bị cờ rủi ro (đã xếp điểm giảm dần).
+  Future<List<AdminRiskItem>> listRiskFlags();
 }

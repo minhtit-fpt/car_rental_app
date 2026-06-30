@@ -1,15 +1,21 @@
 import 'package:frontend/features/admin/data/datasources/admin_remote_datasource.dart';
+import 'package:frontend/features/admin/data/models/admin_booking_detail_model.dart';
+import 'package:frontend/features/admin/data/models/admin_booking_item_model.dart';
 import 'package:frontend/features/admin/data/models/admin_dispute_item_model.dart';
 import 'package:frontend/features/admin/data/models/admin_kyc_item_model.dart';
 import 'package:frontend/features/admin/data/models/admin_metrics_model.dart';
 import 'package:frontend/features/admin/data/models/admin_revenue_point_model.dart';
+import 'package:frontend/features/admin/data/models/admin_risk_item_model.dart';
 import 'package:frontend/features/admin/data/models/admin_vehicle_item_model.dart';
 import 'package:frontend/features/admin/data/models/admin_stats_model.dart';
 import 'package:frontend/features/admin/data/models/admin_user_item_model.dart';
+import 'package:frontend/features/admin/domain/entities/admin_booking_detail.dart';
+import 'package:frontend/features/admin/domain/entities/admin_booking_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_dispute_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_kyc_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_metrics.dart';
 import 'package:frontend/features/admin/domain/entities/admin_revenue_point.dart';
+import 'package:frontend/features/admin/domain/entities/admin_risk_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_stats.dart';
 import 'package:frontend/features/admin/domain/entities/admin_user_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_vehicle_item.dart';
@@ -116,4 +122,34 @@ class AdminRepositoryImpl implements AdminRepository {
     decision: decision,
     rejectionReason: rejectionReason,
   );
+
+  @override
+  Future<List<AdminBookingItem>> listBookings({
+    String? status,
+    int limit = 50,
+  }) async {
+    final items = await _remote.bookings(status: status, limit: limit);
+    return items
+        .map((e) => AdminBookingItemModel.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<AdminBookingDetail> getBookingDetail(String id) async =>
+      AdminBookingDetailModel.fromJson(await _remote.bookingDetail(id));
+
+  @override
+  Future<void> refundPayment(
+    String id, {
+    required double amount,
+    required String reason,
+  }) => _remote.refundPayment(id, amount: amount, reason: reason);
+
+  @override
+  Future<List<AdminRiskItem>> listRiskFlags() async {
+    final items = await _remote.risk();
+    return items
+        .map((e) => AdminRiskItemModel.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false);
+  }
 }

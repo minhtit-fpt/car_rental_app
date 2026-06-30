@@ -8,12 +8,29 @@ import 'package:frontend/features/admin/domain/entities/admin_stats.dart';
 import 'package:frontend/features/admin/domain/entities/admin_user_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_vehicle_item.dart';
 import 'package:frontend/features/admin/domain/entities/kyc_documents.dart';
+import 'package:frontend/features/admin/domain/entities/admin_booking_detail.dart';
+import 'package:frontend/features/admin/domain/entities/admin_booking_item.dart';
+import 'package:frontend/features/admin/domain/entities/admin_risk_item.dart';
 import 'package:frontend/features/admin/domain/repositories/admin_repository.dart';
 import 'package:frontend/features/admin/domain/usecases/resolve_dispute_usecase.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_dispute_detail_cubit.dart';
 
 /// Fake chỉ hiện thực resolveDispute; method khác không dùng → ném.
 class _FakeAdminRepository implements AdminRepository {
+  @override
+  Future<List<AdminRiskItem>> listRiskFlags() => throw UnimplementedError();
+  @override
+  Future<List<AdminBookingItem>> listBookings({String? status, int limit = 50}) =>
+      throw UnimplementedError();
+  @override
+  Future<AdminBookingDetail> getBookingDetail(String id) =>
+      throw UnimplementedError();
+  @override
+  Future<void> refundPayment(
+    String id, {
+    required double amount,
+    required String reason,
+  }) => throw UnimplementedError();
   Object? error;
   String? lastDecision;
   String? lastNote;

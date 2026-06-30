@@ -356,6 +356,10 @@ class _DashboardTab extends StatelessWidget {
         const SizedBox(height: 16),
         const AdminVehicleReviewCard(),
         const SizedBox(height: 16),
+        const _BookingsManageCard(),
+        const SizedBox(height: 16),
+        const _RiskAlertCard(),
+        const SizedBox(height: 16),
         _DisputesCard(),
         const SizedBox(height: 16),
         _RecentUsersCard(onSeeAll: () => onTabChanged(2)),
@@ -363,6 +367,134 @@ class _DashboardTab extends StatelessWidget {
         _RevenueChartCard(),
         const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Bookings management entry card
+// ─────────────────────────────────────────────
+
+class _BookingsManageCard extends StatelessWidget {
+  const _BookingsManageCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/admin/bookings'),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.adminSurface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.adminBorder),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.adminBlue.withAlpha(38),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.receipt_long,
+                color: AppColors.adminBlue,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Quản lý đơn',
+                    style: TextStyle(
+                      color: AppColors.adminText,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Xem đơn, can thiệp & hoàn tiền',
+                    style: TextStyle(color: AppColors.adminMuted, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.adminMuted,
+              size: 22,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RiskAlertCard extends StatelessWidget {
+  const _RiskAlertCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/admin/risk'),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.adminSurface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.adminBorder),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.danger.withAlpha(38),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.shield_outlined,
+                color: AppColors.danger,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Cảnh báo rủi ro',
+                    style: TextStyle(
+                      color: AppColors.adminText,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Tài khoản bị cờ gian lận (rule-engine)',
+                    style: TextStyle(color: AppColors.adminMuted, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.adminMuted,
+              size: 22,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
