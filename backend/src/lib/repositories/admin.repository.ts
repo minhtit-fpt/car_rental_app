@@ -467,6 +467,50 @@ export const adminRepository = {
     });
   },
 
+  // Phase 4: gom toàn bộ ngữ cảnh một tranh chấp cho trợ lý AI — fact cứng
+  // (đã ký? đã trả? hư hỏng?) + transcript chat. KHÔNG lộ photoKeys.
+  findDisputeContext(disputeId: string) {
+    return prisma.dispute.findUnique({
+      where: { id: disputeId },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        priority: true,
+        createdAt: true,
+        raisedById: true,
+        booking: {
+          select: {
+            id: true,
+            status: true,
+            startTime: true,
+            endTime: true,
+            totalPrice: true,
+            createdAt: true,
+            renterId: true,
+            vehicle: { select: { title: true, ownerId: true } },
+            payment: { select: { status: true, amount: true, paidAt: true } },
+            contract: { select: { signedAt: true } },
+            inspections: { select: { phase: true } },
+            damageReport: {
+              select: { summary: true, items: true, estimatedCost: true },
+            },
+            conversation: {
+              select: {
+                messages: {
+                  orderBy: { sentAt: "asc" },
+                  take: 30,
+                  select: { senderId: true, body: true, sentAt: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  },
+
   // Đủ dữ liệu để service quyết định + báo người thuê khi hoàn tiền.
   findBookingForRefund(id: string) {
     return prisma.booking.findUnique({

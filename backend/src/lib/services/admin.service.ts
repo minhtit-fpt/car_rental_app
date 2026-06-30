@@ -10,6 +10,7 @@ import type {
 } from "@prisma/client";
 import { PaymentStatus as PaymentStatusEnum } from "@prisma/client";
 import { adminRepository } from "@/lib/repositories/admin.repository";
+import { llmClient } from "@/lib/ai/llm.client";
 import { notificationService } from "@/lib/services/notification.service";
 import {
   RISK_FLAG_MIN_SCORE,
@@ -661,6 +662,36 @@ export const adminService = {
       })
       .filter((x) => x.score >= RISK_FLAG_MIN_SCORE)
       .sort((a, b) => b.score - a.score);
+  },
+
+  // 5b-tail: AI viết lời giải thích "vì sao bị cờ" từ các rule ĐÃ kích hoạt
+  // (không chấm điểm bằng LLM — giữ kiểm toán được). Advisory; offline → null.
+  async explainRiskFlag(
+    userId: string,
+  ): Promise<{ explanation: string | null; aiError: string | null }> {
+    const flag = (await this.listRiskFlags()).find((f) => f.userId === userId);
+    if (!flag) {
+      throw new AppError(404, "RISK_FLAG_NOT_FOUND", "Người dùng không bị cờ rủi ro");
+    }
+    const reasons = flag.reasons.map((r) => `- ${r.label}`).join("\n");
+    try {
+      const explanation = await llmClient.chat([
+        {
+          role: "system",
+          content:
+            "Bạn giải thích ngắn gọn (2-3 câu, tiếng Việt) vì sao một tài khoản bị gắn cờ rủi ro, CHỈ dựa trên các dấu hiệu đã liệt kê. KHÔNG bịa thêm dấu hiệu, KHÔNG đưa số liệu không có.",
+        },
+        {
+          role: "user",
+          content: `Mức rủi ro: ${flag.tier} (điểm ${flag.score}).\nCác dấu hiệu đã kích hoạt:\n${reasons}`,
+        },
+      ]);
+      return { explanation: explanation.trim(), aiError: null };
+    } catch (error) {
+      const aiError =
+        error instanceof AppError ? error.message : "Chưa tạo được giải thích";
+      return { explanation: null, aiError };
+    }
   },
 
   async listKyc(input: ListKycInput): Promise<Paginated<AdminKycItem>> {

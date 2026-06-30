@@ -91,3 +91,9 @@ export const refundPaymentSchema = z.object({
   reason: z.string().trim().min(1).max(500),
 });
 export type RefundPaymentInput = z.infer<typeof refundPaymentSchema>;
+
+// Phase 5a — NL-analytics: câu hỏi tự nhiên của admin về số liệu.
+export const analyticsAskSchema = z.object({
+  question: z.string().trim().min(1).max(500),
+});
+export type AnalyticsAskInput = z.infer<typeof analyticsAskSchema>;
