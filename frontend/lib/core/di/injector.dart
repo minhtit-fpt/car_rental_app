@@ -24,16 +24,21 @@ import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/admin/data/datasources/admin_remote_datasource.dart';
 import 'package:frontend/features/admin/data/repositories/admin_repository_impl.dart';
 import 'package:frontend/features/admin/domain/repositories/admin_repository.dart';
+import 'package:frontend/features/admin/domain/usecases/get_admin_metrics_usecase.dart';
 import 'package:frontend/features/admin/domain/usecases/get_admin_stats_usecase.dart';
 import 'package:frontend/features/admin/domain/usecases/list_admin_kyc_usecase.dart';
 import 'package:frontend/features/admin/domain/usecases/list_admin_users_usecase.dart';
 import 'package:frontend/features/admin/domain/usecases/get_admin_revenue_usecase.dart';
 import 'package:frontend/features/admin/domain/usecases/list_admin_disputes_usecase.dart';
+import 'package:frontend/features/admin/domain/usecases/list_admin_vehicles_usecase.dart';
+import 'package:frontend/features/admin/domain/usecases/review_vehicle_usecase.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_metrics_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_users_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_revenue_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_disputes_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_vehicles_cubit.dart';
 import 'package:frontend/features/ai_chat/data/datasources/ai_chat_remote_datasource.dart';
 import 'package:frontend/features/ai_chat/data/repositories/ai_chat_repository_impl.dart';
 import 'package:frontend/features/ai_chat/domain/repositories/ai_chat_repository.dart';
@@ -183,6 +188,11 @@ void setupAdmin() {
     ..registerFactory<AdminCubit>(
       () => AdminCubit(getStats: GetAdminStatsUseCase(sl<AdminRepository>())),
     )
+    ..registerFactory<AdminMetricsCubit>(
+      () => AdminMetricsCubit(
+        getMetrics: GetAdminMetricsUseCase(sl<AdminRepository>()),
+      ),
+    )
     ..registerFactory<AdminUsersCubit>(
       () => AdminUsersCubit(
         listUsers: ListAdminUsersUseCase(sl<AdminRepository>()),
@@ -199,6 +209,12 @@ void setupAdmin() {
     ..registerFactory<AdminDisputesCubit>(
       () => AdminDisputesCubit(
         listDisputes: ListAdminDisputesUseCase(sl<AdminRepository>()),
+      ),
+    )
+    ..registerFactory<AdminVehiclesCubit>(
+      () => AdminVehiclesCubit(
+        listVehicles: ListAdminVehiclesUseCase(sl<AdminRepository>()),
+        reviewVehicle: ReviewVehicleUseCase(sl<AdminRepository>()),
       ),
     );
 }

@@ -122,6 +122,14 @@ enum VehicleType {
   BICYCLE
 }
 
+// Trạng thái duyệt xe của ADMIN. Xe mới mặc định PENDING; chỉ xe APPROVED
+// mới hiện trên map / cho đặt. Xe hiện có được grandfather → APPROVED (migration).
+enum VehicleApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Vehicle {
   id                String      @id @default(uuid()) @db.Uuid
   ownerId           String      @db.Uuid
@@ -131,6 +139,8 @@ model Vehicle {
   isElectric        Boolean     @default(false)
   isAvailable       Boolean     @default(true)
   deliveryAvailable Boolean     @default(false)
+  approvalStatus    VehicleApprovalStatus @default(PENDING)
+  rejectionReason   String? // lý do ADMIN từ chối (chỉ có khi REJECTED)
   // Thông số kỹ thuật (nullable — chỉ áp dụng cho một số loại xe).
   seats             Int?
   doors             Int?
@@ -149,6 +159,7 @@ model Vehicle {
   @@index([ownerId])
   @@index([type])
   @@index([isAvailable])
+  @@index([approvalStatus])
   @@index([location], type: Gist)
 }
 

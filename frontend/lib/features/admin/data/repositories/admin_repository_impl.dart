@@ -1,14 +1,19 @@
 import 'package:frontend/features/admin/data/datasources/admin_remote_datasource.dart';
 import 'package:frontend/features/admin/data/models/admin_dispute_item_model.dart';
 import 'package:frontend/features/admin/data/models/admin_kyc_item_model.dart';
+import 'package:frontend/features/admin/data/models/admin_metrics_model.dart';
 import 'package:frontend/features/admin/data/models/admin_revenue_point_model.dart';
+import 'package:frontend/features/admin/data/models/admin_vehicle_item_model.dart';
 import 'package:frontend/features/admin/data/models/admin_stats_model.dart';
 import 'package:frontend/features/admin/data/models/admin_user_item_model.dart';
 import 'package:frontend/features/admin/domain/entities/admin_dispute_item.dart';
 import 'package:frontend/features/admin/domain/entities/admin_kyc_item.dart';
+import 'package:frontend/features/admin/domain/entities/admin_metrics.dart';
 import 'package:frontend/features/admin/domain/entities/admin_revenue_point.dart';
 import 'package:frontend/features/admin/domain/entities/admin_stats.dart';
 import 'package:frontend/features/admin/domain/entities/admin_user_item.dart';
+import 'package:frontend/features/admin/domain/entities/admin_vehicle_item.dart';
+import 'package:frontend/features/admin/domain/entities/kyc_documents.dart';
 import 'package:frontend/features/admin/domain/repositories/admin_repository.dart';
 
 class AdminRepositoryImpl implements AdminRepository {
@@ -19,6 +24,10 @@ class AdminRepositoryImpl implements AdminRepository {
   @override
   Future<AdminStats> getStats() async =>
       AdminStatsModel.fromJson(await _remote.stats());
+
+  @override
+  Future<AdminMetrics> getMetrics() async =>
+      AdminMetricsModel.fromJson(await _remote.metrics());
 
   @override
   Future<List<AdminUserItem>> listUsers({int limit = 50}) async {
@@ -37,6 +46,23 @@ class AdminRepositoryImpl implements AdminRepository {
   }
 
   @override
+  Future<KycDocuments> getKycDocuments(String id) async {
+    final json = await _remote.kycDocuments(id);
+    return KycDocuments(
+      cccdUrl: json['cccdUrl'] as String,
+      licenseUrl: json['licenseUrl'] as String,
+      faceUrl: json['faceUrl'] as String,
+    );
+  }
+
+  @override
+  Future<void> reviewKyc(
+    String id, {
+    required String decision,
+    String? rejectReason,
+  }) => _remote.reviewKyc(id, decision: decision, rejectReason: rejectReason);
+
+  @override
   Future<List<AdminRevenuePoint>> listRevenue({int months = 6}) async {
     final items = await _remote.revenue(months: months);
     return items
@@ -51,4 +77,43 @@ class AdminRepositoryImpl implements AdminRepository {
         .map((e) => AdminDisputeItemModel.fromJson(e as Map<String, dynamic>))
         .toList(growable: false);
   }
+
+  @override
+  Future<void> resolveDispute(
+    String id, {
+    required String decision,
+    String? note,
+  }) => _remote.resolveDispute(id, decision: decision, note: note);
+
+  @override
+  Future<AdminUserItem> updateUserRole(
+    String id, {
+    required String role,
+    required String action,
+  }) async {
+    final json = await _remote.updateUserRole(id, role: role, action: action);
+    return AdminUserItemModel.fromJson(json);
+  }
+
+  @override
+  Future<List<AdminVehicleItem>> listVehiclesForReview({
+    String status = 'PENDING',
+    int limit = 50,
+  }) async {
+    final items = await _remote.vehicles(status: status, limit: limit);
+    return items
+        .map((e) => AdminVehicleItemModel.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<void> reviewVehicle(
+    String id, {
+    required String decision,
+    String? rejectionReason,
+  }) => _remote.reviewVehicle(
+    id,
+    decision: decision,
+    rejectionReason: rejectionReason,
+  );
 }

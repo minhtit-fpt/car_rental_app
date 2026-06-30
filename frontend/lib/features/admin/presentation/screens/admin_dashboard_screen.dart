@@ -14,6 +14,8 @@ import 'package:frontend/features/admin/presentation/cubit/admin_disputes_cubit.
 import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_revenue_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_users_cubit.dart';
+import 'package:frontend/features/admin/presentation/widgets/admin_metrics_section.dart';
+import 'package:frontend/features/admin/presentation/widgets/admin_vehicle_review_card.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 
 // ─────────────────────────────────────────────
@@ -348,7 +350,11 @@ class _DashboardTab extends StatelessWidget {
       children: [
         _AdminStatsGrid(),
         const SizedBox(height: 16),
+        const AdminMetricsSection(),
+        const SizedBox(height: 16),
         _KycQueueCard(onSeeAll: () => onTabChanged(1)),
+        const SizedBox(height: 16),
+        const AdminVehicleReviewCard(),
         const SizedBox(height: 16),
         _DisputesCard(),
         const SizedBox(height: 16),
@@ -747,7 +753,8 @@ class _DisputesCard extends StatelessWidget {
                 itemCount: items.length,
                 separatorBuilder: (_, _) =>
                     const Divider(height: 1, color: AppColors.adminBorder),
-                itemBuilder: (_, i) => _DisputeRow(dispute: _toView(items[i])),
+                itemBuilder: (_, i) =>
+                    _DisputeRow(item: items[i], dispute: _toView(items[i])),
               ),
     };
   }
@@ -761,8 +768,9 @@ class _DisputesCard extends StatelessWidget {
 }
 
 class _DisputeRow extends StatelessWidget {
-  const _DisputeRow({required this.dispute});
+  const _DisputeRow({required this.item, required this.dispute});
 
+  final AdminDisputeItem item;
   final _Dispute dispute;
 
   @override
@@ -822,7 +830,15 @@ class _DisputeRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           GestureDetector(
-            onTap: () => context.push('/admin/dispute/1'),
+            onTap: () async {
+              final changed = await context.push<bool>(
+                '/admin/dispute/${item.id}',
+                extra: item,
+              );
+              if (changed == true && context.mounted) {
+                context.read<AdminDisputesCubit>().load();
+              }
+            },
             child: const Text(
               'Tiếp nhận →',
               style: TextStyle(
@@ -1504,7 +1520,16 @@ class _KycListItem extends StatelessWidget {
               color: AppColors.adminMuted,
               size: 20,
             ),
-            onPressed: () => context.push('/admin/kyc/${item.id}'),
+            onPressed: () async {
+              final changed = await context.push<bool>(
+                '/admin/kyc/${item.id}',
+                extra: item,
+              );
+              if (changed == true && context.mounted) {
+                context.read<AdminKycCubit>().load();
+                context.read<AdminCubit>().loadStats();
+              }
+            },
           ),
         ],
       ),
@@ -1689,111 +1714,126 @@ class _UserListItem extends StatelessWidget {
         : 'Người thuê';
     final title = user.email ?? user.phone;
 
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.adminBorder, width: 0.5),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          Stack(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.adminBlue, AppColors.adminTeal],
-                  ),
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  _initials(user.email, user.phone),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              if (user.isVerified)
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 14,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: AppColors.success,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.adminCard, width: 2),
-                    ),
-                    child: const Icon(
-                      Icons.check,
-                      size: 8,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-            ],
+    return InkWell(
+      onTap: () async {
+        final changed = await context.push<bool>(
+          '/admin/user/${user.id}',
+          extra: user,
+        );
+        if (changed == true && context.mounted) {
+          context.read<AdminUsersCubit>().load();
+          context.read<AdminCubit>().loadStats();
+        }
+      },
+      child: Container(
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: AppColors.adminBorder, width: 0.5),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Stack(
               children: [
-                Text(
-                  title,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.adminText,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.adminBlue, AppColors.adminTeal],
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    _initials(user.email, user.phone),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.phone_outlined,
-                      size: 12,
-                      color: AppColors.adminMuted,
-                    ),
-                    const SizedBox(width: 2),
-                    Expanded(
-                      child: Text(
-                        '${user.phone} · ${_timeAgo(user.createdAt)}',
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.adminMuted,
-                          fontSize: 12,
+                if (user.isVerified)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: AppColors.success,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.adminCard,
+                          width: 2,
                         ),
                       ),
+                      child: const Icon(
+                        Icons.check,
+                        size: 8,
+                        color: Colors.white,
+                      ),
                     ),
-                  ],
-                ),
+                  ),
               ],
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: roleColor.withAlpha(38),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              roleLabel,
-              style: TextStyle(
-                color: roleColor,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.adminText,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.phone_outlined,
+                        size: 12,
+                        color: AppColors.adminMuted,
+                      ),
+                      const SizedBox(width: 2),
+                      Expanded(
+                        child: Text(
+                          '${user.phone} · ${_timeAgo(user.createdAt)}',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.adminMuted,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: roleColor.withAlpha(38),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                roleLabel,
+                style: TextStyle(
+                  color: roleColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -60,6 +60,8 @@ function makeVehicle(overrides: Partial<Vehicle> = {}): Vehicle {
     isElectric: false,
     isAvailable: true,
     deliveryAvailable: false,
+    approvalStatus: "APPROVED",
+    rejectionReason: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -125,6 +127,15 @@ describe("bookingService.create", () => {
     await expect(bookingService.create(RENTER, VALID_INPUT)).rejects.toMatchObject(
       { status: 404, code: "VEHICLE_NOT_FOUND" },
     );
+  });
+
+  it("throws 409 when the vehicle is not approved", async () => {
+    vi.mocked(vehicleRepository.findById).mockResolvedValue(
+      makeVehicle({ approvalStatus: "PENDING" }),
+    );
+    await expect(
+      bookingService.create(RENTER, VALID_INPUT),
+    ).rejects.toMatchObject({ status: 409, code: "VEHICLE_NOT_APPROVED" });
   });
 
   it("throws 409 when the vehicle is unavailable", async () => {

@@ -131,6 +131,9 @@ export const bookingService = {
     if (!vehicle) {
       throw new AppError(404, "VEHICLE_NOT_FOUND", "Không tìm thấy xe");
     }
+    if (vehicle.approvalStatus !== "APPROVED") {
+      throw new AppError(409, "VEHICLE_NOT_APPROVED", "Xe chưa được duyệt");
+    }
     if (!vehicle.isAvailable) {
       throw new AppError(409, "VEHICLE_UNAVAILABLE", "Xe hiện không sẵn sàng");
     }

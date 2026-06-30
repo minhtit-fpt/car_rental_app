@@ -3,6 +3,7 @@ import type {
   KycStatus,
   Prisma,
   UserRole,
+  VehicleApprovalStatus,
 } from "@prisma/client";
 import { prisma } from "@/db/prisma";
 
@@ -29,6 +30,16 @@ function buildUserWhere(filter: UserListFilter): Prisma.UserWhereInput {
   }
   return where;
 }
+
+// Các trường user trả về cho danh sách/chi tiết quản trị (dùng lại cho cả update).
+const adminUserSelect = {
+  id: true,
+  phone: true,
+  email: true,
+  roles: true,
+  kycStatus: true,
+  createdAt: true,
+} satisfies Prisma.UserSelect;
 
 export const adminRepository = {
   countUsers(): Promise<number> {
@@ -75,17 +86,44 @@ export const adminRepository = {
         orderBy: { createdAt: "desc" },
         skip: filter.skip,
         take: filter.take,
-        select: {
-          id: true,
-          phone: true,
-          email: true,
-          roles: true,
-          kycStatus: true,
-          createdAt: true,
-        },
+        select: adminUserSelect,
       }),
       prisma.user.count({ where }),
     ]);
+  },
+
+  findUserById(id: string) {
+    return prisma.user.findUnique({
+      where: { id },
+      select: { id: true, roles: true },
+    });
+  },
+
+  // Ghi đè roles[] + ghi AuditLog trong cùng transaction. `action` mô tả
+  // thao tác (USER_ROLE_ADD / USER_ROLE_REMOVE), `role` lưu vào metadata.
+  setUserRoles(
+    id: string,
+    roles: UserRole[],
+    adminId: string,
+    action: string,
+    role: UserRole,
+  ) {
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.user.update({
+        where: { id },
+        data: { roles },
+        select: adminUserSelect,
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: adminId,
+          action,
+          target: `user:${id}`,
+          metadata: { role },
+        },
+      });
+      return updated;
+    });
   },
 
   findKycQueue(status: KycStatus, skip: number, take: number) {
@@ -128,5 +166,158 @@ export const adminRepository = {
       }),
       prisma.dispute.count({ where }),
     ]);
+  },
+
+  findDisputeById(id: string) {
+    return prisma.dispute.findUnique({
+      where: { id },
+      select: { id: true, raisedById: true, status: true },
+    });
+  },
+
+  // Đổi trạng thái dispute + ghi AuditLog trong cùng transaction (nguyên tử).
+  resolveDispute(
+    id: string,
+    status: DisputeStatus,
+    adminId: string,
+    note?: string,
+  ) {
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.dispute.update({
+        where: { id },
+        data: { status },
+        select: { id: true, status: true },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: adminId,
+          action: `DISPUTE_${status}`,
+          target: `dispute:${id}`,
+          metadata: note ? { note } : undefined,
+        },
+      });
+      return updated;
+    });
+  },
+
+  // ── Phase 1: aggregation cho dashboard metrics ──────────────────────────
+
+  groupBookingsByStatus() {
+    return prisma.booking.groupBy({ by: ["status"], _count: { _all: true } });
+  },
+
+  groupPaymentsByMethodPaid() {
+    return prisma.payment.groupBy({
+      by: ["method"],
+      where: { status: "PAID" },
+      _sum: { amount: true },
+    });
+  },
+
+  // [type, isElectric] → tầng service gộp thành { type, count, electric }.
+  groupVehiclesByTypeElectric() {
+    return prisma.vehicle.groupBy({
+      by: ["type", "isElectric"],
+      _count: { _all: true },
+    });
+  },
+
+  countAvailableVehicles(): Promise<number> {
+    return prisma.vehicle.count({ where: { isAvailable: true } });
+  },
+
+  async avgReviewRating(): Promise<number> {
+    const result = await prisma.review.aggregate({ _avg: { rating: true } });
+    return result._avg.rating ?? 0;
+  },
+
+  // Top xe theo doanh thu PAID (kèm số chuyến đã thanh toán). limit nhỏ.
+  topVehiclesByRevenue(
+    limit: number,
+  ): Promise<{ id: string; title: string; revenue: number; trips: number }[]> {
+    return prisma.$queryRaw`
+      SELECT v.id, v.title,
+             COALESCE(SUM(p."amount"), 0)::float8 AS revenue,
+             COUNT(p.id)::int AS trips
+      FROM "Vehicle" v
+      JOIN "Booking" b ON b."vehicleId" = v.id
+      JOIN "Payment" p ON p."bookingId" = b.id AND p."status" = 'PAID'
+      GROUP BY v.id, v.title
+      ORDER BY revenue DESC
+      LIMIT ${limit}
+    `;
+  },
+
+  // ── Phase 2: duyệt xe ───────────────────────────────────────────────────
+
+  findVehiclesForReview(status: VehicleApprovalStatus, skip: number, take: number) {
+    const where: Prisma.VehicleWhereInput = { approvalStatus: status };
+    return prisma.$transaction([
+      prisma.vehicle.findMany({
+        where,
+        orderBy: { createdAt: "asc" },
+        skip,
+        take,
+        select: {
+          id: true,
+          title: true,
+          type: true,
+          pricePerHour: true,
+          isElectric: true,
+          city: true,
+          approvalStatus: true,
+          rejectionReason: true,
+          createdAt: true,
+          owner: { select: { id: true, phone: true, email: true } },
+        },
+      }),
+      prisma.vehicle.count({ where }),
+    ]);
+  },
+
+  findVehicleOwner(id: string) {
+    return prisma.vehicle.findUnique({
+      where: { id },
+      select: { id: true, ownerId: true, title: true },
+    });
+  },
+
+  // Đổi trạng thái duyệt + lý do + ghi AuditLog (nguyên tử).
+  setVehicleApproval(
+    id: string,
+    status: VehicleApprovalStatus,
+    adminId: string,
+    rejectionReason: string | null,
+  ) {
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.vehicle.update({
+        where: { id },
+        data: { approvalStatus: status, rejectionReason },
+        select: { id: true, approvalStatus: true, rejectionReason: true },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: adminId,
+          action: `VEHICLE_${status}`,
+          target: `vehicle:${id}`,
+          metadata: rejectionReason ? { rejectionReason } : undefined,
+        },
+      });
+      return updated;
+    });
+  },
+
+  recentBookings(limit: number) {
+    return prisma.booking.findMany({
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: {
+        id: true,
+        status: true,
+        totalPrice: true,
+        createdAt: true,
+        vehicle: { select: { title: true } },
+      },
+    });
   },
 };

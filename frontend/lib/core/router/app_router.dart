@@ -17,10 +17,12 @@ import 'package:frontend/core/router/vehicle_routes.dart';
 import 'package:frontend/core/shell/app_shell.dart';
 import 'package:frontend/features/map/presentation/screens/map_screen.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_metrics_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_users_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_revenue_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_disputes_cubit.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_vehicles_cubit.dart';
 import 'package:frontend/features/admin/presentation/screens/admin_dashboard_screen.dart';
 import 'package:frontend/features/auth/domain/entities/user_role.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
@@ -92,10 +94,12 @@ GoRouter createAppRouter(AuthCubit authCubit) {
         builder: (context, state) => MultiBlocProvider(
           providers: [
             BlocProvider(create: (_) => sl<AdminCubit>()..loadStats()),
+            BlocProvider(create: (_) => sl<AdminMetricsCubit>()..load()),
             BlocProvider(create: (_) => sl<AdminUsersCubit>()..load()),
             BlocProvider(create: (_) => sl<AdminKycCubit>()..load()),
             BlocProvider(create: (_) => sl<AdminRevenueCubit>()..load()),
             BlocProvider(create: (_) => sl<AdminDisputesCubit>()..load()),
+            BlocProvider(create: (_) => sl<AdminVehiclesCubit>()..load()),
           ],
           child: const AdminDashboardScreen(),
         ),

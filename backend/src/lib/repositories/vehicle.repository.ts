@@ -84,6 +84,9 @@ function buildWhere(f: VehicleListFilters): Prisma.VehicleWhereInput {
   return {
     ...(f.type && { type: f.type }),
     ...(f.ownerId && { ownerId: f.ownerId }),
+    // Public list (không lọc theo ownerId) chỉ hiện xe đã duyệt. Owner xem xe
+    // của chính mình (ownerId set) thì thấy mọi trạng thái.
+    ...(f.ownerId === undefined && { approvalStatus: "APPROVED" }),
     ...(f.isElectric !== undefined && { isElectric: f.isElectric }),
     ...(f.available !== undefined && { isAvailable: f.available }),
     ...((f.minPrice !== undefined || f.maxPrice !== undefined) && {
@@ -207,6 +210,7 @@ export const vehicleRepository = {
       FROM "Vehicle" v
       JOIN "User" u ON u."id" = v."ownerId"
       WHERE v."isAvailable" = true
+        AND v."approvalStatus" = 'APPROVED'
         AND ST_DWithin(
           v."location",
           ST_SetSRID(ST_MakePoint(${p.lng}, ${p.lat}), 4326)::geography,

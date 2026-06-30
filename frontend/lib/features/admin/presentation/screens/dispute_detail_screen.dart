@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/admin/domain/entities/admin_dispute_item.dart';
+import 'package:frontend/features/admin/presentation/cubit/admin_dispute_detail_cubit.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
 import 'package:frontend/shared/widgets/status_chip.dart';
 
+/// Màn xử lý một tranh chấp. Baseline 0b: hiển thị thông tin thật từ hàng đợi +
+/// nút giải quyết/bác bỏ (gọi PATCH /api/admin/disputes/:id). Hoàn tiền tách
+/// riêng ở Phase 3; chi tiết các bên/bằng chứng/timeline ở Phase 3-4.
 class DisputeDetailScreen extends StatelessWidget {
-  const DisputeDetailScreen({super.key});
+  const DisputeDetailScreen({super.key, this.item});
+
+  final AdminDisputeItem? item;
 
   @override
   Widget build(BuildContext context) {
@@ -15,37 +23,72 @@ class DisputeDetailScreen extends StatelessWidget {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: AppColors.adminBg,
-        body: CustomScrollView(
-          slivers: [
-            _AdminAppBar(
-              title: 'Chi tiết tranh chấp',
-              subtitle: 'Xem xét và xử lý khiếu nại',
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 8),
-                    _DisputeHeaderCard(),
-                    const SizedBox(height: 16),
-                    _PartiesCard(),
-                    const SizedBox(height: 16),
-                    _EvidenceCard(),
-                    const SizedBox(height: 16),
-                    _TimelineCard(),
-                    const SizedBox(height: 20),
-                    _DisputeActionButtons(),
-                    const SizedBox(height: 24),
-                  ],
+        body: BlocConsumer<AdminDisputeDetailCubit, AdminDisputeDetailState>(
+          listenWhen: (prev, curr) =>
+              prev.done != curr.done || prev.error != curr.error,
+          listener: (context, state) {
+            if (state.done) {
+              context.pop(true);
+            } else if (state.error != null) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.error!)));
+            }
+          },
+          builder: (context, state) {
+            return CustomScrollView(
+              slivers: [
+                const _AdminAppBar(
+                  title: 'Chi tiết tranh chấp',
+                  subtitle: 'Xem xét và xử lý khiếu nại',
                 ),
-              ),
-            ),
-          ],
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 8),
+                        _DisputeHeaderCard(item: item),
+                        const SizedBox(height: 16),
+                        _DisputeInfoCard(item: item),
+                        const SizedBox(height: 20),
+                        _DisputeActionButtons(
+                          submitting: state.submitting,
+                          resolved: (item?.status ?? 'OPEN') != 'OPEN',
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
+}
+
+(String, Color) _priorityChip(String priority) => switch (priority) {
+  'HIGH' => ('🔴 Ưu tiên cao', AppColors.danger),
+  'MEDIUM' => ('🟡 Ưu tiên vừa', AppColors.warning),
+  'LOW' => ('🟢 Ưu tiên thấp', AppColors.success),
+  _ => ('Ưu tiên', AppColors.adminMuted),
+};
+
+(String, Color) _statusChip(String status) => switch (status) {
+  'RESOLVED' => ('Đã giải quyết', AppColors.success),
+  'REJECTED' => ('Đã bác bỏ', AppColors.danger),
+  'OPEN' => ('Đang mở', AppColors.warning),
+  _ => (status, AppColors.adminMuted),
+};
+
+String _formatDateTime(DateTime dt) {
+  final local = dt.toLocal();
+  String two(int v) => v.toString().padLeft(2, '0');
+  return '${two(local.hour)}:${two(local.minute)} · '
+      '${two(local.day)}/${two(local.month)}/${local.year}';
 }
 
 class _AdminAppBar extends StatelessWidget {
@@ -102,8 +145,12 @@ class _AdminAppBar extends StatelessWidget {
 }
 
 class _DisputeHeaderCard extends StatelessWidget {
+  const _DisputeHeaderCard({required this.item});
+  final AdminDisputeItem? item;
+
   @override
   Widget build(BuildContext context) {
+    final (priorityLabel, priorityColor) = _priorityChip(item?.priority ?? '');
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -114,20 +161,22 @@ class _DisputeHeaderCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.report_problem_rounded,
                 color: AppColors.danger,
                 size: 20,
               ),
-              SizedBox(width: 8),
-              Text(
-                'Xe bị trầy xước sau khi thuê',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.adminText,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  item?.title ?? 'Tranh chấp',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.adminText,
+                  ),
                 ),
               ),
             ],
@@ -135,125 +184,10 @@ class _DisputeHeaderCard extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              StatusChip(label: '🔴 Ưu tiên cao', color: AppColors.danger),
+              StatusChip(label: priorityLabel, color: priorityColor),
               const SizedBox(width: 8),
-              const Text(
-                'Ref: DS-2025-1042',
-                style: TextStyle(fontSize: 12, color: AppColors.adminMuted),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Chủ xe báo cáo rằng xe bị trầy xước nghiêm trọng tại cửa sau bên trái sau khi khách thuê trả xe. Khách thuê phủ nhận trách nhiệm.',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.adminMuted,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PartiesCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.adminCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.adminBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Các bên liên quan',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.adminText,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _PartyRow(
-            emoji: '👨‍💼',
-            role: 'Chủ xe (Người báo cáo)',
-            name: 'Nguyen Minh Tuan',
-            phone: '0901 234 567',
-            roleColor: AppColors.adminBlue,
-          ),
-          const Divider(color: AppColors.adminBorder, height: 16),
-          _PartyRow(
-            emoji: '👤',
-            role: 'Người thuê (Bị cáo buộc)',
-            name: 'Tran Van Hung',
-            phone: '0912 345 678',
-            roleColor: AppColors.warning,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PartyRow extends StatelessWidget {
-  const _PartyRow({
-    required this.emoji,
-    required this.role,
-    required this.name,
-    required this.phone,
-    required this.roleColor,
-  });
-
-  final String emoji;
-  final String role;
-  final String name;
-  final String phone;
-  final Color roleColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: roleColor.withAlpha(30),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(emoji, style: const TextStyle(fontSize: 18)),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
               Text(
-                role,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: roleColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.adminText,
-                ),
-              ),
-              Text(
-                phone,
+                item?.bookingRef ?? '—',
                 style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.adminMuted,
@@ -261,15 +195,20 @@ class _PartyRow extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-class _EvidenceCard extends StatelessWidget {
+class _DisputeInfoCard extends StatelessWidget {
+  const _DisputeInfoCard({required this.item});
+  final AdminDisputeItem? item;
+
   @override
   Widget build(BuildContext context) {
+    final (statusLabel, statusColor) = _statusChip(item?.status ?? '');
+    final createdAt = item?.createdAt;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -278,40 +217,23 @@ class _EvidenceCard extends StatelessWidget {
         border: Border.all(color: AppColors.adminBorder),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Bằng chứng đính kèm',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.adminText,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Trạng thái',
+                style: TextStyle(fontSize: 13, color: AppColors.adminMuted),
+              ),
+              StatusChip(label: statusLabel, color: statusColor),
+            ],
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            height: 80,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: List.generate(
-                4,
-                (i) => Container(
-                  width: 80,
-                  height: 80,
-                  margin: EdgeInsets.only(right: i < 3 ? 10 : 0),
-                  decoration: BoxDecoration(
-                    color: AppColors.adminBorder.withAlpha(80),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: Text(
-                      i < 3 ? '📸' : '📹',
-                      style: const TextStyle(fontSize: 28),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          _InfoRow(label: 'Mã booking', value: item?.bookingRef ?? '—'),
+          const SizedBox(height: 10),
+          _InfoRow(
+            label: 'Thời gian tạo',
+            value: createdAt == null ? '—' : _formatDateTime(createdAt),
           ),
         ],
       ),
@@ -319,117 +241,26 @@ class _EvidenceCard extends StatelessWidget {
   }
 }
 
-class _TimelineCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.adminCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.adminBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Tiến trình xử lý',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.adminText,
-            ),
-          ),
-          const SizedBox(height: 14),
-          _TimelineItem(
-            date: '05/06 09:00',
-            text: 'Khách thuê trả xe tại 123 Lê Lợi',
-            color: AppColors.success,
-            done: true,
-          ),
-          _TimelineItem(
-            date: '05/06 09:45',
-            text: 'Chủ xe báo cáo trầy xước',
-            color: AppColors.danger,
-            done: true,
-          ),
-          _TimelineItem(
-            date: '05/06 10:30',
-            text: 'Hệ thống gửi thông báo cho admin',
-            color: AppColors.adminBlue,
-            done: true,
-          ),
-          _TimelineItem(
-            date: 'Đang chờ',
-            text: 'Admin xem xét và quyết định',
-            color: AppColors.warning,
-            done: false,
-            isLast: true,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TimelineItem extends StatelessWidget {
-  const _TimelineItem({
-    required this.date,
-    required this.text,
-    required this.color,
-    required this.done,
-    this.isLast = false,
-  });
-
-  final String date;
-  final String text;
-  final Color color;
-  final bool done;
-  final bool isLast;
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.label, required this.value});
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: done ? color : AppColors.adminBorder,
-                shape: BoxShape.circle,
-              ),
-            ),
-            if (!isLast)
-              Container(width: 2, height: 36, color: AppColors.adminBorder),
-          ],
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: AppColors.adminMuted),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.adminMuted,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  text,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.adminText,
-                  ),
-                ),
-              ],
-            ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.adminText,
           ),
         ),
       ],
@@ -438,22 +269,103 @@ class _TimelineItem extends StatelessWidget {
 }
 
 class _DisputeActionButtons extends StatelessWidget {
+  const _DisputeActionButtons({
+    required this.submitting,
+    required this.resolved,
+  });
+  final bool submitting;
+
+  /// Tranh chấp đã đóng (không OPEN) → ẩn nút hành động.
+  final bool resolved;
+
   @override
   Widget build(BuildContext context) {
+    if (resolved) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'Tranh chấp đã được xử lý.',
+          style: TextStyle(fontSize: 13, color: AppColors.adminMuted),
+        ),
+      );
+    }
     return Column(
       children: [
         PrimaryButton(
-          label: 'Chấp nhận khiếu nại · Hoàn tiền',
-          onPressed: () => context.pop(),
+          label: 'Chấp nhận khiếu nại',
+          isLoading: submitting,
+          onPressed: submitting
+              ? null
+              : () => _confirm(context, isResolve: true),
           icon: Icons.check_circle_outline_rounded,
         ),
         const SizedBox(height: 12),
         SecondaryButton(
           label: 'Bác bỏ khiếu nại',
-          onPressed: () => context.pop(),
+          onPressed: submitting
+              ? null
+              : () => _confirm(context, isResolve: false),
           icon: Icons.cancel_outlined,
         ),
       ],
     );
   }
+
+  Future<void> _confirm(BuildContext context, {required bool isResolve}) async {
+    final cubit = context.read<AdminDisputeDetailCubit>();
+    final note = await _showNoteDialog(context, isResolve: isResolve);
+    if (note == null) return; // huỷ dialog
+    final trimmed = note.trim();
+    final value = trimmed.isEmpty ? null : trimmed;
+    if (isResolve) {
+      await cubit.resolve(note: value);
+    } else {
+      await cubit.reject(note: value);
+    }
+  }
+}
+
+/// Dialog xác nhận + ghi chú tuỳ chọn. Trả null nếu huỷ, chuỗi (có thể rỗng) nếu OK.
+Future<String?> _showNoteDialog(
+  BuildContext context, {
+  required bool isResolve,
+}) {
+  final controller = TextEditingController();
+  return showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      backgroundColor: AppColors.adminCard,
+      title: Text(
+        isResolve ? 'Chấp nhận khiếu nại' : 'Bác bỏ khiếu nại',
+        style: const TextStyle(color: AppColors.adminText, fontSize: 16),
+      ),
+      content: TextField(
+        controller: controller,
+        autofocus: true,
+        minLines: 2,
+        maxLines: 4,
+        maxLength: 500,
+        style: const TextStyle(color: AppColors.adminText),
+        decoration: const InputDecoration(
+          hintText: 'Ghi chú cho người dùng (tuỳ chọn)',
+          hintStyle: TextStyle(color: AppColors.adminMuted),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('Huỷ'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(controller.text),
+          child: Text(
+            'Xác nhận',
+            style: TextStyle(
+              color: isResolve ? AppColors.success : AppColors.danger,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }

@@ -1,14 +1,22 @@
+import { DisputeStatus, UserRole, VehicleApprovalStatus } from "@prisma/client";
 import type {
+  BookingStatus,
   DisputePriority,
-  DisputeStatus,
   KycStatus,
-  UserRole,
+  PaymentMethod,
+  VehicleType,
 } from "@prisma/client";
 import { adminRepository } from "@/lib/repositories/admin.repository";
+import { notificationService } from "@/lib/services/notification.service";
+import { AppError } from "@/lib/errors/app-error";
 import type {
   ListDisputesInput,
   ListKycInput,
   ListUsersInput,
+  ListVehiclesInput,
+  ResolveDisputeInput,
+  ReviewVehicleInput,
+  UpdateUserRoleInput,
 } from "@/lib/validators/admin.validator";
 
 export interface AdminStats {
@@ -18,6 +26,55 @@ export interface AdminStats {
   monthlyRevenue: number;
 }
 
+export interface BookingStatusMetric {
+  status: BookingStatus;
+  count: number;
+}
+
+export interface PaymentMethodMetric {
+  method: PaymentMethod;
+  total: number;
+}
+
+export interface VehicleTypeMetric {
+  type: VehicleType;
+  count: number;
+  electric: number;
+}
+
+export interface TopVehicle {
+  id: string;
+  title: string;
+  revenue: number;
+  trips: number;
+}
+
+export interface RecentBooking {
+  id: string;
+  vehicleTitle: string;
+  status: BookingStatus;
+  totalPrice: number;
+  createdAt: string;
+}
+
+export interface AdminMetrics {
+  kpi: {
+    totalUsers: number;
+    totalVehicles: number;
+    availableVehicles: number;
+    electricVehicles: number;
+    totalBookings: number;
+    completionRate: number; // 0..1
+    cancellationRate: number; // 0..1
+    avgRating: number;
+  };
+  bookingsByStatus: BookingStatusMetric[];
+  paymentsByMethod: PaymentMethodMetric[];
+  vehiclesByType: VehicleTypeMetric[];
+  topVehicles: TopVehicle[];
+  recentBookings: RecentBooking[];
+}
+
 export interface AdminUserItem {
   id: string;
   phone: string;
@@ -25,6 +82,19 @@ export interface AdminUserItem {
   roles: UserRole[];
   kycStatus: KycStatus;
   createdAt: string;
+}
+
+export interface AdminVehicleItem {
+  id: string;
+  title: string;
+  type: VehicleType;
+  pricePerHour: number;
+  isElectric: boolean;
+  city: string | null;
+  approvalStatus: VehicleApprovalStatus;
+  rejectionReason: string | null;
+  createdAt: string;
+  owner: { id: string; phone: string; email: string | null };
 }
 
 export interface AdminKycItem {
@@ -65,6 +135,24 @@ function monthKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function toAdminUserItem(u: {
+  id: string;
+  phone: string;
+  email: string | null;
+  roles: UserRole[];
+  kycStatus: KycStatus;
+  createdAt: Date;
+}): AdminUserItem {
+  return {
+    id: u.id,
+    phone: u.phone,
+    email: u.email,
+    roles: u.roles,
+    kycStatus: u.kycStatus,
+    createdAt: u.createdAt.toISOString(),
+  };
+}
+
 export const adminService = {
   async getStats(): Promise<AdminStats> {
     const [totalUsers, activeBookings, pendingKyc, monthlyRevenue] =
@@ -75,6 +163,83 @@ export const adminService = {
         adminRepository.sumRevenueSince(startOfCurrentMonth()),
       ]);
     return { totalUsers, activeBookings, pendingKyc, monthlyRevenue };
+  },
+
+  // Gom mọi aggregation cho dashboard vào 1 object (1 endpoint). Cũng là tập
+  // query whitelist cho NL-analytics Phase 5 → không viết truy vấn hai lần.
+  async getMetrics(): Promise<AdminMetrics> {
+    const [
+      totalUsers,
+      bookingGroups,
+      paymentGroups,
+      vehicleGroups,
+      availableVehicles,
+      avgRating,
+      topVehicles,
+      recent,
+    ] = await Promise.all([
+      adminRepository.countUsers(),
+      adminRepository.groupBookingsByStatus(),
+      adminRepository.groupPaymentsByMethodPaid(),
+      adminRepository.groupVehiclesByTypeElectric(),
+      adminRepository.countAvailableVehicles(),
+      adminRepository.avgReviewRating(),
+      adminRepository.topVehiclesByRevenue(5),
+      adminRepository.recentBookings(10),
+    ]);
+
+    const bookingsByStatus: BookingStatusMetric[] = bookingGroups.map((g) => ({
+      status: g.status,
+      count: g._count._all,
+    }));
+    const totalBookings = bookingsByStatus.reduce((s, b) => s + b.count, 0);
+    const countFor = (status: BookingStatus): number =>
+      bookingsByStatus.find((b) => b.status === status)?.count ?? 0;
+
+    const paymentsByMethod: PaymentMethodMetric[] = paymentGroups.map((g) => ({
+      method: g.method,
+      total: g._sum.amount?.toNumber() ?? 0,
+    }));
+
+    // Gộp [type, isElectric] → mỗi loại 1 dòng { count, electric }.
+    const typeMap = new Map<VehicleType, { count: number; electric: number }>();
+    for (const g of vehicleGroups) {
+      const cur = typeMap.get(g.type) ?? { count: 0, electric: 0 };
+      cur.count += g._count._all;
+      if (g.isElectric) cur.electric += g._count._all;
+      typeMap.set(g.type, cur);
+    }
+    const vehiclesByType: VehicleTypeMetric[] = [...typeMap.entries()].map(
+      ([type, v]) => ({ type, count: v.count, electric: v.electric }),
+    );
+    const totalVehicles = vehiclesByType.reduce((s, v) => s + v.count, 0);
+    const electricVehicles = vehiclesByType.reduce((s, v) => s + v.electric, 0);
+
+    return {
+      kpi: {
+        totalUsers,
+        totalVehicles,
+        availableVehicles,
+        electricVehicles,
+        totalBookings,
+        completionRate: totalBookings ? countFor("COMPLETED") / totalBookings : 0,
+        cancellationRate: totalBookings
+          ? countFor("CANCELLED") / totalBookings
+          : 0,
+        avgRating,
+      },
+      bookingsByStatus,
+      paymentsByMethod,
+      vehiclesByType,
+      topVehicles,
+      recentBookings: recent.map((r) => ({
+        id: r.id,
+        vehicleTitle: r.vehicle.title,
+        status: r.status,
+        totalPrice: r.totalPrice.toNumber(),
+        createdAt: r.createdAt.toISOString(),
+      })),
+    };
   },
 
   // Chuỗi doanh thu `months` tháng gần nhất (cũ → mới), bù 0 cho tháng trống.
@@ -121,6 +286,45 @@ export const adminService = {
     };
   },
 
+  // ADMIN giải quyết/bác bỏ tranh chấp. Baseline (KHÔNG đụng tiền — refund tách
+  // riêng). Đổi trạng thái + ghi audit + báo cho người tạo tranh chấp.
+  async resolveDispute(
+    adminId: string,
+    id: string,
+    input: ResolveDisputeInput,
+  ): Promise<{ id: string; status: DisputeStatus }> {
+    const dispute = await adminRepository.findDisputeById(id);
+    if (!dispute) {
+      throw new AppError(404, "DISPUTE_NOT_FOUND", "Không tìm thấy tranh chấp");
+    }
+
+    const status =
+      input.decision === "resolve"
+        ? DisputeStatus.RESOLVED
+        : DisputeStatus.REJECTED;
+
+    const updated = await adminRepository.resolveDispute(
+      id,
+      status,
+      adminId,
+      input.note,
+    );
+
+    const resolved = status === DisputeStatus.RESOLVED;
+    await notificationService.notify({
+      userId: dispute.raisedById,
+      type: "SYSTEM",
+      title: resolved ? "Khiếu nại đã được giải quyết" : "Khiếu nại bị bác bỏ",
+      body:
+        input.note ??
+        (resolved
+          ? "Khiếu nại của bạn đã được xử lý."
+          : "Khiếu nại của bạn không được chấp nhận."),
+    });
+
+    return updated;
+  },
+
   async listUsers(input: ListUsersInput): Promise<Paginated<AdminUserItem>> {
     const skip = (input.page - 1) * input.limit;
     const [rows, total] = await adminRepository.findUsers({
@@ -130,18 +334,116 @@ export const adminService = {
       search: input.search,
     });
     return {
-      items: rows.map((u) => ({
-        id: u.id,
-        phone: u.phone,
-        email: u.email,
-        roles: u.roles,
-        kycStatus: u.kycStatus,
-        createdAt: u.createdAt.toISOString(),
+      items: rows.map(toAdminUserItem),
+      total,
+      page: input.page,
+      limit: input.limit,
+    };
+  },
+
+  // ADMIN bật/tắt vai OWNER cho user. Idempotent (add khi đã có / remove khi
+  // chưa có → no-op). Không cho đổi vai tài khoản ADMIN (user_admin_exclusive).
+  async setUserRole(
+    adminId: string,
+    userId: string,
+    input: UpdateUserRoleInput,
+  ): Promise<AdminUserItem> {
+    const user = await adminRepository.findUserById(userId);
+    if (!user) {
+      throw new AppError(404, "USER_NOT_FOUND", "Không tìm thấy người dùng");
+    }
+    if (user.roles.includes(UserRole.ADMIN)) {
+      throw new AppError(
+        409,
+        "ADMIN_ROLE_LOCKED",
+        "Không thể đổi vai trò của tài khoản ADMIN",
+      );
+    }
+
+    const has = user.roles.includes(input.role);
+    const roles =
+      input.action === "add"
+        ? has
+          ? user.roles
+          : [...user.roles, input.role]
+        : user.roles.filter((r) => r !== input.role);
+
+    const updated = await adminRepository.setUserRoles(
+      userId,
+      roles,
+      adminId,
+      `USER_ROLE_${input.action.toUpperCase()}`,
+      input.role,
+    );
+    return toAdminUserItem(updated);
+  },
+
+  async listVehicles(
+    input: ListVehiclesInput,
+  ): Promise<Paginated<AdminVehicleItem>> {
+    const skip = (input.page - 1) * input.limit;
+    const [rows, total] = await adminRepository.findVehiclesForReview(
+      input.status,
+      skip,
+      input.limit,
+    );
+    return {
+      items: rows.map((v) => ({
+        id: v.id,
+        title: v.title,
+        type: v.type,
+        pricePerHour: v.pricePerHour.toNumber(),
+        isElectric: v.isElectric,
+        city: v.city,
+        approvalStatus: v.approvalStatus,
+        rejectionReason: v.rejectionReason,
+        createdAt: v.createdAt.toISOString(),
+        owner: v.owner,
       })),
       total,
       page: input.page,
       limit: input.limit,
     };
+  },
+
+  // ADMIN duyệt/từ chối xe → đổi approvalStatus + ghi audit + báo chủ xe.
+  async reviewVehicle(
+    adminId: string,
+    id: string,
+    input: ReviewVehicleInput,
+  ): Promise<{
+    id: string;
+    approvalStatus: VehicleApprovalStatus;
+    rejectionReason: string | null;
+  }> {
+    const vehicle = await adminRepository.findVehicleOwner(id);
+    if (!vehicle) {
+      throw new AppError(404, "VEHICLE_NOT_FOUND", "Không tìm thấy xe");
+    }
+
+    const approved = input.decision === "approve";
+    const status = approved
+      ? VehicleApprovalStatus.APPROVED
+      : VehicleApprovalStatus.REJECTED;
+    const reason = approved ? null : (input.rejectionReason ?? null);
+
+    const updated = await adminRepository.setVehicleApproval(
+      id,
+      status,
+      adminId,
+      reason,
+    );
+
+    await notificationService.notify({
+      userId: vehicle.ownerId,
+      type: "SYSTEM",
+      title: approved ? "Xe đã được duyệt" : "Xe bị từ chối",
+      body: approved
+        ? `"${vehicle.title}" đã được duyệt và hiển thị cho người thuê.`
+        : `"${vehicle.title}" bị từ chối: ${reason}`,
+    });
+
+    return updated;
   },
 
   async listKyc(input: ListKycInput): Promise<Paginated<AdminKycItem>> {
