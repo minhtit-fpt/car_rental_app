@@ -115,7 +115,7 @@ class AdminRemoteDataSource {
     return data as Map<String, dynamic>;
   }
 
-  /// Phase 5a: hỏi đáp số liệu. Trả {templateKey, answer, data}.
+  /// Hỏi-đáp số liệu (tool-calling). Trả {answer, toolsUsed}.
   Future<Map<String, dynamic>> askAnalytics(String question) async {
     final data = await _client.post(
       '/api/admin/analytics',

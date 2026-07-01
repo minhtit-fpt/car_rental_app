@@ -48,6 +48,50 @@ export const llmClient = {
     }
     return content;
   },
+
+  // Hỏi-đáp phân tích admin: ai-service chạy tool-calling vào API admin nên PHẢI
+  // forward token admin của phiên. Trả {answer, toolsUsed}. 503 → service fallback.
+  async adminChat(
+    message: string,
+    token: string,
+  ): Promise<{ answer: string; toolsUsed: string[] }> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(`${AI_SERVICE_URL}/admin/chat`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        signal: controller.signal,
+        body: JSON.stringify({ message }),
+      });
+    } catch {
+      throw new AppError(503, "LLM_UNAVAILABLE", "Không kết nối được dịch vụ AI");
+    } finally {
+      clearTimeout(timeout);
+    }
+    if (res.status === 503) {
+      throw new AppError(503, "LLM_UNAVAILABLE", "Dịch vụ AI đang offline");
+    }
+    if (!res.ok) {
+      throw new AppError(502, "LLM_BAD_RESPONSE", "Dịch vụ AI trả về lỗi");
+    }
+    const json = (await res.json()) as {
+      data?: { answer?: string; toolsUsed?: string[] };
+    };
+    const answer = json.data?.answer;
+    if (!answer) {
+      throw new AppError(
+        502,
+        "LLM_BAD_RESPONSE",
+        "Dịch vụ AI không trả về nội dung",
+      );
+    }
+    return { answer, toolsUsed: json.data?.toolsUsed ?? [] };
+  },
 };
 
 // Bóc JSON object đầu tiên ra khỏi text LLM (bỏ code fence ```json). Caller tự

@@ -8,13 +8,15 @@ import { requireRole } from "@/lib/middleware/role.middleware";
 
 export const runtime = "nodejs";
 
-// POST /api/admin/analytics — NL-analytics: hỏi đáp số liệu qua template whitelist.
+// POST /api/admin/analytics — NL-analytics: hỏi-đáp số liệu qua trợ lý tool-calling.
+// Token admin của phiên được forward xuống ai-service để nó gọi API admin đọc dữ liệu.
 export async function POST(req: Request): Promise<Response> {
   try {
     const claims = await requireAuth(req);
     requireRole(claims, UserRole.ADMIN);
     const input = analyticsAskSchema.parse(await parseJsonBody(req));
-    return ok(await analyticsService.ask(input.question));
+    const token = req.headers.get("authorization")!.slice("Bearer ".length).trim();
+    return ok(await analyticsService.ask(input.question, token));
   } catch (error) {
     return toErrorResponse(error);
   }

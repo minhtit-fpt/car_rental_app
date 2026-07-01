@@ -206,8 +206,8 @@ class AdminRepositoryImpl implements AdminRepository {
     final json = await _remote.askAnalytics(question);
     return AnalyticsAnswer(
       answer: json['answer'] as String,
-      templateKey: json['templateKey'] as String?,
-      data: json['data'],
+      toolsUsed:
+          (json['toolsUsed'] as List<dynamic>?)?.cast<String>() ?? const [],
     );
   }
 }

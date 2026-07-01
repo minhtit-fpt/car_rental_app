@@ -1,13 +1,11 @@
-/// Câu trả lời NL-analytics (Phase 5a). `templateKey` null = không khớp template
-/// hoặc AI offline. `data` là lát số liệu thô để FE tái dùng nếu cần.
+/// Câu trả lời NL-analytics. Trợ lý tool-calling ở ai-service trả lời câu hỏi bất
+/// kỳ về số liệu; `toolsUsed` là các nguồn dữ liệu (tool admin) đã dùng để trả lời.
 class AnalyticsAnswer {
   const AnalyticsAnswer({
     required this.answer,
-    this.templateKey,
-    this.data,
+    this.toolsUsed = const [],
   });
 
   final String answer;
-  final String? templateKey;
-  final Object? data;
+  final List<String> toolsUsed;
 }

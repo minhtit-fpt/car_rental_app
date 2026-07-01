@@ -24,6 +24,8 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
+from app.admin_engine import run_admin_chat
+from app.admin_tools import AdminToolClient
 from app.chat_engine import ChatEngine
 from app.config import get_settings
 from app.embedder import Embedder
@@ -65,10 +67,25 @@ class Msg(BaseModel):
 
 class CompleteRequest(BaseModel):
     """Hoàn thành 1 lượt chat có cấu trúc (không RAG, không stream) — dùng cho các
-    tính năng admin ở backend Next.js (trợ lý tranh chấp, NL-analytics, giải thích
-    rủi ro). Backend đã gom facts + soạn prompt; service chỉ lo gọi LM Studio."""
+    tính năng admin ở backend Next.js (trợ lý tranh chấp, giải thích rủi ro).
+    Backend đã gom facts + soạn prompt; service chỉ lo gọi LM Studio."""
 
     messages: list[Msg] = Field(min_length=1)
+
+
+class AdminChatRequest(BaseModel):
+    """Hỏi-đáp phân tích của admin (có tool-calling, không RAG). Token admin lấy từ
+    header Authorization và tiêm vào AdminToolClient — quyền admin do backend chốt."""
+
+    message: str = Field(min_length=1)
+    history: list[dict] = Field(default_factory=list)
+
+    @field_validator("message")
+    @classmethod
+    def _not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("message không được rỗng")
+        return v
 
 
 def get_components(request: Request) -> ChatComponents:
@@ -179,6 +196,28 @@ def create_app() -> FastAPI:
                 status_code=503, detail="LM Studio không phản hồi."
             ) from err
         return {"success": True, "data": {"content": msg.get("content") or ""}}
+
+    # ponytail: cùng mức tin cậy nội bộ với /admin/complete (backend gọi trên
+    # localhost). Khác biệt: /admin/chat CHẠY tool-calling vào API admin nên PHẢI
+    # có token admin thật (forward từ phiên) — không token → tool tự từ chối.
+    @app.post("/admin/chat")
+    def admin_chat(
+        body: AdminChatRequest,
+        llm: Any = Depends(get_llm),
+        authorization: str | None = Header(default=None),
+    ) -> dict:
+        token = _extract_bearer(authorization)
+        tool_client = AdminToolClient.from_settings(auth_token=token)
+        try:
+            result = run_admin_chat(llm, tool_client, body.message.strip(), body.history)
+        except httpx.HTTPError as err:
+            raise HTTPException(
+                status_code=503, detail="LM Studio không phản hồi."
+            ) from err
+        return {
+            "success": True,
+            "data": {"answer": result["answer"], "toolsUsed": result["toolsUsed"]},
+        }
 
     return app
 
