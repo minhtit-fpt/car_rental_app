@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/features/inspection/data/models/damage_report_model.dart';
 import 'package:frontend/features/inspection/domain/entities/damage_report.dart';
+import 'package:frontend/features/inspection/domain/entities/inspection_finding.dart';
 import 'package:frontend/features/inspection/domain/repositories/inspection_repository.dart';
 import 'package:frontend/features/inspection/presentation/cubit/inspection_cubit.dart';
 
@@ -28,11 +29,11 @@ class _FakeInspectionRepository implements InspectionRepository {
   }) async => 'key';
 
   @override
-  Future<void> submitInspection({
+  Future<InspectionFinding?> submitInspection({
     required String bookingId,
     required String phase,
     required List<String> photoKeys,
-  }) async {}
+  }) async => null;
 }
 
 final _report = DamageReport(

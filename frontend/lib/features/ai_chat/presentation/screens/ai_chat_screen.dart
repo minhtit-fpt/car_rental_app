@@ -21,6 +21,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
   final _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    // Mở lại màn: xoá hội thoại nếu phiên cũ đã quá 10 phút, ngược lại giữ nguyên.
+    context.read<AiChatCubit>().resumeOrReset();
+  }
+
+  @override
   void dispose() {
     _inputController.dispose();
     _scrollController.dispose();
@@ -115,28 +122,58 @@ class _ChatHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'Trợ lý RideVN',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Trợ lý RideVN',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Hỏi về thuê xe, giá, chuyến của bạn',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                ],
+                    Text(
+                      'Hỏi về thuê xe, giá, chuyến của bạn',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: 'Đoạn chat mới',
+                icon: const Icon(Icons.edit_square, color: Colors.white),
+                onPressed: () => _confirmNewChat(context),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _confirmNewChat(BuildContext context) async {
+    final cubit = context.read<AiChatCubit>();
+    if (cubit.state.isEmpty) return; // chưa có gì để xoá
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Bắt đầu đoạn chat mới?'),
+        content: const Text('Nội dung hội thoại hiện tại sẽ bị xoá.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Huỷ'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Đoạn chat mới'),
+          ),
+        ],
+      ),
+    );
+    if (ok ?? false) cubit.startNewChat();
   }
 }
 

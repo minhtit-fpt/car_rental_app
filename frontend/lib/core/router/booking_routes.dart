@@ -3,17 +3,15 @@ import 'package:frontend/features/booking/presentation/cubit/booking_cubit.dart'
 import 'package:frontend/features/booking/presentation/screens/active_trip_screen.dart';
 import 'package:frontend/features/booking/presentation/screens/booking_confirm_screen.dart';
 import 'package:frontend/features/booking/presentation/screens/booking_date_picker_screen.dart';
+import 'package:frontend/features/booking/presentation/screens/booking_detail_screen.dart';
 import 'package:frontend/features/booking/presentation/screens/contract_screen.dart';
 import 'package:frontend/features/booking/presentation/screens/my_trips_screen.dart';
+import 'package:frontend/features/booking/domain/entities/booking.dart';
 import 'package:frontend/features/inspection/presentation/screens/vehicle_inspection_screen.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
 
 final bookingRoutes = [
   // Mở danh sách chuyến độc lập (dùng khi điều hướng từ thông báo).
-  GoRoute(
-    path: '/trips',
-    builder: (context, state) => const MyTripsScreen(),
-  ),
   GoRoute(
     path: '/trips',
     builder: (context, state) => const MyTripsScreen(),
@@ -54,6 +52,12 @@ final bookingRoutes = [
         cubit: args['cubit'] as BookingCubit,
       );
     },
+  ),
+  // Chi tiết một đơn (mở từ tab "Chuyến"). Booking truyền qua extra.
+  GoRoute(
+    path: '/trips/detail',
+    builder: (context, state) =>
+        BookingDetailScreen(booking: state.extra as Booking),
   ),
   // Kiểm tra xe + AI nhận diện hư hỏng (check-in/check-out).
   GoRoute(

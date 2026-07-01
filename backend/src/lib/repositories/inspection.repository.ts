@@ -39,6 +39,19 @@ export const inspectionRepository = {
     });
   },
 
+  // Ghi kết quả VLM soi hư hỏng cho 1 lượt (sau khi đã upsert ảnh).
+  updateFindings(
+    bookingId: string,
+    phase: InspectionPhase,
+    summary: string,
+    items: Prisma.InputJsonValue,
+  ): Promise<Inspection> {
+    return prisma.inspection.update({
+      where: { bookingId_phase: { bookingId, phase } },
+      data: { findingsSummary: summary, findings: items, analyzedAt: new Date() },
+    });
+  },
+
   upsertDamageReport(
     bookingId: string,
     data: DamageReportData,

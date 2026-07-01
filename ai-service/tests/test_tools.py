@@ -26,14 +26,19 @@ def test_search_available_vehicles_builds_query_and_unwraps_data() -> None:
     def handler(req: httpx.Request) -> httpx.Response:
         seen["path"] = req.url.path
         seen["params"] = dict(req.url.params)
-        return httpx.Response(200, json={"success": True, "data": [{"id": "v1"}], "meta": {"total": 1}})
+        # Shape thật của /api/vehicles: data = {items, total} (xem vehicleService.list).
+        return httpx.Response(
+            200,
+            json={"success": True, "data": {"items": [{"id": "v1", "pricePerHour": 80000}], "total": 1}},
+        )
 
     out = _client(handler).search_available_vehicles(vehicle_type="CAR", max_price=200000, limit=5)
     assert seen["path"] == "/api/vehicles"
     assert seen["params"]["type"] == "CAR"
     assert seen["params"]["maxPrice"] == "200000"
     assert seen["params"]["limit"] == "5"
-    assert out["vehicles"] == [{"id": "v1"}]
+    # Tool bóc `items` ra mảng phẳng + gắn pricePerDay = pricePerHour × 24 (giá ngày).
+    assert out["vehicles"] == [{"id": "v1", "pricePerHour": 80000, "pricePerDay": 1920000}]
 
 
 def test_get_vehicle_price_calls_quote_endpoint() -> None:

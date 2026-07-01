@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:frontend/core/network/api_exception.dart';
+import 'package:frontend/features/inspection/domain/entities/inspection_finding.dart';
 import 'package:frontend/features/inspection/domain/repositories/inspection_repository.dart';
 import 'package:frontend/features/inspection/presentation/cubit/inspection_state.dart';
 
@@ -68,12 +69,12 @@ class InspectionCubit extends Cubit<InspectionState> {
         );
         keys.add(key);
       }
-      await _repo.submitInspection(
+      final finding = await _repo.submitInspection(
         bookingId: bookingId,
         phase: phase,
         photoKeys: keys,
       );
-      emit(_withPhase(phase, PhaseStatus.done, keys.length));
+      emit(_withPhase(phase, PhaseStatus.done, keys.length, finding: finding));
     } on ApiException catch (e) {
       emit(
         _withPhase(phase, PhaseStatus.error, 0).copyWith(
@@ -94,16 +95,22 @@ class InspectionCubit extends Cubit<InspectionState> {
     }
   }
 
-  InspectionState _withPhase(String phase, PhaseStatus status, int count) =>
-      phase == _checkin
+  InspectionState _withPhase(
+    String phase,
+    PhaseStatus status,
+    int count, {
+    InspectionFinding? finding,
+  }) => phase == _checkin
       ? state.copyWith(
           checkin: status,
           checkinCount: count,
+          checkinFinding: finding,
           errorMessage: null,
         )
       : state.copyWith(
           checkout: status,
           checkoutCount: count,
+          checkoutFinding: finding,
           errorMessage: null,
         );
 

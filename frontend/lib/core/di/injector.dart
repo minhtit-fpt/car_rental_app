@@ -438,7 +438,9 @@ void setupAiChat() {
     ..registerSingleton<AiChatRepository>(
       AiChatRepositoryImpl(AiChatRemoteDataSource(sl<SecureStorage>())),
     )
-    ..registerFactory<AiChatCubit>(
+    // Singleton: giữ hội thoại qua điều hướng (thoát màn chat không mất tin nhắn);
+    // cubit tự xoá sau 10 phút không hoạt động khi mở lại.
+    ..registerLazySingleton<AiChatCubit>(
       () => AiChatCubit(
         streamReply: StreamAiReplyUseCase(sl<AiChatRepository>()),
       ),

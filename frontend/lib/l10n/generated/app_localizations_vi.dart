@@ -529,6 +529,20 @@ class AppLocalizationsVi extends AppLocalizations {
   String get tripsCancelConfirm => 'Bạn chắc chắn muốn huỷ đơn đặt xe này?';
 
   @override
+  String get tripsDetailTitle => 'Chi tiết chuyến';
+
+  @override
+  String get tripsDetailSubtitle => 'Thông tin đầy đủ của đơn';
+
+  @override
+  String tripsBookedOn(String date) {
+    return 'Đặt ngày $date';
+  }
+
+  @override
+  String get tripsInspectionCta => 'Kiểm tra xe (AI)';
+
+  @override
   String get bookingPickDatesTitle => 'Chọn ngày thuê';
 
   @override

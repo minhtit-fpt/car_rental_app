@@ -111,6 +111,38 @@ export const notificationEvents = {
     });
   },
 
+  // VLM phát hiện hư hỏng tại 1 lượt kiểm tra (nhận/trả) — báo CẢ renter và owner
+  // để ghi nhận tình trạng xe lúc giao/trả (chứng cứ cho phương án đền bù sau).
+  async inspectionDamageFound(p: {
+    bookingId: string;
+    renterId: string;
+    ownerId: string;
+    phase: "CHECKIN" | "CHECKOUT";
+    summary: string;
+  }): Promise<void> {
+    const when = p.phase === "CHECKIN" ? "khi nhận xe" : "khi trả xe";
+    const summary = p.summary.trim();
+    const body = summary
+      ? `AI phát hiện hư hỏng ${when}: ${summary}`
+      : `AI phát hiện hư hỏng ${when}. Vui lòng kiểm tra ảnh kiểm tra xe.`;
+    await Promise.all([
+      notificationService.safeCreate({
+        userId: p.renterId,
+        type: NotificationType.BOOKING,
+        title: "Phát hiện hư hỏng xe",
+        body,
+        payload: { bookingId: p.bookingId },
+      }),
+      notificationService.safeCreate({
+        userId: p.ownerId,
+        type: NotificationType.BOOKING,
+        title: "Phát hiện hư hỏng xe",
+        body,
+        payload: { bookingId: p.bookingId },
+      }),
+    ]);
+  },
+
   // Renter huỷ đơn — báo cho owner.
   async bookingCancelled(p: OwnerEvent): Promise<void> {
     await notificationService.safeCreate({

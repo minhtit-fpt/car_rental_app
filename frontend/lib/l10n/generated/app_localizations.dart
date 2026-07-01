@@ -1094,6 +1094,30 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to cancel this booking?'**
   String get tripsCancelConfirm;
 
+  /// No description provided for @tripsDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip details'**
+  String get tripsDetailTitle;
+
+  /// No description provided for @tripsDetailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Full booking information'**
+  String get tripsDetailSubtitle;
+
+  /// Date the booking was created
+  ///
+  /// In en, this message translates to:
+  /// **'Booked on {date}'**
+  String tripsBookedOn(String date);
+
+  /// No description provided for @tripsInspectionCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle inspection (AI)'**
+  String get tripsInspectionCta;
+
   /// No description provided for @bookingPickDatesTitle.
   ///
   /// In en, this message translates to:

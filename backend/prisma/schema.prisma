@@ -257,6 +257,12 @@ model Inspection {
   createdById String          @db.Uuid
   createdAt   DateTime        @default(now())
 
+  // Hư hỏng VLM phát hiện ngay tại lượt này (độc lập với lượt kia) — dùng để báo
+  // cả 2 bên về tình trạng xe lúc giao/trả. null = chưa phân tích (VLM lỗi/tắt).
+  findingsSummary String?
+  findings        Json?
+  analyzedAt      DateTime?
+
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@unique([bookingId, phase])

@@ -181,6 +181,10 @@
   "tripsCancel": "Huỷ đơn",
   "tripsCancelTitle": "Huỷ đơn này?",
   "tripsCancelConfirm": "Bạn chắc chắn muốn huỷ đơn đặt xe này?",
+  "tripsDetailTitle": "Chi tiết chuyến",
+  "tripsDetailSubtitle": "Thông tin đầy đủ của đơn",
+  "tripsBookedOn": "Đặt ngày {date}",
+  "tripsInspectionCta": "Kiểm tra xe (AI)",
 
   "bookingPickDatesTitle": "Chọn ngày thuê",
   "bookingPickDatesSubtitle": "Chọn thời gian bắt đầu và kết thúc",

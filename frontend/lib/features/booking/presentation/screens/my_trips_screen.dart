@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
@@ -110,78 +111,85 @@ class _TripCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final canCancel = _cancellable.contains(booking.status);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.palette.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: context.palette.border),
-        boxShadow: [
-          BoxShadow(
-            color: context.palette.cardShadowColor,
-            blurRadius: 12,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.tripsOrderNumber(
-                  booking.id.substring(0, booking.id.length.clamp(0, 8)),
+    // Tap card → màn chi tiết đơn (từ đó mới vào kiểm tra xe nếu đơn chưa huỷ).
+    return InkWell(
+      onTap: () => context.push('/trips/detail', extra: booking),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: context.palette.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: context.palette.border),
+          boxShadow: [
+            BoxShadow(
+              color: context.palette.cardShadowColor,
+              blurRadius: 12,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.tripsOrderNumber(
+                    booking.id.substring(0, booking.id.length.clamp(0, 8)),
+                  ),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: context.palette.darkText,
+                  ),
                 ),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: context.palette.darkText,
-                ),
-              ),
-              _StatusBadge(status: booking.status),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _InfoLine(
-            icon: Icons.event_outlined,
-            text:
-                '${_fmtDate(booking.startTime)} → '
-                '${_fmtDate(booking.endTime)}',
-          ),
-          const SizedBox(height: 6),
-          _InfoLine(
-            icon: Icons.payments_outlined,
-            text: '${_fmtVnd(booking.totalPrice)} đ',
-          ),
-          if (canCancel) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: isCancelling ? null : () => _confirmCancel(context),
-                icon: isCancelling
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.close_rounded, size: 18),
-                label: Text(
-                  isCancelling ? l10n.tripsCancelling : l10n.tripsCancel,
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.danger,
-                  side: const BorderSide(color: AppColors.danger),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                _StatusBadge(status: booking.status),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _InfoLine(
+              icon: Icons.event_outlined,
+              text:
+                  '${_fmtDate(booking.startTime)} → '
+                  '${_fmtDate(booking.endTime)}',
+            ),
+            const SizedBox(height: 6),
+            _InfoLine(
+              icon: Icons.payments_outlined,
+              text: '${_fmtVnd(booking.totalPrice)} đ',
+            ),
+            if (canCancel) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: isCancelling
+                      ? null
+                      : () => _confirmCancel(context),
+                  icon: isCancelling
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.close_rounded, size: 18),
+                  label: Text(
+                    isCancelling ? l10n.tripsCancelling : l10n.tripsCancel,
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.danger,
+                    side: const BorderSide(color: AppColors.danger),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
