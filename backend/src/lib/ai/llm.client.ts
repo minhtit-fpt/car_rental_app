@@ -1,14 +1,11 @@
 import { AppError } from "@/lib/errors/app-error";
 
-// Client gọi LLM text (qua LM Studio, OpenAI-compatible) — dùng chung cho trợ lý
-// tranh chấp (Phase 4), NL-analytics (Phase 5a) và lời giải thích rủi ro (5b).
-// Tách riêng SDK: chỉ fetch JSON. Offline → AppError 503 để service fallback.
+// Client gọi tính năng LLM text qua **ai-service** (FastAPI) — nơi tập trung MỌI
+// điểm cắm LM Studio + cấu hình model (giống chatbot RAG gọi ai-service, không
+// gọi thẳng LM Studio). Dùng chung cho trợ lý tranh chấp (Phase 4), NL-analytics
+// (5a) và giải thích rủi ro (5b). ai-service offline → AppError 503 để fallback.
 
-const BASE_URL = process.env.LM_STUDIO_BASE_URL ?? "http://localhost:1234/v1";
-// Model text riêng; fallback về VLM model (cùng họ Qwen, chạy text được) để
-// không phải cấu hình thêm khi chỉ có 1 model nạp trong LM Studio.
-const TEXT_MODEL =
-  process.env.LLM_MODEL ?? process.env.VLM_MODEL ?? "qwen2.5-vl-7b-instruct";
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://localhost:8000";
 const REQUEST_TIMEOUT_MS = 120_000;
 
 export interface ChatTurn {
@@ -17,36 +14,31 @@ export interface ChatTurn {
 }
 
 export const llmClient = {
-  async chat(
-    messages: ChatTurn[],
-    opts?: { temperature?: number },
-  ): Promise<string> {
+  async chat(messages: ChatTurn[]): Promise<string> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     let res: Response;
     try {
-      res = await fetch(`${BASE_URL}/chat/completions`, {
+      res = await fetch(`${AI_SERVICE_URL}/admin/complete`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         signal: controller.signal,
-        body: JSON.stringify({
-          model: TEXT_MODEL,
-          temperature: opts?.temperature ?? 0.2,
-          messages,
-        }),
+        body: JSON.stringify({ messages }),
       });
     } catch {
       throw new AppError(503, "LLM_UNAVAILABLE", "Không kết nối được dịch vụ AI");
     } finally {
       clearTimeout(timeout);
     }
+    // ai-service trả 503 khi LM Studio offline → giữ nguyên để service fallback.
+    if (res.status === 503) {
+      throw new AppError(503, "LLM_UNAVAILABLE", "Dịch vụ AI đang offline");
+    }
     if (!res.ok) {
       throw new AppError(502, "LLM_BAD_RESPONSE", "Dịch vụ AI trả về lỗi");
     }
-    const json = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const content = json.choices?.[0]?.message?.content;
+    const json = (await res.json()) as { data?: { content?: string } };
+    const content = json.data?.content;
     if (!content) {
       throw new AppError(
         502,

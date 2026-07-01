@@ -140,7 +140,7 @@ export const analyticsService = {
 
     let key: string;
     try {
-      const raw = await llmClient.chat(messages, { temperature: 0 });
+      const raw = await llmClient.chat(messages);
       key = classifySchema.parse(parseJsonFromText(raw)).key;
     } catch (error) {
       if (error instanceof AppError && error.status === 503) {
