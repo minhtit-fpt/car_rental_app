@@ -429,6 +429,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unitTrips => 'trips';
 
   @override
+  String get ownerChatTooltip => 'Chat with renters';
+
+  @override
   String get ownerDashboardTitle => 'Owner home';
 
   @override

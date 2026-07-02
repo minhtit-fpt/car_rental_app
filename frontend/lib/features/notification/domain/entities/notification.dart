@@ -35,11 +35,10 @@ class AppNotification {
       case NotificationType.kyc:
         return '/kyc/status';
       case NotificationType.booking:
+      case NotificationType.payment:
         return payload?['role'] == 'owner'
             ? '/owner/booking-request'
             : '/trips';
-      case NotificationType.payment:
-        return '/trips';
       case NotificationType.promotion:
       case NotificationType.system:
         return null;

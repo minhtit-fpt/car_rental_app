@@ -902,6 +902,12 @@ abstract class AppLocalizations {
   /// **'trips'**
   String get unitTrips;
 
+  /// No description provided for @ownerChatTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with renters'**
+  String get ownerChatTooltip;
+
   /// No description provided for @ownerDashboardTitle.
   ///
   /// In en, this message translates to:

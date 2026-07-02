@@ -118,7 +118,7 @@ class NotificationDetailScreen extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () => context.push('/trips'),
+                    onPressed: () => context.push(notif.targetRoute ?? '/trips'),
                     icon: const Icon(Icons.directions_car_outlined, size: 18),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,

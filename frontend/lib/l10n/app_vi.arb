@@ -146,6 +146,7 @@
   "unitVehicles": "xe",
   "unitTrips": "chuyến",
 
+  "ownerChatTooltip": "Tin nhắn với khách",
   "ownerDashboardTitle": "Trang chủ Chủ xe",
   "ownerDashboardSubtitle": "Quản lý xe cho thuê và chuyến đi của bạn",
   "ownerRevenueMonth": "Doanh thu tháng",

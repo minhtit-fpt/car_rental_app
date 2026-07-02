@@ -134,6 +134,13 @@ class _OwnerSliverAppBar extends StatelessWidget {
           ),
         ],
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.forum_outlined, color: Colors.white),
+          tooltip: l10n.ownerChatTooltip,
+          onPressed: () => context.push('/conversations'),
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: const BoxDecoration(

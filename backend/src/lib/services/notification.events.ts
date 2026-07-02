@@ -42,7 +42,7 @@ export const notificationEvents = {
         type: NotificationType.BOOKING,
         title: "Có yêu cầu thuê xe mới",
         body: "Một khách vừa gửi yêu cầu thuê xe của bạn.",
-        payload: { bookingId: p.bookingId },
+        payload: { bookingId: p.bookingId, role: "owner" },
       }),
     ]);
   },
@@ -87,7 +87,7 @@ export const notificationEvents = {
         type: NotificationType.PAYMENT,
         title: "Đơn đã được thanh toán",
         body: "Khách đã thanh toán cho đơn thuê xe của bạn.",
-        payload: { bookingId: p.bookingId },
+        payload: { bookingId: p.bookingId, role: "owner" },
       }),
       p.renterEmail
         ? emailService.sendNotificationEmail(
@@ -150,7 +150,7 @@ export const notificationEvents = {
       type: NotificationType.BOOKING,
       title: "Khách đã huỷ đơn",
       body: "Một đơn thuê xe của bạn vừa bị khách huỷ.",
-      payload: { bookingId: p.bookingId },
+      payload: { bookingId: p.bookingId, role: "owner" },
     });
   },
 };

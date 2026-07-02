@@ -221,6 +221,7 @@
   "unitVehicles": "cars",
   "unitTrips": "trips",
 
+  "ownerChatTooltip": "Chat with renters",
   "ownerDashboardTitle": "Owner home",
   "ownerDashboardSubtitle": "Manage your rental cars and trips",
   "ownerRevenueMonth": "Monthly revenue",

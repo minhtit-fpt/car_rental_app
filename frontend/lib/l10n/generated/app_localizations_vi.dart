@@ -426,6 +426,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get unitTrips => 'chuyến';
 
   @override
+  String get ownerChatTooltip => 'Tin nhắn với khách';
+
+  @override
   String get ownerDashboardTitle => 'Trang chủ Chủ xe';
 
   @override
