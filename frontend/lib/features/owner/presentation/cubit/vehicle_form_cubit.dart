@@ -21,7 +21,7 @@ class VehicleFormCubit extends Cubit<VehicleFormState> {
   Future<void> create({
     required String type,
     required String title,
-    required double pricePerHour,
+    required double pricePerDay,
     required bool isElectric,
     required bool deliveryAvailable,
     required double lat,
@@ -37,7 +37,7 @@ class VehicleFormCubit extends Cubit<VehicleFormState> {
       final vehicle = await _createVehicle(
         type: type,
         title: title,
-        pricePerHour: pricePerHour,
+        pricePerDay: pricePerDay,
         isElectric: isElectric,
         deliveryAvailable: deliveryAvailable,
         lat: lat,
@@ -59,7 +59,7 @@ class VehicleFormCubit extends Cubit<VehicleFormState> {
   Future<void> update(
     String id, {
     required String title,
-    required double pricePerHour,
+    required double pricePerDay,
     required bool isElectric,
     required bool deliveryAvailable,
     int? seats,
@@ -75,7 +75,7 @@ class VehicleFormCubit extends Cubit<VehicleFormState> {
       final vehicle = await _updateVehicle(
         id,
         title: title,
-        pricePerHour: pricePerHour,
+        pricePerDay: pricePerDay,
         isElectric: isElectric,
         deliveryAvailable: deliveryAvailable,
         seats: seats,

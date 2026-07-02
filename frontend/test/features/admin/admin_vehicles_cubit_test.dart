@@ -112,7 +112,7 @@ AdminVehicleItem _vehicle() => AdminVehicleItem(
   id: 'v1',
   title: 'Tesla',
   type: 'CAR',
-  pricePerHour: 100000,
+  pricePerDay: 100000,
   isElectric: true,
   approvalStatus: 'PENDING',
   createdAt: DateTime(2026, 1, 1),

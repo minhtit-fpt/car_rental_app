@@ -8,14 +8,14 @@ class VehicleMarker {
     required this.vehicleId,
     required this.position,
     required this.title,
-    required this.pricePerHour,
+    required this.pricePerDay,
     required this.type,
   });
 
   final String vehicleId;
   final GeoPoint position;
   final String title;
-  final double pricePerHour;
+  final double pricePerDay;
   final String type;
 
   @override
@@ -24,12 +24,12 @@ class VehicleMarker {
       other.vehicleId == vehicleId &&
       other.position == position &&
       other.title == title &&
-      other.pricePerHour == pricePerHour &&
+      other.pricePerDay == pricePerDay &&
       other.type == type;
 
   @override
   int get hashCode =>
-      Object.hash(vehicleId, position, title, pricePerHour, type);
+      Object.hash(vehicleId, position, title, pricePerDay, type);
 }
 
 /// Chuyển danh sách xe → marker, BỎ những xe thiếu toạ độ (list/detail không có
@@ -42,7 +42,7 @@ List<VehicleMarker> vehicleMarkers(List<Vehicle> vehicles) {
           vehicleId: v.id,
           position: GeoPoint(v.latitude!, v.longitude!),
           title: v.title,
-          pricePerHour: v.pricePerHour,
+          pricePerDay: v.pricePerDay,
           type: v.type,
         ),
   ];

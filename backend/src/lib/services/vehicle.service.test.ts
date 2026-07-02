@@ -24,7 +24,7 @@ function makeVehicle(overrides: Partial<Vehicle> = {}): Vehicle {
     ownerId: "owner-1",
     type: VehicleType.CAR,
     title: "Vinfast VF8",
-    pricePerHour: new Prisma.Decimal(120),
+    pricePerDay: new Prisma.Decimal(120),
     isElectric: true,
     isAvailable: true,
     deliveryAvailable: false,
@@ -43,8 +43,8 @@ describe("vehicleService.list", () => {
       total: 1,
     });
     const result = await vehicleService.list({ page: 1, limit: 20 });
-    expect(result.items[0]?.pricePerHour).toBe(120);
-    expect(typeof result.items[0]?.pricePerHour).toBe("number");
+    expect(result.items[0]?.pricePerDay).toBe(120);
+    expect(typeof result.items[0]?.pricePerDay).toBe("number");
     expect(result).toMatchObject({ total: 1, page: 1, limit: 20 });
   });
 });
@@ -76,7 +76,7 @@ describe("vehicleService.nearby", () => {
         ownerName: "Nguyễn Văn An",
         type: VehicleType.CAR,
         title: "VF8",
-        pricePerHour: 120,
+        pricePerDay: 120,
         isElectric: true,
         isAvailable: true,
         deliveryAvailable: false,

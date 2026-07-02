@@ -48,7 +48,7 @@ describe("createVehicleSchema", () => {
     const parsed = createVehicleSchema.parse({
       type: "CAR",
       title: "Vinfast VF8",
-      pricePerHour: 120,
+      pricePerDay: 120,
       lat: 10.77,
       lng: 106.7,
     });
@@ -61,7 +61,7 @@ describe("createVehicleSchema", () => {
       createVehicleSchema.parse({
         type: "CAR",
         title: "X",
-        pricePerHour: 0,
+        pricePerDay: 0,
         lat: 0,
         lng: 0,
       }),

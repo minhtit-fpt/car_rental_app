@@ -7,7 +7,7 @@ abstract final class AdminVehicleItemModel {
       id: json['id'] as String,
       title: json['title'] as String,
       type: json['type'] as String,
-      pricePerHour: (json['pricePerHour'] as num).toDouble(),
+      pricePerDay: (json['pricePerDay'] as num).toDouble(),
       isElectric: json['isElectric'] as bool,
       city: json['city'] as String?,
       approvalStatus: json['approvalStatus'] as String,

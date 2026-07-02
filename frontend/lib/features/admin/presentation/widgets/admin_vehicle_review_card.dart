@@ -136,7 +136,7 @@ class _VehicleRow extends StatelessWidget {
                 ),
               ),
               Text(
-                '${_formatPrice(vehicle.pricePerHour)}/h',
+                '${_formatPrice(vehicle.pricePerDay)}/ngày',
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

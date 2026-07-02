@@ -63,7 +63,7 @@ class VehicleRemoteDataSource {
   Future<Map<String, dynamic>> create({
     required String type,
     required String title,
-    required double pricePerHour,
+    required double pricePerDay,
     required bool isElectric,
     required bool deliveryAvailable,
     required double lat,
@@ -78,7 +78,7 @@ class VehicleRemoteDataSource {
       data: {
         'type': type,
         'title': title,
-        'pricePerHour': pricePerHour,
+        'pricePerDay': pricePerDay,
         'isElectric': isElectric,
         'deliveryAvailable': deliveryAvailable,
         'seats': ?seats,
@@ -97,7 +97,7 @@ class VehicleRemoteDataSource {
   Future<Map<String, dynamic>> update(
     String id, {
     String? title,
-    double? pricePerHour,
+    double? pricePerDay,
     bool? isElectric,
     bool? deliveryAvailable,
     bool? isAvailable,
@@ -112,7 +112,7 @@ class VehicleRemoteDataSource {
       '/api/vehicles/$id',
       data: {
         'title': ?title,
-        'pricePerHour': ?pricePerHour,
+        'pricePerDay': ?pricePerDay,
         'isElectric': ?isElectric,
         'deliveryAvailable': ?deliveryAvailable,
         'isAvailable': ?isAvailable,

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyFactors,
   buildSurgeFactors,
-  computeRentalHours,
+  computeRentalDays,
   DEFAULT_HOLIDAYS,
   type PriceFactor,
 } from "@/lib/utils/surge.util";
@@ -14,42 +14,31 @@ function vn(iso: string): Date {
   return new Date(`${iso}+07:00`);
 }
 
-describe("computeRentalHours", () => {
-  it("rounds partial hours up", () => {
+describe("computeRentalDays", () => {
+  it("rounds a same-day rental up to 1 day", () => {
     const start = vn("2026-07-01T10:00:00");
-    const end = vn("2026-07-01T11:30:00");
-    expect(computeRentalHours(start, end)).toBe(2);
+    const end = vn("2026-07-01T22:00:00");
+    expect(computeRentalDays(start, end)).toBe(1);
   });
 
-  it("returns a minimum of 1 hour", () => {
+  it("treats exactly 24h as 1 day", () => {
     const start = vn("2026-07-01T10:00:00");
-    const end = vn("2026-07-01T10:10:00");
-    expect(computeRentalHours(start, end)).toBe(1);
+    const end = vn("2026-07-02T10:00:00");
+    expect(computeRentalDays(start, end)).toBe(1);
   });
 
-  it("computes exact whole hours", () => {
+  it("rounds 25h up to 2 days", () => {
     const start = vn("2026-07-01T10:00:00");
-    const end = vn("2026-07-01T13:00:00");
-    expect(computeRentalHours(start, end)).toBe(3);
+    const end = vn("2026-07-02T11:00:00");
+    expect(computeRentalDays(start, end)).toBe(2);
   });
 });
 
-describe("buildSurgeFactors — peak hour", () => {
-  it("applies an evening peak factor for a 19:00 VN start (Wednesday)", () => {
-    // 2026-07-01 là thứ Tư, không lễ.
+describe("buildSurgeFactors — no hour-based factor", () => {
+  it("does not apply a peak-hour factor (daily rentals)", () => {
     const factors = buildSurgeFactors({
       startTime: vn("2026-07-01T19:00:00"),
-      hours: 2,
-    });
-    const peak = factors.find((f) => f.code === "PEAK_HOUR");
-    expect(peak).toBeDefined();
-    expect(peak?.multiplier).toBeGreaterThan(1);
-  });
-
-  it("does not apply a peak factor at 14:00 VN (off-peak)", () => {
-    const factors = buildSurgeFactors({
-      startTime: vn("2026-07-01T14:00:00"),
-      hours: 2,
+      days: 1,
     });
     expect(factors.find((f) => f.code === "PEAK_HOUR")).toBeUndefined();
   });
@@ -60,7 +49,7 @@ describe("buildSurgeFactors — weekend", () => {
     // 2026-07-04 là thứ Bảy.
     const factors = buildSurgeFactors({
       startTime: vn("2026-07-04T14:00:00"),
-      hours: 2,
+      days: 1,
     });
     const weekend = factors.find((f) => f.code === "WEEKEND");
     expect(weekend).toBeDefined();
@@ -70,7 +59,7 @@ describe("buildSurgeFactors — weekend", () => {
   it("does not apply a weekend factor on a weekday", () => {
     const factors = buildSurgeFactors({
       startTime: vn("2026-07-01T14:00:00"),
-      hours: 2,
+      days: 1,
     });
     expect(factors.find((f) => f.code === "WEEKEND")).toBeUndefined();
   });
@@ -80,7 +69,7 @@ describe("buildSurgeFactors — holiday", () => {
   it("applies a holiday factor on a fixed national holiday (Sep 2)", () => {
     const factors = buildSurgeFactors({
       startTime: vn("2026-09-02T14:00:00"),
-      hours: 2,
+      days: 1,
     });
     const holiday = factors.find((f) => f.code === "HOLIDAY");
     expect(holiday).toBeDefined();
@@ -94,10 +83,10 @@ describe("buildSurgeFactors — holiday", () => {
 });
 
 describe("buildSurgeFactors — duration discount", () => {
-  it("gives a discount (<1) for multi-day rentals", () => {
+  it("gives a discount (<1) for 3+ day rentals", () => {
     const factors = buildSurgeFactors({
       startTime: vn("2026-07-01T14:00:00"),
-      hours: 72,
+      days: 3,
     });
     const discount = factors.find((f) => f.code === "DURATION_DISCOUNT");
     expect(discount).toBeDefined();
@@ -107,7 +96,7 @@ describe("buildSurgeFactors — duration discount", () => {
   it("applies no discount for short rentals", () => {
     const factors = buildSurgeFactors({
       startTime: vn("2026-07-01T14:00:00"),
-      hours: 3,
+      days: 1,
     });
     expect(
       factors.find((f) => f.code === "DURATION_DISCOUNT"),
@@ -119,7 +108,7 @@ describe("buildSurgeFactors — demand", () => {
   it("applies a demand factor when a surge multiplier is supplied", () => {
     const factors = buildSurgeFactors({
       startTime: vn("2026-07-01T14:00:00"),
-      hours: 2,
+      days: 1,
       demandMultiplier: 1.25,
     });
     const demand = factors.find((f) => f.code === "DEMAND");
@@ -129,7 +118,7 @@ describe("buildSurgeFactors — demand", () => {
   it("clamps an extreme demand multiplier into the allowed band", () => {
     const factors = buildSurgeFactors({
       startTime: vn("2026-07-01T14:00:00"),
-      hours: 2,
+      days: 1,
       demandMultiplier: 99,
     });
     const demand = factors.find((f) => f.code === "DEMAND");
@@ -139,7 +128,7 @@ describe("buildSurgeFactors — demand", () => {
   it("omits the demand factor when the multiplier is neutral (1)", () => {
     const factors = buildSurgeFactors({
       startTime: vn("2026-07-01T14:00:00"),
-      hours: 2,
+      days: 1,
       demandMultiplier: 1,
     });
     expect(factors.find((f) => f.code === "DEMAND")).toBeUndefined();

@@ -369,7 +369,7 @@ class _TitleSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${_fmtVnd(vehicle.pricePerDay)} VNĐ',
+                  '${_fmtVnd(vehicle.pricePerDayK)} VNĐ',
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -937,7 +937,7 @@ class _BottomBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${_fmtVnd(vehicle.pricePerDay)} VNĐ',
+                    '${_fmtVnd(vehicle.pricePerDayK)} VNĐ',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,

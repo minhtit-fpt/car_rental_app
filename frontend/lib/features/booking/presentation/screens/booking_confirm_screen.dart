@@ -413,11 +413,10 @@ class _PriceBreakdownCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final quote = state.priceQuote;
 
-    // Fallback khi thiếu báo giá: tính giá gốc tại chỗ (giờ = số ngày × 24,
-    // khớp khoảng thời gian đơn đặt suy ra ở cubit).
-    final fallbackHours = state.totalDays * 24;
-    final hours = quote?.hours ?? fallbackHours;
-    final basePrice = quote?.basePrice ?? vehicle.pricePerHour * fallbackHours;
+    // Fallback khi thiếu báo giá: tính giá gốc tại chỗ theo số ngày thuê.
+    final fallbackDays = state.totalDays;
+    final days = quote?.days ?? fallbackDays;
+    final basePrice = quote?.basePrice ?? vehicle.pricePerDay * fallbackDays;
     final total = quote?.finalPrice ?? basePrice;
 
     return Container(
@@ -464,7 +463,7 @@ class _PriceBreakdownCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _PriceLine(
-            label: l10n.bookingBasePrice(hours),
+            label: l10n.bookingBasePrice(days),
             value: _fmtVnd(basePrice),
           ),
           if (quote != null)

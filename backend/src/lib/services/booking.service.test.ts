@@ -56,7 +56,7 @@ function makeVehicle(overrides: Partial<Vehicle> = {}): Vehicle {
     ownerId: "owner-1",
     type: VehicleType.CAR,
     title: "VF8",
-    pricePerHour: new Prisma.Decimal(100),
+    pricePerDay: new Prisma.Decimal(100),
     isElectric: false,
     isAvailable: true,
     deliveryAvailable: false,
@@ -76,7 +76,7 @@ function makeBooking(overrides: Partial<Booking> = {}): Booking {
     status: BookingStatus.PENDING_PAYMENT,
     startTime: new Date("2026-07-01T08:00:00Z"),
     endTime: new Date("2026-07-01T12:00:00Z"),
-    totalPrice: new Prisma.Decimal(400),
+    totalPrice: new Prisma.Decimal(100),
     deliveryRequested: false,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -94,19 +94,19 @@ const VALID_INPUT = {
 beforeEach(() => vi.clearAllMocks());
 
 describe("bookingService.create", () => {
-  it("computes total = hours * pricePerHour and stores PENDING_PAYMENT", async () => {
+  it("computes total = days * pricePerDay and stores PENDING_PAYMENT", async () => {
     vi.mocked(vehicleRepository.findById).mockResolvedValue(makeVehicle());
     vi.mocked(bookingRepository.hasActiveOverlap).mockResolvedValue(false);
     vi.mocked(bookingRepository.create).mockResolvedValue(makeBooking());
 
     const result = await bookingService.create(RENTER, VALID_INPUT);
 
-    // 4 giờ * 100 = 400
+    // Thuê trong ngày (08:00–12:00) → 1 ngày * 100 = 100
     expect(bookingRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({ totalPrice: 400, renterId: RENTER }),
+      expect.objectContaining({ totalPrice: 100, renterId: RENTER }),
     );
     expect(result.status).toBe(BookingStatus.PENDING_PAYMENT);
-    expect(result.totalPrice).toBe(400);
+    expect(result.totalPrice).toBe(100);
     expect(notificationEvents.bookingCreated).toHaveBeenCalledWith(
       expect.objectContaining({ renterId: RENTER, ownerId: "owner-1" }),
     );

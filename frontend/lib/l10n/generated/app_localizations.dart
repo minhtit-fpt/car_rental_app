@@ -968,11 +968,11 @@ abstract class AppLocalizations {
   /// **'You haven\'t listed any cars yet'**
   String get ownerNoCars;
 
-  /// Owner's car price per hour (price already formatted)
+  /// Owner's car price per day (price already formatted)
   ///
   /// In en, this message translates to:
-  /// **'{price}đ/hour'**
-  String ownerPricePerHour(String price);
+  /// **'{price}đ/day'**
+  String ownerPricePerDay(String price);
 
   /// No description provided for @ownerStatusReady.
   ///
@@ -1313,8 +1313,8 @@ abstract class AppLocalizations {
   /// Base rental price before dynamic adjustments
   ///
   /// In en, this message translates to:
-  /// **'Base price ({hours}h)'**
-  String bookingBasePrice(int hours);
+  /// **'Base price ({days}d)'**
+  String bookingBasePrice(int days);
 
   /// No description provided for @bookingDynamicPriceNote.
   ///
@@ -1952,11 +1952,11 @@ abstract class AppLocalizations {
   /// **'e.g. Toyota Camry 2024'**
   String get ownerVehicleNameHint;
 
-  /// No description provided for @ownerVehiclePricePerHour.
+  /// No description provided for @ownerVehiclePricePerDay.
   ///
   /// In en, this message translates to:
-  /// **'Price/hour (VND)'**
-  String get ownerVehiclePricePerHour;
+  /// **'Price/day (VND)'**
+  String get ownerVehiclePricePerDay;
 
   /// No description provided for @ownerVehiclePriceHint.
   ///

@@ -52,7 +52,7 @@ function claims(roles: UserRole[]): AccessTokenClaims {
 const VALID_CREATE = {
   type: "CAR",
   title: "Vinfast VF8",
-  pricePerHour: 120,
+  pricePerDay: 120,
   lat: 10.77,
   lng: 106.7,
 };
@@ -105,9 +105,9 @@ describe("GET /api/vehicles/[id]/price-quote", () => {
 
   it("returns 200 with the explainable quote", async () => {
     vi.mocked(pricingService.quoteForVehicle).mockResolvedValue({
-      basePricePerHour: 100,
-      hours: 4,
-      basePrice: 400,
+      basePricePerDay: 100,
+      days: 1,
+      basePrice: 100,
       factors: [],
       finalPrice: 400,
       currency: "VND",

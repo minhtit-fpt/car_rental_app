@@ -53,7 +53,7 @@ function makeVehicle(overrides: Partial<Vehicle> = {}): Vehicle {
     ownerId: OWNER,
     type: VehicleType.CAR,
     title: "VF8",
-    pricePerHour: new Prisma.Decimal(100),
+    pricePerDay: new Prisma.Decimal(100),
     isElectric: false,
     isAvailable: true,
     deliveryAvailable: false,

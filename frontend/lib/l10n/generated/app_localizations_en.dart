@@ -462,8 +462,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerNoCars => 'You haven\'t listed any cars yet';
 
   @override
-  String ownerPricePerHour(String price) {
-    return '$priceđ/hour';
+  String ownerPricePerDay(String price) {
+    return '$priceđ/day';
   }
 
   @override
@@ -649,8 +649,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingPriceBreakdownTitle => 'Price breakdown';
 
   @override
-  String bookingBasePrice(int hours) {
-    return 'Base price (${hours}h)';
+  String bookingBasePrice(int days) {
+    return 'Base price (${days}d)';
   }
 
   @override
@@ -1002,7 +1002,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerVehicleNameHint => 'e.g. Toyota Camry 2024';
 
   @override
-  String get ownerVehiclePricePerHour => 'Price/hour (VND)';
+  String get ownerVehiclePricePerDay => 'Price/day (VND)';
 
   @override
   String get ownerVehiclePriceHint => 'e.g. 50000';

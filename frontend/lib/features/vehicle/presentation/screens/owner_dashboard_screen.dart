@@ -619,7 +619,7 @@ class _OwnedCarRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  l10n.ownerPricePerHour(_fmtVnd(vehicle.pricePerHour)),
+                  l10n.ownerPricePerDay(_fmtVnd(vehicle.pricePerDay)),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

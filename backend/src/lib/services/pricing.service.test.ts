@@ -20,7 +20,7 @@ function makeVehicle(overrides: Partial<Vehicle> = {}): Vehicle {
     ownerId: "owner-1",
     type: VehicleType.CAR,
     title: "Vinfast VF8",
-    pricePerHour: new Prisma.Decimal(100_000),
+    pricePerDay: new Prisma.Decimal(100_000),
     isElectric: true,
     isAvailable: true,
     deliveryAvailable: false,
@@ -34,52 +34,53 @@ beforeEach(() => vi.clearAllMocks());
 
 describe("pricingService.quote", () => {
   it("returns the base price when no surge factors apply", () => {
-    // Thứ Tư 14:00, thuê 2 giờ → không lễ/cuối tuần/cao điểm/giảm dài.
+    // Thứ Tư, thuê trong ngày → 1 ngày, không lễ/cuối tuần/giảm dài.
     const quote = pricingService.quote({
-      pricePerHour: 100_000,
+      pricePerDay: 100_000,
       startTime: vn("2026-07-01T14:00:00"),
       endTime: vn("2026-07-01T16:00:00"),
     });
-    expect(quote.basePrice).toBe(200_000);
-    expect(quote.hours).toBe(2);
+    expect(quote.basePrice).toBe(100_000);
+    expect(quote.days).toBe(1);
     expect(quote.factors).toHaveLength(0);
-    expect(quote.finalPrice).toBe(200_000);
+    expect(quote.finalPrice).toBe(100_000);
     expect(quote.currency).toBe("VND");
   });
 
-  it("applies a peak-hour factor and reflects it in finalPrice", () => {
+  it("applies a weekend factor and reflects it in finalPrice", () => {
+    // Thứ Bảy → cuối tuần 1.2, 1 ngày.
     const quote = pricingService.quote({
-      pricePerHour: 100_000,
-      startTime: vn("2026-07-01T19:00:00"),
-      endTime: vn("2026-07-01T21:00:00"),
+      pricePerDay: 100_000,
+      startTime: vn("2026-07-04T14:00:00"),
+      endTime: vn("2026-07-04T16:00:00"),
     });
-    expect(quote.factors.map((f) => f.code)).toContain("PEAK_HOUR");
-    // base 200k * 1.15 = 230k
-    expect(quote.finalPrice).toBe(230_000);
+    expect(quote.factors.map((f) => f.code)).toContain("WEEKEND");
+    // base 100k * 1.2 = 120k
+    expect(quote.finalPrice).toBe(120_000);
   });
 
-  it("stacks weekend and peak factors multiplicatively", () => {
-    // Thứ Bảy 19:00 → cuối tuần (1.2) + cao điểm (1.15).
+  it("applies a holiday factor on a national holiday", () => {
+    // 2026-09-02 Quốc khánh → 1.3.
     const quote = pricingService.quote({
-      pricePerHour: 100_000,
-      startTime: vn("2026-07-04T19:00:00"),
-      endTime: vn("2026-07-04T21:00:00"),
+      pricePerDay: 100_000,
+      startTime: vn("2026-09-02T14:00:00"),
+      endTime: vn("2026-09-02T16:00:00"),
     });
-    const codes = quote.factors.map((f) => f.code);
-    expect(codes).toContain("WEEKEND");
-    expect(codes).toContain("PEAK_HOUR");
-    // 200k * 1.2 * 1.15 = 276k
-    expect(quote.finalPrice).toBe(276_000);
+    expect(quote.factors.map((f) => f.code)).toContain("HOLIDAY");
+    expect(quote.finalPrice).toBe(130_000);
   });
 
   it("applies a duration discount for multi-day rentals", () => {
+    // 3 ngày → base 300k, giảm giá thuê dài (<300k).
     const start = vn("2026-07-01T14:00:00");
     const end = new Date(start.getTime() + 72 * 3_600_000);
     const quote = pricingService.quote({
-      pricePerHour: 100_000,
+      pricePerDay: 100_000,
       startTime: start,
       endTime: end,
     });
+    expect(quote.days).toBe(3);
+    expect(quote.basePrice).toBe(300_000);
     expect(quote.factors.map((f) => f.code)).toContain("DURATION_DISCOUNT");
     expect(quote.finalPrice).toBeLessThan(quote.basePrice);
   });
@@ -93,8 +94,8 @@ describe("pricingService.quoteForVehicle", () => {
       startTime: vn("2026-07-01T14:00:00"),
       endTime: vn("2026-07-01T16:00:00"),
     });
-    expect(quote.basePricePerHour).toBe(100_000);
-    expect(quote.basePrice).toBe(200_000);
+    expect(quote.basePricePerDay).toBe(100_000);
+    expect(quote.basePrice).toBe(100_000);
   });
 
   it("throws 404 when the vehicle does not exist", async () => {

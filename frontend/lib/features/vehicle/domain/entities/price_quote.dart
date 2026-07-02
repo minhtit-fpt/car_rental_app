@@ -1,22 +1,22 @@
 /// Báo giá động cho một lượt thuê — khớp `PriceQuote` của backend
 /// (`GET /api/vehicles/:id/price-quote`). Mỗi [PriceFactor] là một yếu tố surge
-/// CÓ GIẢI THÍCH để hiển thị cho người dùng (giờ cao điểm, cuối tuần, lễ, giảm
+/// CÓ GIẢI THÍCH để hiển thị cho người dùng (cuối tuần, lễ, giảm
 /// giá thuê dài, cung/cầu).
 class PriceQuote {
   const PriceQuote({
-    required this.basePricePerHour,
-    required this.hours,
+    required this.basePricePerDay,
+    required this.days,
     required this.basePrice,
     required this.factors,
     required this.finalPrice,
     required this.currency,
   });
 
-  /// Giá gốc/giờ (VND) — chủ xe đặt trong app.
-  final double basePricePerHour;
-  final int hours;
+  /// Giá gốc/ngày (VND) — chủ xe đặt trong app.
+  final double basePricePerDay;
+  final int days;
 
-  /// basePricePerHour × hours, TRƯỚC khi áp các yếu tố surge.
+  /// basePricePerDay × days, TRƯỚC khi áp các yếu tố surge.
   final double basePrice;
 
   /// Các yếu tố đang áp dụng (rỗng nếu giá đúng bằng giá gốc).

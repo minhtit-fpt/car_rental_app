@@ -8,7 +8,7 @@ abstract final class VehicleModel {
     ownerName: json['ownerName'] as String?,
     type: json['type'] as String,
     title: json['title'] as String,
-    pricePerHour: (json['pricePerHour'] as num).toDouble(),
+    pricePerDay: (json['pricePerDay'] as num).toDouble(),
     isElectric: json['isElectric'] as bool? ?? false,
     isAvailable: json['isAvailable'] as bool? ?? true,
     deliveryAvailable: json['deliveryAvailable'] as bool? ?? false,
