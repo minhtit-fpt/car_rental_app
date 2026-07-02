@@ -55,6 +55,8 @@ class BookingRepositoryImpl implements BookingRepository {
         return null;
       case BookingStatus.pendingPayment:
         return 'PENDING_PAYMENT';
+      case BookingStatus.awaitingOwner:
+        return 'AWAITING_OWNER';
       case BookingStatus.confirmed:
         return 'CONFIRMED';
       case BookingStatus.inProgress:

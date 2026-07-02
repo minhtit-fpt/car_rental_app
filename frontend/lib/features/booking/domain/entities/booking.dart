@@ -1,6 +1,7 @@
 /// Trạng thái đơn đặt — khớp enum `BookingStatus` của backend (Prisma).
 enum BookingStatus {
   pendingPayment,
+  awaitingOwner,
   confirmed,
   inProgress,
   completed,
@@ -12,6 +13,8 @@ enum BookingStatus {
     switch (raw) {
       case 'PENDING_PAYMENT':
         return BookingStatus.pendingPayment;
+      case 'AWAITING_OWNER':
+        return BookingStatus.awaitingOwner;
       case 'CONFIRMED':
         return BookingStatus.confirmed;
       case 'IN_PROGRESS':

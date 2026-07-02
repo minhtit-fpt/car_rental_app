@@ -190,6 +190,10 @@ class _StatusBadge extends StatelessWidget {
         l10n.bookingStatusPendingPayment,
         AppColors.accent,
       ),
+      BookingStatus.awaitingOwner => (
+        l10n.bookingStatusAwaitingOwner,
+        AppColors.warning,
+      ),
       BookingStatus.confirmed => (l10n.bookingStatusConfirmed, AppColors.primary),
       BookingStatus.inProgress => (l10n.bookingStatusInProgress, AppColors.teal),
       BookingStatus.completed => (

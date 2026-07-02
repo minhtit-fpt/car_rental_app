@@ -515,6 +515,7 @@ class _AlreadyHandled extends StatelessWidget {
 
 String _statusLabel(OwnerBooking b, AppLocalizations l10n) =>
     switch (b.status.name) {
+      'awaitingOwner' => l10n.ownerStatusPendingConfirm,
       'pendingPayment' => l10n.ownerStatusPendingConfirm,
       'confirmed' => l10n.ownerStatusConfirmed,
       'inProgress' => l10n.ownerStatusInProgress,
@@ -525,6 +526,7 @@ String _statusLabel(OwnerBooking b, AppLocalizations l10n) =>
 
 Color _statusColor(BuildContext context, OwnerBooking b) =>
     switch (b.status.name) {
+  'awaitingOwner' => AppColors.warning,
   'pendingPayment' => AppColors.warning,
   'confirmed' => AppColors.success,
   'inProgress' => AppColors.primary,

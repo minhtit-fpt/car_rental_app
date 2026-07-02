@@ -170,6 +170,7 @@
   "commonConfirm": "Xác nhận",
 
   "bookingStatusPendingPayment": "Chờ thanh toán",
+  "bookingStatusAwaitingOwner": "Chờ chủ xe xác nhận",
   "bookingStatusConfirmed": "Đã xác nhận",
   "bookingStatusInProgress": "Đang thuê",
   "bookingStatusCompleted": "Hoàn thành",
@@ -493,7 +494,7 @@
   "paymentVnpayTitle": "Thanh toán VNPay",
   "paymentResultSuccessTitle": "Thanh toán thành công!",
   "paymentResultFailTitle": "Thanh toán thất bại",
-  "paymentResultSuccessBody": "Chuyến đi của bạn đã được xác nhận.\nChúc bạn có chuyến đi vui vẻ!",
+  "paymentResultSuccessBody": "Đã thanh toán. Đơn đang chờ chủ xe xác nhận.\nBạn sẽ được thông báo ngay khi có kết quả.",
   "paymentResultFailBody": "Giao dịch không thành công.\nVui lòng thử lại hoặc chọn phương thức khác.",
   "paymentViewTrip": "Xem chuyến đi",
   "paymentBackHome": "Về trang chủ",

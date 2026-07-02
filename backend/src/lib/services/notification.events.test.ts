@@ -35,8 +35,8 @@ describe("notificationEvents owner payloads carry role", () => {
     expect(ownerCall("r-1")?.payload).toEqual({ bookingId: "b-1" });
   });
 
-  it("paymentConfirmed tags owner notification with role", async () => {
-    await notificationEvents.paymentConfirmed({
+  it("paymentAwaitingOwner tags owner notification with role", async () => {
+    await notificationEvents.paymentAwaitingOwner({
       bookingId: "b-1",
       renterId: "r-1",
       ownerId: "o-1",

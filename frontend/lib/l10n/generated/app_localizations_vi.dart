@@ -497,6 +497,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get bookingStatusPendingPayment => 'Chờ thanh toán';
 
   @override
+  String get bookingStatusAwaitingOwner => 'Chờ chủ xe xác nhận';
+
+  @override
   String get bookingStatusConfirmed => 'Đã xác nhận';
 
   @override
@@ -1427,7 +1430,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get paymentResultSuccessBody =>
-      'Chuyến đi của bạn đã được xác nhận.\nChúc bạn có chuyến đi vui vẻ!';
+      'Đã thanh toán. Đơn đang chờ chủ xe xác nhận.\nBạn sẽ được thông báo ngay khi có kết quả.';
 
   @override
   String get paymentResultFailBody =>

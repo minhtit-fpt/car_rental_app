@@ -42,6 +42,7 @@ class OwnerRepositoryImpl implements OwnerRepository {
   static String? _statusToApi(BookingStatus? status) => switch (status) {
     null || BookingStatus.unknown => null,
     BookingStatus.pendingPayment => 'PENDING_PAYMENT',
+    BookingStatus.awaitingOwner => 'AWAITING_OWNER',
     BookingStatus.confirmed => 'CONFIRMED',
     BookingStatus.inProgress => 'IN_PROGRESS',
     BookingStatus.completed => 'COMPLETED',

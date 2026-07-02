@@ -186,6 +186,7 @@ model Favorite {
 
 enum BookingStatus {
   PENDING_PAYMENT
+  AWAITING_OWNER
   CONFIRMED
   IN_PROGRESS
   COMPLETED
