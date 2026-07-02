@@ -429,6 +429,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get ownerChatTooltip => 'Tin nhắn với khách';
 
   @override
+  String get ownerCarNoRating => 'Chưa có';
+
+  @override
   String get ownerDashboardTitle => 'Trang chủ Chủ xe';
 
   @override

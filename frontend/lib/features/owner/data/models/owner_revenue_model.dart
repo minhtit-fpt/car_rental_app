@@ -31,11 +31,25 @@ abstract final class OwnerRevenueModel {
         )
         .toList(growable: false);
 
+    final vehicles = (json['vehicles'] as List<dynamic>? ?? const [])
+        .map((e) => e as Map<String, dynamic>)
+        .map(
+          (v) => OwnerVehicleStat(
+            vehicleId: v['vehicleId'] as String,
+            title: v['title'] as String,
+            earnings: (v['earnings'] as num?)?.toDouble() ?? 0,
+            trips: v['trips'] as int? ?? 0,
+            avgRating: (v['avgRating'] as num?)?.toDouble(),
+          ),
+        )
+        .toList(growable: false);
+
     return OwnerRevenue(
       monthRevenue: (json['monthRevenue'] as num).toDouble(),
       totalTrips: json['totalTrips'] as int? ?? 0,
       monthly: monthly,
       transactions: transactions,
+      vehicles: vehicles,
     );
   }
 }

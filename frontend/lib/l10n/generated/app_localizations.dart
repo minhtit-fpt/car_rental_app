@@ -908,6 +908,12 @@ abstract class AppLocalizations {
   /// **'Chat with renters'**
   String get ownerChatTooltip;
 
+  /// No description provided for @ownerCarNoRating.
+  ///
+  /// In en, this message translates to:
+  /// **'No rating'**
+  String get ownerCarNoRating;
+
   /// No description provided for @ownerDashboardTitle.
   ///
   /// In en, this message translates to:

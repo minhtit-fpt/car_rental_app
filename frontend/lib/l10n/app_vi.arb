@@ -147,6 +147,7 @@
   "unitTrips": "chuyến",
 
   "ownerChatTooltip": "Tin nhắn với khách",
+  "ownerCarNoRating": "Chưa có",
   "ownerDashboardTitle": "Trang chủ Chủ xe",
   "ownerDashboardSubtitle": "Quản lý xe cho thuê và chuyến đi của bạn",
   "ownerRevenueMonth": "Doanh thu tháng",

@@ -16,11 +16,20 @@ export interface OwnerTransaction {
   vehicleTitle: string;
 }
 
+export interface OwnerVehicleStat {
+  vehicleId: string;
+  title: string;
+  earnings: number; // tổng Payment PAID của xe (mọi thời điểm)
+  trips: number; // số booking đã thanh toán
+  avgRating: number | null; // rating trung bình từ renter, null nếu chưa có
+}
+
 export interface OwnerRevenue {
   monthRevenue: number; // doanh thu tháng hiện tại
   totalTrips: number; // số chuyến đã thanh toán (tháng hiện tại)
   monthly: RevenuePoint[];
   transactions: OwnerTransaction[];
+  vehicles: OwnerVehicleStat[]; // thống kê theo từng xe
 }
 
 const RECENT_TX_LIMIT = 10;
@@ -44,12 +53,14 @@ export const ownerService = {
       1,
     );
 
-    const [monthRevenue, totalTrips, rows, txRows] = await Promise.all([
-      ownerRepository.sumPaidRevenue(ownerId, monthStart),
-      ownerRepository.countPaidTrips(ownerId, monthStart),
-      ownerRepository.monthlyRevenue(ownerId, seriesStart),
-      ownerRepository.recentTransactions(ownerId, RECENT_TX_LIMIT),
-    ]);
+    const [monthRevenue, totalTrips, rows, txRows, vehicleRows] =
+      await Promise.all([
+        ownerRepository.sumPaidRevenue(ownerId, monthStart),
+        ownerRepository.countPaidTrips(ownerId, monthStart),
+        ownerRepository.monthlyRevenue(ownerId, seriesStart),
+        ownerRepository.recentTransactions(ownerId, RECENT_TX_LIMIT),
+        ownerRepository.perVehicleStats(ownerId),
+      ]);
 
     const totals = new Map<string, number>();
     for (const row of rows) {
@@ -73,6 +84,14 @@ export const ownerService = {
       vehicleTitle: t.vehicleTitle,
     }));
 
-    return { monthRevenue, totalTrips, monthly, transactions };
+    const vehicles: OwnerVehicleStat[] = vehicleRows.map((v) => ({
+      vehicleId: v.vehicleId,
+      title: v.title,
+      earnings: v.earnings,
+      trips: v.trips,
+      avgRating: v.avgRating,
+    }));
+
+    return { monthRevenue, totalTrips, monthly, transactions, vehicles };
   },
 };

@@ -432,6 +432,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerChatTooltip => 'Chat with renters';
 
   @override
+  String get ownerCarNoRating => 'No rating';
+
+  @override
   String get ownerDashboardTitle => 'Owner home';
 
   @override

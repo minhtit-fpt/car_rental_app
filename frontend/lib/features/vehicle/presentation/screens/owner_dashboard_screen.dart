@@ -6,6 +6,7 @@ import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:frontend/features/owner/domain/entities/owner_revenue.dart';
 import 'package:frontend/features/owner/presentation/cubit/my_vehicles_cubit.dart';
 import 'package:frontend/features/owner/presentation/cubit/owner_revenue_cubit.dart';
 import 'package:frontend/features/vehicle/domain/entities/vehicle.dart';
@@ -21,6 +22,14 @@ String _fmtVnd(num v) {
     buf.write(s[i]);
   }
   return '$buf';
+}
+
+/// Tìm thống kê của một xe theo id (null nếu chưa có trong báo cáo doanh thu).
+OwnerVehicleStat? _statFor(List<OwnerVehicleStat> stats, String vehicleId) {
+  for (final s in stats) {
+    if (s.vehicleId == vehicleId) return s;
+  }
+  return null;
 }
 
 class OwnerDashboardScreen extends StatelessWidget {
@@ -540,8 +549,20 @@ class _MyCarsCard extends StatelessWidget {
                         itemCount: vehicles.length,
                         separatorBuilder: (_, _) =>
                             Divider(height: 1, color: context.palette.border),
-                        itemBuilder: (_, i) =>
-                            _OwnedCarRow(vehicle: vehicles[i]),
+                        itemBuilder: (_, i) {
+                          final v = vehicles[i];
+                          return BlocBuilder<
+                            OwnerRevenueCubit,
+                            OwnerRevenueState
+                          >(
+                            builder: (context, rState) => _OwnedCarRow(
+                              vehicle: v,
+                              stat: rState is OwnerRevenueLoaded
+                                  ? _statFor(rState.revenue.vehicles, v.id)
+                                  : null,
+                            ),
+                          );
+                        },
                       ),
             },
           ),
@@ -552,8 +573,9 @@ class _MyCarsCard extends StatelessWidget {
 }
 
 class _OwnedCarRow extends StatelessWidget {
-  const _OwnedCarRow({required this.vehicle});
+  const _OwnedCarRow({required this.vehicle, this.stat});
   final Vehicle vehicle;
+  final OwnerVehicleStat? stat;
 
   @override
   Widget build(BuildContext context) {
@@ -604,6 +626,10 @@ class _OwnedCarRow extends StatelessWidget {
                     color: AppColors.primary,
                   ),
                 ),
+                if (stat != null) ...[
+                  const SizedBox(height: 6),
+                  _CarStatsLine(stat: stat!),
+                ],
               ],
             ),
           ),
@@ -692,6 +718,43 @@ class _OwnedCarRow extends StatelessWidget {
     final error = await context.read<MyVehiclesCubit>().delete(vehicle.id);
     messenger.showSnackBar(
       SnackBar(content: Text(error ?? l10n.ownerDeleteSuccess)),
+    );
+  }
+}
+
+/// Dòng số liệu theo xe: rating ⭐ · doanh thu · số chuyến.
+class _CarStatsLine extends StatelessWidget {
+  const _CarStatsLine({required this.stat});
+  final OwnerVehicleStat stat;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final rating = stat.avgRating == null
+        ? l10n.ownerCarNoRating
+        : stat.avgRating!.toStringAsFixed(1);
+    return Wrap(
+      spacing: 10,
+      runSpacing: 2,
+      children: [
+        _StatChip(icon: '⭐', text: rating),
+        _StatChip(icon: '💰', text: '${_fmtVnd(stat.earnings)}đ'),
+        _StatChip(icon: '🧾', text: '${stat.trips} ${l10n.unitTrips}'),
+      ],
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  const _StatChip({required this.icon, required this.text});
+  final String icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '$icon $text',
+      style: TextStyle(fontSize: 11, color: context.palette.mutedText),
     );
   }
 }

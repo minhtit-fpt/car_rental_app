@@ -222,6 +222,7 @@
   "unitTrips": "trips",
 
   "ownerChatTooltip": "Chat with renters",
+  "ownerCarNoRating": "No rating",
   "ownerDashboardTitle": "Owner home",
   "ownerDashboardSubtitle": "Manage your rental cars and trips",
   "ownerRevenueMonth": "Monthly revenue",
