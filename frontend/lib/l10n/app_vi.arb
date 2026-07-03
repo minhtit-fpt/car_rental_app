@@ -182,6 +182,7 @@
   "tripsOrderNumber": "Đơn #{id}",
   "tripsCancelling": "Đang huỷ...",
   "tripsCancel": "Huỷ đơn",
+  "tripsPay": "Thanh toán",
   "tripsCancelTitle": "Huỷ đơn này?",
   "tripsCancelConfirm": "Bạn chắc chắn muốn huỷ đơn đặt xe này?",
   "tripsDetailTitle": "Chi tiết chuyến",

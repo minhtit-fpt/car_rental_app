@@ -113,8 +113,12 @@ describe("bookingService.create", () => {
     );
     expect(result.status).toBe(BookingStatus.PENDING_PAYMENT);
     expect(result.totalPrice).toBe(100);
+    // Pay-first: chỉ báo renter lúc tạo đơn, KHÔNG kèm ownerId (owner báo sau khi trả tiền).
     expect(notificationEvents.bookingCreated).toHaveBeenCalledWith(
-      expect.objectContaining({ renterId: RENTER, ownerId: "owner-1" }),
+      expect.objectContaining({ renterId: RENTER }),
+    );
+    expect(notificationEvents.bookingCreated).not.toHaveBeenCalledWith(
+      expect.objectContaining({ ownerId: expect.anything() }),
     );
   });
 

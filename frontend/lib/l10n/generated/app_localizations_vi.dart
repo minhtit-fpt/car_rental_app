@@ -532,6 +532,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get tripsCancel => 'Huỷ đơn';
 
   @override
+  String get tripsPay => 'Thanh toán';
+
+  @override
   String get tripsCancelTitle => 'Huỷ đơn này?';
 
   @override

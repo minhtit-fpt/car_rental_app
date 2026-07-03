@@ -1100,6 +1100,12 @@ abstract class AppLocalizations {
   /// **'Cancel booking'**
   String get tripsCancel;
 
+  /// No description provided for @tripsPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay now'**
+  String get tripsPay;
+
   /// No description provided for @tripsCancelTitle.
   ///
   /// In en, this message translates to:

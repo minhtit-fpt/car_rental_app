@@ -534,6 +534,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tripsCancel => 'Cancel booking';
 
   @override
+  String get tripsPay => 'Pay now';
+
+  @override
   String get tripsCancelTitle => 'Cancel this booking?';
 
   @override

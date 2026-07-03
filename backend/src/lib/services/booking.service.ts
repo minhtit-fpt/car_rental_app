@@ -177,12 +177,11 @@ export const bookingService = {
       deliveryRequested: input.deliveryRequested,
     });
 
-    // Báo cho renter (đặt thành công, chờ thanh toán) + owner (yêu cầu mới).
-    // safeCreate bên trong: lỗi noti KHÔNG làm hỏng luồng tạo đơn.
+    // Chỉ báo renter (chờ thanh toán). Owner được báo sau khi thanh toán
+    // (paymentAwaitingOwner). safeCreate: lỗi noti KHÔNG làm hỏng luồng tạo đơn.
     await notificationEvents.bookingCreated({
       bookingId: booking.id,
       renterId,
-      ownerId: vehicle.ownerId,
     });
     return toPublicBooking(booking);
   },

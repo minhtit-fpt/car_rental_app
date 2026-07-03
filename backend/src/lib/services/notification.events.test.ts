@@ -21,16 +21,14 @@ function ownerCall(userId: string) {
 beforeEach(() => vi.clearAllMocks());
 
 describe("notificationEvents owner payloads carry role", () => {
-  it("bookingCreated tags owner notification with role", async () => {
+  it("bookingCreated notifies only the renter, not the owner", async () => {
     await notificationEvents.bookingCreated({
       bookingId: "b-1",
       renterId: "r-1",
-      ownerId: "o-1",
     });
-    expect(ownerCall("o-1")?.payload).toEqual({
-      bookingId: "b-1",
-      role: "owner",
-    });
+    // Pay-first: owner không được báo lúc tạo đơn (chỉ sau thanh toán).
+    expect(ownerCall("o-1")).toBeUndefined();
+    expect(notificationService.safeCreate).toHaveBeenCalledTimes(1);
     // Renter notification stays role-less (routes to /trips).
     expect(ownerCall("r-1")?.payload).toEqual({ bookingId: "b-1" });
   });

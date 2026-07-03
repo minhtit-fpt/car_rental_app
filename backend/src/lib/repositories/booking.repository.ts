@@ -76,9 +76,13 @@ export const bookingRepository = {
   async findManyByOwner(
     p: ListBookingsByOwnerParams,
   ): Promise<{ items: BookingWithVehicleRenter[]; total: number }> {
+    // Không truyền status → mặc định ẩn đơn PENDING_PAYMENT (khách chưa trả tiền),
+    // owner chỉ thấy đơn đã thanh toán trở đi. Có truyền status thì lọc đúng status.
     const where: Prisma.BookingWhereInput = {
       vehicle: { ownerId: p.ownerId },
-      ...(p.status && { status: p.status }),
+      ...(p.status
+        ? { status: p.status }
+        : { status: { not: BookingStatus.PENDING_PAYMENT } }),
     };
     const [items, total] = await Promise.all([
       prisma.booking.findMany({

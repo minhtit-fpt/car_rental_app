@@ -281,6 +281,7 @@
   },
   "tripsCancelling": "Cancelling...",
   "tripsCancel": "Cancel booking",
+  "tripsPay": "Pay now",
   "tripsCancelTitle": "Cancel this booking?",
   "tripsCancelConfirm": "Are you sure you want to cancel this booking?",
   "tripsDetailTitle": "Trip details",
