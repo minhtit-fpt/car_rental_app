@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     # Đường dẫn corpus (JSONL) — đặt trong service để self-contained + version-control.
     corpus_path: Path = _SERVICE_ROOT / "data" / "corpus_vi.jsonl"
 
+    # Snapshot dữ liệu admin (JSON) do backend xuất — chatbot admin đọc thay vì
+    # tool-calling vào DB (xem export-admin-snapshot.ts).
+    admin_snapshot_path: Path = _SERVICE_ROOT / "data" / "admin_snapshot.json"
+
     # Backend Next.js để tool-calling truy vấn dữ liệu sống (xe trống, giá, booking).
     backend_base_url: str = "http://localhost:3000"
 

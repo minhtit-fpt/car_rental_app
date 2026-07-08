@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
@@ -303,17 +304,84 @@ class _MessageBubble extends StatelessWidget {
         ),
         child: showTyping
             ? const _TypingDots()
-            : Text(
-                message.content,
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.4,
-                  color: isUser ? Colors.white : palette.darkText,
-                ),
-              ),
+            : _buildContent(context, palette, isUser),
       ),
     );
   }
+
+  Widget _buildContent(BuildContext context, AppPalette palette, bool isUser) {
+    final baseStyle = TextStyle(
+      fontSize: 14,
+      height: 1.4,
+      color: isUser ? Colors.white : palette.darkText,
+    );
+    // Chỉ linkify tin assistant khi đã xong stream + có xe được nhắc.
+    if (isUser || message.isStreaming || message.vehicles.isEmpty) {
+      return Text(message.content, style: baseStyle);
+    }
+    return Text.rich(
+      TextSpan(
+        children: _linkifyVehicles(
+          context,
+          message.content,
+          message.vehicles,
+          baseStyle,
+        ),
+      ),
+    );
+  }
+}
+
+/// Chia câu trả lời thành các span; tên xe khớp [vehicles] trở thành link bấm
+/// mở `/vehicles/:id`. Ưu tiên tên dài trùng vị trí để không cắt nhầm.
+List<InlineSpan> _linkifyVehicles(
+  BuildContext context,
+  String text,
+  List<VehicleRef> vehicles,
+  TextStyle baseStyle,
+) {
+  final linkStyle = baseStyle.copyWith(
+    color: AppColors.accent,
+    fontWeight: FontWeight.w600,
+    decoration: TextDecoration.underline,
+    decorationColor: AppColors.accent,
+  );
+  final spans = <InlineSpan>[];
+  var i = 0;
+  while (i < text.length) {
+    VehicleRef? match;
+    var matchAt = text.length;
+    for (final v in vehicles) {
+      if (v.name.isEmpty) continue;
+      final idx = text.indexOf(v.name, i);
+      if (idx == -1) continue;
+      // Vị trí sớm hơn thắng; cùng vị trí thì tên dài hơn thắng.
+      if (idx < matchAt || (idx == matchAt && v.name.length > (match?.name.length ?? 0))) {
+        match = v;
+        matchAt = idx;
+      }
+    }
+    if (match == null) {
+      spans.add(TextSpan(text: text.substring(i), style: baseStyle));
+      break;
+    }
+    if (matchAt > i) {
+      spans.add(TextSpan(text: text.substring(i, matchAt), style: baseStyle));
+    }
+    final ref = match;
+    spans.add(
+      WidgetSpan(
+        alignment: PlaceholderAlignment.baseline,
+        baseline: TextBaseline.alphabetic,
+        child: GestureDetector(
+          onTap: () => context.push('/vehicles/${ref.id}'),
+          child: Text(ref.name, style: linkStyle),
+        ),
+      ),
+    );
+    i = matchAt + ref.name.length;
+  }
+  return spans;
 }
 
 class _TypingDots extends StatelessWidget {

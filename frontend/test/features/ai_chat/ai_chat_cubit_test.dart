@@ -87,6 +87,25 @@ void main() {
     await cubit.close();
   });
 
+  test('tách metadata xe khỏi văn bản hiển thị (sentinel)', () async {
+    // Delta cuối mang sentinel + JSON vehicles (như ai-service phát ra).
+    repo.deltas = [
+      'Có xe Toyota Vios 2022 cho bạn.',
+      '{"vehicles":[{"id":"v1","name":"Toyota Vios 2022"}]}',
+    ];
+    final cubit = build();
+    await cubit.send('xe 4 chỗ?');
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+
+    final last = cubit.state.messages.last;
+    // Văn bản hiển thị KHÔNG chứa sentinel/JSON.
+    expect(last.content, 'Có xe Toyota Vios 2022 cho bạn.');
+    expect(last.vehicles.length, 1);
+    expect(last.vehicles.single.id, 'v1');
+    expect(last.vehicles.single.name, 'Toyota Vios 2022');
+    await cubit.close();
+  });
+
   test('startNewChat xoá sạch hội thoại', () async {
     repo.deltas = ['ok'];
     final cubit = build();

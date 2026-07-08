@@ -23,6 +23,11 @@ from app.vectorstore import SearchResult, VectorStore
 _DEFAULT_MAX_TOOL_ROUNDS = 3
 _DEFAULT_TOP_K = 5
 
+# Ký tự record-separator đặt SAU câu trả lời để đính kèm metadata xe được nhắc
+# tới: "<câu trả lời>\x1e{"vehicles":[{"id","name"}]}". FE tách ra để render tên
+# xe thành link bấm được. \x1e không xuất hiện trong văn bản người dùng đọc.
+VEHICLE_REFS_SENTINEL = "\x1e"
+
 _SYSTEM_PROMPT = (
     "Bạn là trợ lý ảo của ứng dụng cho thuê xe tự lái RideVN. Trả lời bằng tiếng "
     "Việt: thân thiện, chuyên nghiệp, ngắn gọn, đi thẳng vào ý khách hỏi.\n"
@@ -79,6 +84,8 @@ class ChatResult:
     answer: str
     sources: tuple[str, ...]
     tools_used: tuple[str, ...]
+    # Xe được nhắc trong câu trả lời (id + tên) để FE render link bấm xem chi tiết.
+    vehicles: tuple[dict, ...] = ()
 
 
 class ChatEngine:
@@ -118,7 +125,13 @@ class ChatEngine:
         return messages
 
     # ---- tool dispatch dùng chung ----
-    def _run_tool_calls(self, messages: list[dict], assistant_content: Any, tool_calls: list[dict]) -> list[str]:
+    def _run_tool_calls(
+        self,
+        messages: list[dict],
+        assistant_content: Any,
+        tool_calls: list[dict],
+        vehicles: list[dict] | None = None,
+    ) -> list[str]:
         messages.append({"role": "assistant", "content": assistant_content, "tool_calls": tool_calls})
         used: list[str] = []
         for tc in tool_calls:
@@ -126,6 +139,8 @@ class ChatEngine:
             used.append(name)
             args = _parse_args(tc["function"].get("arguments"))
             content = dispatch_tool(self._tool_client, name, args)
+            if vehicles is not None and name == "search_available_vehicles":
+                vehicles.extend(_vehicles_from_tool_result(content))
             messages.append({"role": "tool", "tool_call_id": tc.get("id"), "content": content})
         return used
 
@@ -135,22 +150,34 @@ class ChatEngine:
         sources = tuple(r.chunk.title for r in results)
         messages = self._build_messages(query, history, results)
         tools_used: list[str] = []
+        vehicles: list[dict] = []
 
         for _ in range(self._max_tool_rounds):
             msg = self._llm.complete(messages, tools=TOOL_SPECS)
             tool_calls = msg.get("tool_calls")
             if not tool_calls:
-                return ChatResult(answer=msg.get("content") or "", sources=sources, tools_used=tuple(tools_used))
-            tools_used.extend(self._run_tool_calls(messages, msg.get("content"), tool_calls))
+                return ChatResult(
+                    answer=msg.get("content") or "",
+                    sources=sources,
+                    tools_used=tuple(tools_used),
+                    vehicles=_dedup_vehicles(vehicles),
+                )
+            tools_used.extend(self._run_tool_calls(messages, msg.get("content"), tool_calls, vehicles))
 
         # Hết lượt tool → ép 1 câu trả lời cuối, không cho gọi tool nữa.
         final = self._llm.complete(messages, tools=None)
-        return ChatResult(answer=final.get("content") or "", sources=sources, tools_used=tuple(tools_used))
+        return ChatResult(
+            answer=final.get("content") or "",
+            sources=sources,
+            tools_used=tuple(tools_used),
+            vehicles=_dedup_vehicles(vehicles),
+        )
 
     # ---- streaming ----
     def stream_answer(self, query: str, history: list[dict] | None = None) -> Iterator[str]:
         results = self._retrieve(query)
         messages = self._build_messages(query, history, results)
+        vehicles: list[dict] = []
 
         for _ in range(self._max_tool_rounds):
             collected: list[str] = []
@@ -162,13 +189,15 @@ class ChatEngine:
                 else:  # "tool_calls" — sự kiện cuối của mỗi lượt stream
                     tool_calls = payload
             if not tool_calls:
+                yield from _vehicle_refs_chunk(vehicles)  # đính metadata xe (nếu có)
                 return  # LLM đã trả lời trực tiếp (đã stream ở trên)
-            self._run_tool_calls(messages, "".join(collected) or None, tool_calls)
+            self._run_tool_calls(messages, "".join(collected) or None, tool_calls, vehicles)
 
         # Hết lượt tool → stream câu trả lời cuối, không kèm tools.
         for kind, payload in self._llm.stream_complete(messages, tools=None):
             if kind == "content":
                 yield payload
+        yield from _vehicle_refs_chunk(vehicles)
 
 
 def _parse_args(raw: Any) -> dict:
@@ -180,3 +209,38 @@ def _parse_args(raw: Any) -> dict:
         return json.loads(raw)
     except (json.JSONDecodeError, TypeError):
         return {}
+
+
+def _vehicles_from_tool_result(content: str) -> list[dict]:
+    """Bóc {id, name} từ kết quả search_available_vehicles để FE render link xe."""
+    try:
+        data = json.loads(content)
+    except (json.JSONDecodeError, TypeError):
+        return []
+    items = data.get("vehicles", []) if isinstance(data, dict) else []
+    out: list[dict] = []
+    for v in items:
+        if isinstance(v, dict) and v.get("id") and v.get("title"):
+            out.append({"id": str(v["id"]), "name": str(v["title"])})
+    return out
+
+
+def _dedup_vehicles(vehicles: list[dict]) -> tuple[dict, ...]:
+    """Khử trùng theo id, giữ thứ tự xuất hiện."""
+    seen: set[str] = set()
+    out: list[dict] = []
+    for v in vehicles:
+        vid = v.get("id")
+        if vid and vid not in seen:
+            seen.add(vid)
+            out.append(v)
+    return tuple(out)
+
+
+def _vehicle_refs_chunk(vehicles: list[dict]) -> Iterator[str]:
+    """Sinh chunk sentinel cuối stream mang metadata xe (rỗng thì không phát gì)."""
+    deduped = _dedup_vehicles(vehicles)
+    if deduped:
+        yield VEHICLE_REFS_SENTINEL + json.dumps(
+            {"vehicles": list(deduped)}, ensure_ascii=False
+        )

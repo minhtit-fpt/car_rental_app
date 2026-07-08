@@ -123,3 +123,46 @@ def test_stream_answer_resolves_tools_then_streams() -> None:
     chunks = list(_engine(llm, tool_client).stream_answer("chuyến của tôi"))
     assert "".join(chunks) == "Bạn chưa có chuyến."
     assert tool_client.calls == ["bookings"]
+
+
+class VehicleToolClient(FakeToolClient):
+    """search trả kèm title để kiểm tra metadata xe bấm được (id + name)."""
+
+    def search_available_vehicles(self, **kw):
+        self.calls.append("search")
+        return {"vehicles": [{"id": "v1", "title": "Toyota Vios 2022", "pricePerHour": 100000}]}
+
+
+def test_answer_collects_referenced_vehicles() -> None:
+    llm = FakeLLM(
+        completions=[
+            {"content": None, "tool_calls": [{"id": "c1", "function": {"name": "search_available_vehicles", "arguments": "{}"}}]},
+            {"content": "Có xe Toyota Vios 2022."},
+        ]
+    )
+    result = _engine(llm, VehicleToolClient()).answer("xe 4 chỗ?")
+    assert result.vehicles == ({"id": "v1", "name": "Toyota Vios 2022"},)
+
+
+def test_stream_answer_appends_vehicle_refs_sentinel() -> None:
+    from app.chat_engine import VEHICLE_REFS_SENTINEL
+
+    llm = FakeLLM(
+        stream_script=[
+            [("tool_calls", [{"id": "c1", "function": {"name": "search_available_vehicles", "arguments": "{}"}}])],
+            [("content", "Có Toyota Vios 2022."), ("tool_calls", None)],
+        ]
+    )
+    chunks = list(_engine(llm, VehicleToolClient()).stream_answer("xe 4 chỗ?"))
+    joined = "".join(chunks)
+    answer, _, meta = joined.partition(VEHICLE_REFS_SENTINEL)
+    assert answer == "Có Toyota Vios 2022."
+    assert '"id": "v1"' in meta and "Toyota Vios 2022" in meta
+
+
+def test_stream_answer_no_sentinel_when_no_vehicles() -> None:
+    from app.chat_engine import VEHICLE_REFS_SENTINEL
+
+    llm = FakeLLM(stream_script=[[("content", "Xin chào"), ("tool_calls", None)]])
+    joined = "".join(_engine(llm).stream_answer("hi"))
+    assert VEHICLE_REFS_SENTINEL not in joined
