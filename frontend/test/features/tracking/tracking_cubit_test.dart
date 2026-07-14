@@ -63,6 +63,28 @@ void main() {
     expect: () => [isA<TrackingLoading>(), isA<TrackingError>()],
   );
 
+  test('permanent error (403) after loaded stops polling and emits Error',
+      () async {
+    repo.result = _snap();
+    final cubit = build();
+    cubit.start('veh-1');
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(cubit.state, isA<TrackingLoaded>());
+    // Chuyến kết thúc → backend trả 403 TRACKING_UNAVAILABLE.
+    repo.error = const ApiException('Xe không trong chuyến', statusCode: 403);
+    await Future<void>.delayed(
+      TrackingCubit.pollInterval + const Duration(milliseconds: 50),
+    );
+    expect(cubit.state, isA<TrackingError>());
+    final callsAfterError = repo.calls;
+    // Không poll thêm sau lỗi vĩnh viễn (không đóng băng, không hammer).
+    await Future<void>.delayed(
+      TrackingCubit.pollInterval + const Duration(milliseconds: 50),
+    );
+    expect(repo.calls, callsAfterError);
+    await cubit.close();
+  });
+
   test('close cancels polling (no further calls)', () async {
     repo.result = _snap();
     final cubit = build();

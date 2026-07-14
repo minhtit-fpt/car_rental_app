@@ -107,5 +107,26 @@ void main() {
             .having((s) => s.cancellingId, 'cancellingId', null),
       ],
     );
+
+    blocTest<MyTripsCubit, MyTripsState>(
+      'cancel failure keeps the trip list and surfaces error via actionError',
+      build: () {
+        repo.cancelError = const ApiException('Không thể huỷ');
+        return _build(repo);
+      },
+      seed: () => MyTripsLoaded([
+        _booking('b1', BookingStatus.confirmed),
+        _booking('b2', BookingStatus.confirmed),
+      ]),
+      act: (cubit) => cubit.cancel('b1'),
+      expect: () => [
+        isA<MyTripsLoaded>().having((s) => s.cancellingId, 'cancellingId', 'b1'),
+        isA<MyTripsLoaded>()
+            // Danh sách KHÔNG bị wipe (vẫn 2 chuyến), lỗi ra actionError.
+            .having((s) => s.bookings.length, 'count', 2)
+            .having((s) => s.cancellingId, 'cancellingId', null)
+            .having((s) => s.actionError, 'actionError', 'Không thể huỷ'),
+      ],
+    );
   });
 }

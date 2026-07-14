@@ -31,12 +31,14 @@ class MapCubit extends Cubit<MapState> {
     };
     emit(const MapLoading());
     final center = await _locationService.currentLocation();
+    if (isClosed) return;
     try {
       final vehicles = await _listNearbyVehicles(
         lat: center.latitude,
         lng: center.longitude,
         radius: AppGeo.nearbyRadiusMeters,
       );
+      if (isClosed) return;
       emit(
         MapLoaded(
           center: center,
@@ -45,6 +47,7 @@ class MapCubit extends Cubit<MapState> {
         ),
       );
     } on ApiException catch (e) {
+      if (isClosed) return;
       emit(MapError(e.message));
     }
   }

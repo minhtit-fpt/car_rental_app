@@ -383,7 +383,9 @@ class _DateBox extends StatelessWidget {
               Icon(
                 icon,
                 size: 13,
-                color: date != null ? AppColors.primary : context.palette.mutedText,
+                color: date != null
+                    ? AppColors.primary
+                    : context.palette.mutedText,
               ),
               const SizedBox(width: 4),
               Expanded(

@@ -73,8 +73,7 @@ class ActiveTripScreen extends StatelessWidget {
                     if (state.booking?.id case final bookingId?) ...[
                       SecondaryButton(
                         label: 'Kiểm tra xe (AI nhận diện hư hỏng)',
-                        onPressed: () =>
-                            context.push('/inspection/$bookingId'),
+                        onPressed: () => context.push('/inspection/$bookingId'),
                         icon: Icons.camera_alt_outlined,
                       ),
                       const SizedBox(height: 12),

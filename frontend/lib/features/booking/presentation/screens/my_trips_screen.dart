@@ -31,47 +31,58 @@ class _MyTripsView extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: context.palette.background,
-        body: RefreshIndicator(
-          onRefresh: () => context.read<MyTripsCubit>().load(),
-          child: CustomScrollView(
-            slivers: [
-              RvSliverAppBar(
-                title: l10n.tripsTitle,
-                subtitle: l10n.tripsSubtitle,
-                role: RvRole.renter,
-              ),
-              BlocBuilder<MyTripsCubit, MyTripsState>(
-                builder: (context, state) => switch (state) {
-                  MyTripsLoading() => const SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                  MyTripsError(:final message) => SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _Message(text: message),
-                  ),
-                  MyTripsLoaded(:final bookings) when bookings.isEmpty =>
-                    SliverFillRemaining(
+      child: BlocListener<MyTripsCubit, MyTripsState>(
+        listenWhen: (prev, curr) =>
+            curr is MyTripsLoaded && curr.actionError != null,
+        listener: (context, state) {
+          final message = (state as MyTripsLoaded).actionError!;
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(message)));
+        },
+        child: Scaffold(
+          backgroundColor: context.palette.background,
+          body: RefreshIndicator(
+            onRefresh: () => context.read<MyTripsCubit>().load(),
+            child: CustomScrollView(
+              slivers: [
+                RvSliverAppBar(
+                  title: l10n.tripsTitle,
+                  subtitle: l10n.tripsSubtitle,
+                  role: RvRole.renter,
+                ),
+                BlocBuilder<MyTripsCubit, MyTripsState>(
+                  builder: (context, state) => switch (state) {
+                    MyTripsLoading() => const SliverFillRemaining(
                       hasScrollBody: false,
-                      child: _Message(text: l10n.tripsEmpty),
+                      child: Center(child: CircularProgressIndicator()),
                     ),
-                  MyTripsLoaded(:final bookings, :final cancellingId) =>
-                    SliverPadding(
-                      padding: const EdgeInsets.all(16),
-                      sliver: SliverList.separated(
-                        itemCount: bookings.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 12),
-                        itemBuilder: (context, i) => _TripCard(
-                          booking: bookings[i],
-                          isCancelling: cancellingId == bookings[i].id,
+                    MyTripsError(:final message) => SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _Message(text: message),
+                    ),
+                    MyTripsLoaded(:final bookings) when bookings.isEmpty =>
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: _Message(text: l10n.tripsEmpty),
+                      ),
+                    MyTripsLoaded(:final bookings, :final cancellingId) =>
+                      SliverPadding(
+                        padding: const EdgeInsets.all(16),
+                        sliver: SliverList.separated(
+                          itemCount: bookings.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, i) => _TripCard(
+                            booking: bookings[i],
+                            isCancelling: cancellingId == bookings[i].id,
+                          ),
                         ),
                       ),
-                    ),
-                },
-              ),
-            ],
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -214,12 +225,18 @@ class _TripCard extends StatelessWidget {
   }
 
   void _goToPayment(BuildContext context) {
+    // Chống double-tap: sau lần push đầu, màn này không còn là route trên cùng →
+    // bỏ qua tap thứ hai (tránh đẩy 2 màn /payment chồng nhau).
+    if (ModalRoute.of(context)?.isCurrent != true) return;
     // Trả tiền cho đơn PENDING_PAYMENT; xong quay về /trips (list tự refresh).
-    context.push('/payment', extra: {
-      'bookingId': booking.id,
-      'amount': booking.totalPrice,
-      'successLocation': '/trips',
-    });
+    context.push(
+      '/payment',
+      extra: {
+        'bookingId': booking.id,
+        'amount': booking.totalPrice,
+        'successLocation': '/trips',
+      },
+    );
   }
 
   Future<void> _confirmCancel(BuildContext context) async {
