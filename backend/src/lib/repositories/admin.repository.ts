@@ -532,11 +532,15 @@ export const adminRepository = {
     reason: string,
   ) {
     return prisma.$transaction(async (tx) => {
-      const updated = await tx.payment.update({
-        where: { bookingId },
+      // Compare-and-swap: chỉ hoàn khi đang PAID. Nếu 0 dòng khớp → đã bị hoàn
+      // bởi caller khác (race) → không ghi audit log trùng, không throw.
+      const result = await tx.payment.updateMany({
+        where: { bookingId, status: PaymentStatus.PAID },
         data: { status: PaymentStatus.REFUNDED },
-        select: { status: true },
       });
+      if (result.count === 0) {
+        return { status: PaymentStatus.REFUNDED, refunded: false };
+      }
       await tx.auditLog.create({
         data: {
           actorId,
@@ -545,7 +549,7 @@ export const adminRepository = {
           metadata: { amount, reason },
         },
       });
-      return updated;
+      return { status: PaymentStatus.REFUNDED, refunded: true };
     });
   },
 };

@@ -178,4 +178,20 @@ export const bookingRepository = {
   updateStatus(id: string, status: BookingStatus): Promise<Booking> {
     return prisma.booking.update({ where: { id }, data: { status } });
   },
+
+  // Chuyển trạng thái CÓ ĐIỀU KIỆN (compare-and-swap): chỉ đổi nếu status hiện tại
+  // nằm trong `from`. Trả về booking đã đổi, hoặc null nếu không khớp (đã bị caller
+  // khác đổi trước — dùng để chống race approve/reject/cancel/cron-expire).
+  async updateStatusIf(
+    id: string,
+    from: BookingStatus[],
+    to: BookingStatus,
+  ): Promise<Booking | null> {
+    const result = await prisma.booking.updateMany({
+      where: { id, status: { in: from } },
+      data: { status: to },
+    });
+    if (result.count === 0) return null;
+    return prisma.booking.findUnique({ where: { id } });
+  },
 };

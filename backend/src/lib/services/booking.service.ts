@@ -240,7 +240,20 @@ export const bookingService = {
       );
     }
     try {
-      await bookingRepository.updateStatus(id, BookingStatus.CONFIRMED);
+      // Compare-and-swap: chỉ xác nhận nếu vẫn AWAITING_OWNER (chống race với
+      // reject/cron-expire cùng đơn → tránh CONFIRMED khi tiền đã REFUNDED).
+      const confirmed = await bookingRepository.updateStatusIf(
+        id,
+        [BookingStatus.AWAITING_OWNER],
+        BookingStatus.CONFIRMED,
+      );
+      if (!confirmed) {
+        throw new AppError(
+          409,
+          "BOOKING_NOT_APPROVABLE",
+          "Đơn không ở trạng thái chờ xác nhận",
+        );
+      }
     } catch (error) {
       if (isOverlapViolation(error)) {
         throw new AppError(
@@ -272,21 +285,36 @@ export const bookingService = {
         "Đơn không ở trạng thái chờ xác nhận",
       );
     }
-    // Hoàn tiền TRƯỚC (đảm bảo tiền được xử lý), rồi mới huỷ để nhả slot.
-    await refundService.refundBookingPayment({
+    // Giành quyền huỷ TRƯỚC bằng compare-and-swap (chống race với approve/cron):
+    // chỉ caller đổi được AWAITING_OWNER → CANCELLED mới hoàn tiền + báo.
+    const cancelled = await bookingRepository.updateStatusIf(
+      id,
+      [BookingStatus.AWAITING_OWNER],
+      BookingStatus.CANCELLED,
+    );
+    if (!cancelled) {
+      throw new AppError(
+        409,
+        "BOOKING_NOT_REJECTABLE",
+        "Đơn không ở trạng thái chờ xác nhận",
+      );
+    }
+    const refund = await refundService.refundBookingPayment({
       bookingId: id,
       actorId: null,
       reason: "Chủ xe từ chối đơn đặt",
     });
-    await bookingRepository.updateStatus(id, BookingStatus.CANCELLED);
-    // Báo cho người thuê đơn đã bị chủ xe từ chối + đã hoàn tiền.
-    await notificationService.notify({
-      userId: booking.renterId,
-      type: "BOOKING",
-      title: "Đơn đặt bị từ chối",
-      body: `${booking.vehicle.title} đã bị chủ xe từ chối. Số tiền đã thanh toán sẽ được hoàn lại.`,
-      payload: { bookingId: booking.id, role: "renter" },
-    });
+    // Chỉ báo khi chính lần này thực hiện hoàn tiền (tránh noti trùng nếu đã bị
+    // caller khác hoàn trước đó).
+    if (refund.refunded) {
+      await notificationService.notify({
+        userId: booking.renterId,
+        type: "BOOKING",
+        title: "Đơn đặt bị từ chối",
+        body: `${booking.vehicle.title} đã bị chủ xe từ chối. Số tiền đã thanh toán sẽ được hoàn lại.`,
+        payload: { bookingId: booking.id, role: "renter" },
+      });
+    }
     return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
   },
 
@@ -371,15 +399,19 @@ export const bookingService = {
     let expired = 0;
     for (const booking of overdue) {
       try {
+        // Giành quyền huỷ trước (chống race với owner approve/reject). Nếu không
+        // giành được → đơn đã được xử lý bởi caller khác → bỏ qua.
+        const cancelled = await bookingRepository.updateStatusIf(
+          booking.id,
+          [BookingStatus.AWAITING_OWNER],
+          BookingStatus.CANCELLED,
+        );
+        if (!cancelled) continue;
         await refundService.refundBookingPayment({
           bookingId: booking.id,
           actorId: null,
           reason: "Chủ xe không xác nhận trong thời hạn",
         });
-        await bookingRepository.updateStatus(
-          booking.id,
-          BookingStatus.CANCELLED,
-        );
       } catch (error) {
         console.error("Failed to expire awaiting-owner booking", booking.id, error);
         continue;
@@ -435,10 +467,30 @@ export const bookingService = {
         "Đơn này không thể huỷ ở trạng thái hiện tại",
       );
     }
-    const updated = await bookingRepository.updateStatus(
+    // Đơn CONFIRMED = đã thanh toán → phải hoàn tiền (như reject/expire). Đơn
+    // PENDING_PAYMENT chưa có tiền nên bỏ qua bước hoàn.
+    const wasPaid = booking.status === BookingStatus.CONFIRMED;
+    // Compare-and-swap để chống race với owner approve/reject: chỉ caller đổi
+    // được trạng thái mới đi tiếp.
+    const updated = await bookingRepository.updateStatusIf(
       id,
+      CANCELLABLE,
       BookingStatus.CANCELLED,
     );
+    if (!updated) {
+      throw new AppError(
+        409,
+        "BOOKING_NOT_CANCELLABLE",
+        "Đơn này không thể huỷ ở trạng thái hiện tại",
+      );
+    }
+    if (wasPaid) {
+      await refundService.refundBookingPayment({
+        bookingId: id,
+        actorId: null,
+        reason: "Người thuê huỷ đơn đã thanh toán",
+      });
+    }
     // Báo cho chủ xe rằng người thuê đã huỷ đơn (bỏ qua nếu tự huỷ xe của mình).
     const vehicle = await vehicleRepository.findById(booking.vehicleId);
     if (vehicle && vehicle.ownerId !== renterId) {

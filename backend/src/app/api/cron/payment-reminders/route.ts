@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { bookingService } from "@/lib/services/booking.service";
+import { trackingService } from "@/lib/services/tracking.service";
 import { ok, toErrorResponse } from "@/lib/http/response";
 import { AppError } from "@/lib/errors/app-error";
 
@@ -35,13 +36,15 @@ function assertCronAuthorized(req: Request): void {
 export async function POST(req: Request): Promise<Response> {
   try {
     assertCronAuthorized(req);
-    const [payments, ownerApprovals] = await Promise.all([
+    const [payments, ownerApprovals, tracking] = await Promise.all([
       bookingService.expireOverduePayments(),
       bookingService.expireOverdueOwnerApprovals(),
+      trackingService.pruneOldLocations(),
     ]);
     return ok({
       expiredPayments: payments.expired,
       expiredOwnerApprovals: ownerApprovals.expired,
+      prunedLocations: tracking.pruned,
     });
   } catch (error) {
     return toErrorResponse(error);

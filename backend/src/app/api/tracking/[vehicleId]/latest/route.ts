@@ -2,8 +2,13 @@ import { trackingService } from "@/lib/services/tracking.service";
 import { latestQuerySchema } from "@/lib/validators/tracking.validator";
 import { ok, toErrorResponse } from "@/lib/http/response";
 import { requireAuth } from "@/lib/middleware/auth.middleware";
+import { enforceRateLimit } from "@/lib/middleware/rate-limit.middleware";
 
 export const runtime = "nodejs";
+
+// FE poll ~3s (≈20/phút); nới gấp đôi để chịu jitter nhưng vẫn chặn hammer.
+const READ_RATE_LIMIT = 40;
+const WINDOW_SECONDS = 60;
 
 interface RouteContext {
   params: { vehicleId: string };
@@ -17,6 +22,11 @@ export async function GET(
 ): Promise<Response> {
   try {
     const claims = await requireAuth(req);
+    await enforceRateLimit(
+      `tracking-read:${claims.sub}:${params.vehicleId}`,
+      READ_RATE_LIMIT,
+      WINDOW_SECONDS,
+    );
     const query = Object.fromEntries(new URL(req.url).searchParams);
     const { trail } = latestQuerySchema.parse(query);
     return ok(
