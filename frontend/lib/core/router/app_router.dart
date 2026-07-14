@@ -16,6 +16,8 @@ import 'package:frontend/core/router/social_routes.dart';
 import 'package:frontend/core/router/vehicle_routes.dart';
 import 'package:frontend/core/shell/app_shell.dart';
 import 'package:frontend/features/map/presentation/screens/map_screen.dart';
+import 'package:frontend/features/tracking/presentation/screens/live_tracking_screen.dart';
+import 'package:frontend/features/tracking/presentation/screens/admin_tracking_map_screen.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_metrics_cubit.dart';
 import 'package:frontend/features/admin/presentation/cubit/admin_kyc_cubit.dart';
@@ -105,6 +107,16 @@ GoRouter createAppRouter(AuthCubit authCubit) {
         ),
       ),
       GoRoute(path: '/map', builder: (context, state) => const MapScreen()),
+      GoRoute(
+        path: '/tracking/:vehicleId',
+        builder: (context, state) => LiveTrackingScreen(
+          vehicleId: state.pathParameters['vehicleId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/admin/tracking',
+        builder: (context, state) => const AdminTrackingMapScreen(),
+      ),
       ...authRoutes,
       ...kycRoutes,
       ...vehicleRoutes,

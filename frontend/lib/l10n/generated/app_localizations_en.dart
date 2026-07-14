@@ -1036,6 +1036,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Picking a location on the map is coming soon.';
 
   @override
+  String get ownerVehicleMapPickHint => 'Tap the map to set the pickup point.';
+
+  @override
   String get ownerVehicleSpecs => 'Specifications';
 
   @override
@@ -1288,6 +1291,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shellAccountTitle => 'Account';
+
+  @override
+  String get trackingTitle => 'Vehicle location';
+
+  @override
+  String get trackingWaiting => 'Getting vehicle location…';
+
+  @override
+  String trackingSpeed(int kmh) {
+    return '$kmh km/h';
+  }
+
+  @override
+  String get trackingViewButton => 'View vehicle location';
+
+  @override
+  String get adminActiveTripsTitle => 'Vehicles on active trips';
+
+  @override
+  String get adminActiveTripsEmpty => 'No vehicles are currently moving.';
 
   @override
   String get mapScreenTitle => 'Nearby cars';

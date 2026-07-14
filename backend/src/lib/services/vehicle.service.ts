@@ -25,6 +25,10 @@ export interface PublicVehicle {
   doors: number | null;
   transmission: string | null;
   city: string | null;
+  // Toạ độ điểm nhận xe. Chỉ có ở detail (getById); list để undefined vì Prisma
+  // không đọc được cột location Unsupported hàng loạt.
+  lat?: number;
+  lng?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -131,11 +135,17 @@ export const vehicleService = {
   },
 
   async getById(id: string): Promise<PublicVehicle> {
-    const v = await vehicleRepository.findByIdWithOwner(id);
+    const [v, coords] = await Promise.all([
+      vehicleRepository.findByIdWithOwner(id),
+      vehicleRepository.findCoords(id),
+    ]);
     if (!v) {
       throw new AppError(404, "VEHICLE_NOT_FOUND", "Không tìm thấy xe");
     }
-    return toPublicVehicle(v, v.owner.name);
+    return {
+      ...toPublicVehicle(v, v.owner.name),
+      ...(coords && { lat: coords.lat, lng: coords.lng }),
+    };
   },
 
   // Lịch bận của một xe suy ra từ các đơn đặt (chờ xác nhận/đang thuê) từ `from`.

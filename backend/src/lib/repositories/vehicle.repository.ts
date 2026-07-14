@@ -127,6 +127,21 @@ export const vehicleRepository = {
     });
   },
 
+  // Toạ độ xe. Cột `location` là Unsupported nên Prisma bỏ qua — đọc bằng raw
+  // PostGIS (ST_Y/ST_X) như findNearby. Trả null nếu xe không tồn tại.
+  async findCoords(id: string): Promise<{ lat: number; lng: number } | null> {
+    const rows = await prisma.$queryRaw<{ lat: number; lng: number }[]>(
+      Prisma.sql`
+        SELECT
+          ST_Y(v."location"::geometry) AS "lat",
+          ST_X(v."location"::geometry) AS "lng"
+        FROM "Vehicle" v
+        WHERE v."id" = ${id}::uuid
+      `,
+    );
+    return rows[0] ?? null;
+  },
+
   async create(data: CreateVehicleData): Promise<Vehicle> {
     const id = randomUUID();
     await prisma.$executeRaw(Prisma.sql`

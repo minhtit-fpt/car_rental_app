@@ -22,6 +22,7 @@ Future<void> main() async {
   setupAdmin(); // admin repository + AdminCubit factory
   setupVehicle(); // vehicle repository + VehicleListCubit factory
   setupMap(); // location service + MapCubit factory (Phase C)
+  setupTracking(); // GPS tracking repository + tracking cubits
   setupBooking(); // booking repository + BookingCubit factory
   setupPayment(); // payment repository + PaymentCubit factory
   setupReview(); // review repository + ReviewCubit factory

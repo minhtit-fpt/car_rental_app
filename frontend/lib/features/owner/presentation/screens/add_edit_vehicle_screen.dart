@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
@@ -31,7 +32,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   final _seatsController = TextEditingController(text: '');
   final _doorsController = TextEditingController(text: '');
   final _cityController = TextEditingController(text: '');
-  // Vị trí mặc định: trung tâm Hà Nội (chưa có map picker — sẽ thay sau).
+  // Vị trí mặc định: trung tâm Hà Nội. Owner chạm bản đồ để đặt lại (_LocationCard).
   final _latController = TextEditingController(text: '21.0278');
   final _lngController = TextEditingController(text: '105.8342');
   String _selectedType = 'CAR';
@@ -39,6 +40,9 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   bool _isElectric = false;
   bool _deliveryAvailable = false;
   bool _isSubmitting = false;
+  // Khi sửa: chỉ gửi toạ độ mới nếu owner thực sự chạm bản đồ. Không chạm →
+  // giữ nguyên vị trí cũ trên backend (list không trả coords để prefill).
+  bool _locationTouched = false;
 
   @override
   void initState() {
@@ -56,6 +60,11 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
       _doorsController.text = v.doors?.toString() ?? '';
       _cityController.text = v.city ?? '';
       _transmission = v.transmission;
+      // List không trả coords; nếu có (mở từ detail) thì prefill bản đồ.
+      if (v.latitude != null && v.longitude != null) {
+        _latController.text = v.latitude!.toStringAsFixed(6);
+        _lngController.text = v.longitude!.toStringAsFixed(6);
+      }
     }
   }
 
@@ -96,7 +105,9 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
     setState(() => _isSubmitting = true);
 
     if (widget.isEdit) {
-      // Sửa: không gửi toạ độ (giữ nguyên vị trí cũ); type không đổi được.
+      // Sửa: chỉ gửi toạ độ nếu owner chạm bản đồ; không chạm → giữ vị trí cũ.
+      final touchedLat = double.tryParse(_latController.text.trim());
+      final touchedLng = double.tryParse(_lngController.text.trim());
       await cubit.update(
         widget.vehicle!.id,
         title: title,
@@ -107,6 +118,8 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
         doors: doors,
         transmission: _transmission,
         city: city,
+        lat: _locationTouched ? touchedLat : null,
+        lng: _locationTouched ? touchedLng : null,
       );
     } else {
       final lat = double.tryParse(_latController.text.trim());
@@ -204,15 +217,13 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                     ),
                     const SizedBox(height: 16),
                     _DescriptionCard(controller: _descController),
-                    // Vị trí chỉ đặt khi đăng xe mới — sửa xe giữ nguyên toạ độ
-                    // cũ (Vehicle entity chưa expose lat/lng để prefill).
-                    if (!widget.isEdit) ...[
-                      const SizedBox(height: 16),
-                      _LocationCard(
-                        latController: _latController,
-                        lngController: _lngController,
-                      ),
-                    ],
+                    const SizedBox(height: 16),
+                    _LocationCard(
+                      latController: _latController,
+                      lngController: _lngController,
+                      isEdit: widget.isEdit,
+                      onPicked: () => _locationTouched = true,
+                    ),
                     const SizedBox(height: 16),
                     _OptionsCard(
                       isElectric: _isElectric,
@@ -538,14 +549,38 @@ class _TypeDropdown extends StatelessWidget {
   }
 }
 
-class _LocationCard extends StatelessWidget {
+/// Chọn vị trí xe bằng cách chạm bản đồ. Toạ độ ghi thẳng vào
+/// [latController]/[lngController] (nguồn sự thật cho submit); [onPicked] báo
+/// parent rằng owner đã chạm (edit mode dùng để quyết có gửi toạ độ mới không).
+class _LocationCard extends StatefulWidget {
   const _LocationCard({
     required this.latController,
     required this.lngController,
+    required this.isEdit,
+    required this.onPicked,
   });
 
   final TextEditingController latController;
   final TextEditingController lngController;
+  final bool isEdit;
+  final VoidCallback onPicked;
+
+  @override
+  State<_LocationCard> createState() => _LocationCardState();
+}
+
+class _LocationCardState extends State<_LocationCard> {
+  late LatLng _picked = LatLng(
+    double.tryParse(widget.latController.text.trim()) ?? 21.0278,
+    double.tryParse(widget.lngController.text.trim()) ?? 105.8342,
+  );
+
+  void _onTap(LatLng pos) {
+    setState(() => _picked = pos);
+    widget.latController.text = pos.latitude.toStringAsFixed(6);
+    widget.lngController.text = pos.longitude.toStringAsFixed(6);
+    widget.onPicked();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -568,38 +603,39 @@ class _LocationCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(title: l10n.ownerVehicleLocation),
+          const SizedBox(height: 4),
+          Text(
+            l10n.ownerVehicleMapPickHint,
+            style: TextStyle(fontSize: 11, color: context.palette.mutedText),
+          ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _FormField(
-                  label: l10n.ownerVehicleLat,
-                  hint: l10n.ownerVehicleLatHint,
-                  controller: latController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
-                  ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: SizedBox(
+              height: 180,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: _picked,
+                  zoom: 14,
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _FormField(
-                  label: l10n.ownerVehicleLng,
-                  hint: l10n.ownerVehicleLngHint,
-                  controller: lngController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
+                onTap: _onTap,
+                markers: {
+                  Marker(
+                    markerId: const MarkerId('picked'),
+                    position: _picked,
                   ),
-                ),
+                },
+                zoomControlsEnabled: false,
+                mapToolbarEnabled: false,
+                myLocationButtonEnabled: false,
               ),
-            ],
+            ),
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.ownerVehicleMapSoon,
-            style: TextStyle(fontSize: 11, color: context.palette.mutedText),
+            '${_picked.latitude.toStringAsFixed(5)}, '
+            '${_picked.longitude.toStringAsFixed(5)}',
+            style: TextStyle(fontSize: 12, color: context.palette.secondaryText),
           ),
         ],
       ),

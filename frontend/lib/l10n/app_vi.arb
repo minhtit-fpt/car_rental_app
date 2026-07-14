@@ -354,6 +354,7 @@
   "ownerVehicleLng": "Kinh độ (lng)",
   "ownerVehicleLngHint": "VD: 105.8342",
   "ownerVehicleMapSoon": "Chọn vị trí trên bản đồ sẽ sớm được hỗ trợ.",
+  "ownerVehicleMapPickHint": "Chạm vào bản đồ để đặt điểm nhận xe.",
   "ownerVehicleSpecs": "Thông số kỹ thuật",
   "ownerVehicleSpecsHint": "Có thể bỏ trống nếu không áp dụng (vd: xe máy, xe đạp).",
   "ownerVehicleSeats": "Số chỗ",
@@ -448,6 +449,17 @@
       "count": { "type": "int" }
     }
   },
+  "trackingTitle": "Vị trí xe",
+  "trackingWaiting": "Đang lấy vị trí xe…",
+  "trackingSpeed": "{kmh} km/h",
+  "@trackingSpeed": {
+    "placeholders": {
+      "kmh": { "type": "int" }
+    }
+  },
+  "trackingViewButton": "Xem vị trí xe",
+  "adminActiveTripsTitle": "Xe đang trong chuyến",
+  "adminActiveTripsEmpty": "Không có xe nào đang chạy.",
   "mapEmptyTitle": "Chưa có xe quanh đây",
   "mapEmptySubtitle": "Thử di chuyển bản đồ hoặc mở rộng khu vực tìm kiếm.",
   "mapMyLocationTooltip": "Vị trí của tôi",

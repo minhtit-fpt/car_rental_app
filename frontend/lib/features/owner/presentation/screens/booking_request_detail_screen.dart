@@ -8,6 +8,7 @@ import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/owner/domain/entities/owner_booking.dart';
 import 'package:frontend/features/owner/presentation/cubit/booking_action_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
+import 'package:frontend/features/booking/domain/entities/booking.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
 import 'package:frontend/shared/widgets/secondary_button.dart';
@@ -121,6 +122,15 @@ class _DetailBody extends StatelessWidget {
               _VehicleCard(booking: booking),
               const SizedBox(height: 16),
               _EarningsCard(total: booking.totalPrice),
+              if (booking.status == BookingStatus.inProgress) ...[
+                const SizedBox(height: 20),
+                PrimaryButton(
+                  label: AppLocalizations.of(context).trackingViewButton,
+                  icon: Icons.navigation_rounded,
+                  onPressed: () =>
+                      context.push('/tracking/${booking.vehicleId}'),
+                ),
+              ],
               const SizedBox(height: 20),
               if (booking.isPending)
                 _ActionButtons(

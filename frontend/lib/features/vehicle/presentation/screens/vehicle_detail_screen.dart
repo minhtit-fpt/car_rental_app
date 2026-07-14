@@ -89,7 +89,11 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                         ),
                         const _TripRulesCard(),
                         const SizedBox(height: 20),
-                        _PickupMapBlock(city: v.city),
+                        _PickupMapBlock(
+                          city: v.city,
+                          lat: v.latitude,
+                          lng: v.longitude,
+                        ),
                         const SizedBox(height: 100),
                       ],
                     ),
@@ -807,9 +811,11 @@ class _RuleItem extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _PickupMapBlock extends StatelessWidget {
-  const _PickupMapBlock({this.city});
+  const _PickupMapBlock({this.city, this.lat, this.lng});
 
   final String? city;
+  final double? lat;
+  final double? lng;
 
   @override
   Widget build(BuildContext context) {
@@ -819,24 +825,30 @@ class _PickupMapBlock extends StatelessWidget {
       children: [
         SectionHeader(title: l10n.vehiclePickupLocationTitle),
         const SizedBox(height: 10),
-        _PickupMiniMap(city: city),
+        _PickupMiniMap(city: city, lat: lat, lng: lng),
       ],
     );
   }
 }
 
-/// Mini bản đồ thật cho điểm nhận xe. Chi tiết xe chưa kèm toạ độ chính xác, nên
-/// căn theo tâm thành phố ([AppGeo.cityCenterOf]); bấm để mở bản đồ đầy đủ.
+/// Mini bản đồ thật cho điểm nhận xe. Dùng toạ độ xe khi detail có ([lat]/[lng]);
+/// nếu thiếu thì căn theo tâm thành phố ([AppGeo.cityCenterOf]). Bấm mở bản đồ đầy đủ.
 class _PickupMiniMap extends StatelessWidget {
-  const _PickupMiniMap({this.city});
+  const _PickupMiniMap({this.city, this.lat, this.lng});
 
   final String? city;
+  final double? lat;
+  final double? lng;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final center = AppGeo.cityCenterOf(city);
-    final target = LatLng(center.latitude, center.longitude);
+    final target = (lat != null && lng != null)
+        ? LatLng(lat!, lng!)
+        : () {
+            final center = AppGeo.cityCenterOf(city);
+            return LatLng(center.latitude, center.longitude);
+          }();
     return GestureDetector(
       onTap: () => context.push('/map'),
       child: ClipRRect(

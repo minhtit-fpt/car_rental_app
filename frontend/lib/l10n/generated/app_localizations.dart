@@ -2018,6 +2018,12 @@ abstract class AppLocalizations {
   /// **'Picking a location on the map is coming soon.'**
   String get ownerVehicleMapSoon;
 
+  /// No description provided for @ownerVehicleMapPickHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the map to set the pickup point.'**
+  String get ownerVehicleMapPickHint;
+
   /// No description provided for @ownerVehicleSpecs.
   ///
   /// In en, this message translates to:
@@ -2485,6 +2491,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Account'**
   String get shellAccountTitle;
+
+  /// No description provided for @trackingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle location'**
+  String get trackingTitle;
+
+  /// No description provided for @trackingWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting vehicle location…'**
+  String get trackingWaiting;
+
+  /// No description provided for @trackingSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'{kmh} km/h'**
+  String trackingSpeed(int kmh);
+
+  /// No description provided for @trackingViewButton.
+  ///
+  /// In en, this message translates to:
+  /// **'View vehicle location'**
+  String get trackingViewButton;
+
+  /// No description provided for @adminActiveTripsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicles on active trips'**
+  String get adminActiveTripsTitle;
+
+  /// No description provided for @adminActiveTripsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicles are currently moving.'**
+  String get adminActiveTripsEmpty;
 
   /// No description provided for @mapScreenTitle.
   ///

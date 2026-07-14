@@ -11,6 +11,7 @@ vi.mock("@/lib/repositories/vehicle.repository", () => ({
     update: vi.fn(),
     delete: vi.fn(),
     findNearby: vi.fn(),
+    findCoords: vi.fn(),
   },
 }));
 
@@ -55,11 +56,38 @@ describe("vehicleService.getById", () => {
       ...makeVehicle(),
       owner: { name: "Nguyễn Văn An" },
     });
+    vi.mocked(vehicleRepository.findCoords).mockResolvedValue(null);
     expect((await vehicleService.getById("veh-1")).id).toBe("veh-1");
+  });
+
+  it("attaches lat/lng from findCoords", async () => {
+    vi.mocked(vehicleRepository.findByIdWithOwner).mockResolvedValue({
+      ...makeVehicle(),
+      owner: { name: "Nguyễn Văn An" },
+    });
+    vi.mocked(vehicleRepository.findCoords).mockResolvedValue({
+      lat: 21.0278,
+      lng: 105.8342,
+    });
+    const result = await vehicleService.getById("veh-1");
+    expect(result.lat).toBeCloseTo(21.0278);
+    expect(result.lng).toBeCloseTo(105.8342);
+  });
+
+  it("leaves lat/lng undefined when coords missing", async () => {
+    vi.mocked(vehicleRepository.findByIdWithOwner).mockResolvedValue({
+      ...makeVehicle(),
+      owner: { name: "Nguyễn Văn An" },
+    });
+    vi.mocked(vehicleRepository.findCoords).mockResolvedValue(null);
+    const result = await vehicleService.getById("veh-1");
+    expect(result.lat).toBeUndefined();
+    expect(result.lng).toBeUndefined();
   });
 
   it("throws 404 when not found", async () => {
     vi.mocked(vehicleRepository.findByIdWithOwner).mockResolvedValue(null);
+    vi.mocked(vehicleRepository.findCoords).mockResolvedValue(null);
     await expect(vehicleService.getById("nope")).rejects.toMatchObject({
       status: 404,
       code: "VEHICLE_NOT_FOUND",
