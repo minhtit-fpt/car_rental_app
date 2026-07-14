@@ -82,6 +82,32 @@ def test_chat_returns_503_when_components_not_ready() -> None:
     assert resp.status_code == 503
 
 
+class _DownLLM:
+    """Giả LM Studio offline: mọi lời gọi ném httpx.HTTPError."""
+
+    def complete(self, messages, tools=None):
+        raise httpx.ConnectError("LM Studio down")
+
+    def stream_complete(self, messages, tools=None):
+        raise httpx.ConnectError("LM Studio down")
+        yield  # pragma: no cover — cho Python coi đây là generator.
+
+
+def test_chat_non_stream_503_when_llm_unreachable() -> None:
+    resp = _client(_components(llm=_DownLLM())).post(
+        "/chat", json={"message": "hi", "stream": False}
+    )
+    assert resp.status_code == 503
+
+
+def test_chat_stream_503_when_llm_unreachable() -> None:
+    # Prime chunk đầu chạm LM Studio → lỗi thành 503 sạch, không stream 200 rỗng.
+    resp = _client(_components(llm=_DownLLM())).post(
+        "/chat", json={"message": "hi", "stream": True}
+    )
+    assert resp.status_code == 503
+
+
 def test_chat_validates_empty_message() -> None:
     resp = _client(_components()).post("/chat", json={"message": "  ", "stream": False})
     assert resp.status_code == 422

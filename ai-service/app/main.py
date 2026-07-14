@@ -164,11 +164,39 @@ def create_app() -> FastAPI:
         )
         message = body.normalized_message()
         if body.stream:
+            # "Prime" chunk đầu TRƯỚC khi mở stream: retrieval + token đầu chạm
+            # LM Studio ở đây, nên nếu LM Studio chết ta trả 503 sạch thay vì gửi
+            # 200 rồi stream chết giữa chừng (FE mới hiện được "AI đang khởi động").
+            gen = engine.stream_answer(message, body.history)
+            try:
+                first = next(gen)
+            except StopIteration:
+                first = None
+            except httpx.HTTPError as err:
+                tool_client.close()
+                raise HTTPException(
+                    status_code=503, detail="LM Studio không phản hồi."
+                ) from err
+
+            def body_iter():
+                try:
+                    if first is not None:
+                        yield first
+                    yield from gen
+                finally:
+                    tool_client.close()
+
             return StreamingResponse(
-                engine.stream_answer(message, body.history),
-                media_type="text/plain; charset=utf-8",
+                body_iter(), media_type="text/plain; charset=utf-8"
             )
-        result = engine.answer(message, body.history)
+        try:
+            result = engine.answer(message, body.history)
+        except httpx.HTTPError as err:
+            raise HTTPException(
+                status_code=503, detail="LM Studio không phản hồi."
+            ) from err
+        finally:
+            tool_client.close()
         return {
             "success": True,
             "data": {

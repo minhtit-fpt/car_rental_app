@@ -22,25 +22,6 @@ from app.config import Settings, get_settings
 
 _DEFAULT_TIMEOUT = 30.0
 
-# Giá niêm yết hiện tại là giá NGÀY: cột DB `pricePerHour` đang giữ giá theo giờ,
-# quy ước 1 ngày = 24 giờ → giá ngày = pricePerHour × 24. Tính sẵn để LLM khỏi
-# tự làm toán (hay chia sai). ponytail: bỏ phép nhân này khi DB có cột giá ngày riêng.
-_HOURS_PER_DAY = 24
-
-
-def _with_daily_price(vehicles: Any) -> Any:
-    """Gắn `pricePerDay` (VND/ngày) cho mỗi xe từ `pricePerHour`."""
-    if not isinstance(vehicles, list):
-        return vehicles
-    out = []
-    for v in vehicles:
-        if isinstance(v, dict) and isinstance(v.get("pricePerHour"), (int, float)):
-            out.append({**v, "pricePerDay": round(v["pricePerHour"] * _HOURS_PER_DAY)})
-        else:
-            out.append(v)
-    return out
-
-
 def _unwrap(resp: httpx.Response) -> Any:
     """Bóc envelope chuẩn {success, data} | {success, error}. Trả dict lỗi nếu fail."""
     try:
@@ -67,10 +48,23 @@ class BackendToolClient:
         self._auth_token = auth_token
         if client is not None:
             self._client = client
+            self._owns_client = False  # client tiêm vào → không tự đóng.
         else:
             if base_url is None:
                 raise ValueError("Cần base_url hoặc client")
             self._client = httpx.Client(base_url=base_url, timeout=_DEFAULT_TIMEOUT)
+            self._owns_client = True
+
+    def close(self) -> None:
+        """Đóng httpx.Client tự tạo (tránh leak socket khi tạo mới mỗi request)."""
+        if self._owns_client:
+            self._client.close()
+
+    def __enter__(self) -> "BackendToolClient":
+        return self
+
+    def __exit__(self, *_exc: object) -> None:
+        self.close()
 
     @classmethod
     def from_settings(
@@ -97,9 +91,9 @@ class BackendToolClient:
         if isinstance(data, dict) and "error" in data:
             return data
         # /api/vehicles trả {items, total}; bóc `items` ra để LLM thấy thẳng danh
-        # sách xe (kèm pricePerHour) thay vì object lồng → tránh bịa giá.
+        # sách xe (kèm pricePerDay) thay vì object lồng → tránh bịa giá.
         vehicles = data["items"] if isinstance(data, dict) and "items" in data else data
-        return {"vehicles": _with_daily_price(vehicles)}
+        return {"vehicles": vehicles}
 
     def get_vehicle_price(self, vehicle_id: str, start_time: str, end_time: str) -> dict:
         data = _unwrap(
@@ -137,8 +131,8 @@ TOOL_SPECS: list[dict] = [
                 "type": "object",
                 "properties": {
                     "vehicle_type": {"type": "string", "description": "Loại xe (ví dụ CAR, MOTORBIKE) — tùy chọn."},
-                    "min_price": {"type": "number", "description": "Giá tối thiểu mỗi giờ (VND) — tùy chọn."},
-                    "max_price": {"type": "number", "description": "Giá tối đa mỗi giờ (VND) — tùy chọn."},
+                    "min_price": {"type": "number", "description": "Giá tối thiểu mỗi NGÀY (VND/ngày) — tùy chọn."},
+                    "max_price": {"type": "number", "description": "Giá tối đa mỗi NGÀY (VND/ngày) — tùy chọn."},
                     "limit": {"type": "integer", "description": "Số xe tối đa trả về.", "default": 10},
                 },
             },

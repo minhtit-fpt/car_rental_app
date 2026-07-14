@@ -27,9 +27,10 @@ def test_search_available_vehicles_builds_query_and_unwraps_data() -> None:
         seen["path"] = req.url.path
         seen["params"] = dict(req.url.params)
         # Shape thật của /api/vehicles: data = {items, total} (xem vehicleService.list).
+        # Backend trả `pricePerDay` trực tiếp (đã bỏ pricePerHour sau migration).
         return httpx.Response(
             200,
-            json={"success": True, "data": {"items": [{"id": "v1", "pricePerHour": 80000}], "total": 1}},
+            json={"success": True, "data": {"items": [{"id": "v1", "pricePerDay": 1920000}], "total": 1}},
         )
 
     out = _client(handler).search_available_vehicles(vehicle_type="CAR", max_price=200000, limit=5)
@@ -37,8 +38,8 @@ def test_search_available_vehicles_builds_query_and_unwraps_data() -> None:
     assert seen["params"]["type"] == "CAR"
     assert seen["params"]["maxPrice"] == "200000"
     assert seen["params"]["limit"] == "5"
-    # Tool bóc `items` ra mảng phẳng + gắn pricePerDay = pricePerHour × 24 (giá ngày).
-    assert out["vehicles"] == [{"id": "v1", "pricePerHour": 80000, "pricePerDay": 1920000}]
+    # Tool chỉ bóc `items` ra mảng phẳng, giữ nguyên pricePerDay từ backend.
+    assert out["vehicles"] == [{"id": "v1", "pricePerDay": 1920000}]
 
 
 def test_get_vehicle_price_calls_quote_endpoint() -> None:
