@@ -155,12 +155,32 @@ model Vehicle {
   owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   bookings  Booking[]
   favorites Favorite[]
+  locations VehicleLocation[]
 
   @@index([ownerId])
   @@index([type])
   @@index([isAvailable])
   @@index([approvalStatus])
   @@index([location], type: Gist)
+}
+
+// ============================================================
+// GPS tracking — điểm toạ độ xe theo thời gian (nguồn: simulator hoặc thiết bị).
+// Lưu mọi điểm để replay lộ trình; điểm mới nhất = vị trí realtime.
+// ============================================================
+
+model VehicleLocation {
+  id         String   @id @default(uuid()) @db.Uuid
+  vehicleId  String   @db.Uuid
+  bookingId  String?  @db.Uuid
+  lat        Float
+  lng        Float
+  speedKmh   Float?
+  recordedAt DateTime @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId, recordedAt])
 }
 
 // ============================================================

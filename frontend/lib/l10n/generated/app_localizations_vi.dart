@@ -1031,6 +1031,9 @@ class AppLocalizationsVi extends AppLocalizations {
       'Chọn vị trí trên bản đồ sẽ sớm được hỗ trợ.';
 
   @override
+  String get ownerVehicleMapPickHint => 'Chạm vào bản đồ để đặt điểm nhận xe.';
+
+  @override
   String get ownerVehicleSpecs => 'Thông số kỹ thuật';
 
   @override
@@ -1282,6 +1285,26 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get shellAccountTitle => 'Tài khoản';
+
+  @override
+  String get trackingTitle => 'Vị trí xe';
+
+  @override
+  String get trackingWaiting => 'Đang lấy vị trí xe…';
+
+  @override
+  String trackingSpeed(int kmh) {
+    return '$kmh km/h';
+  }
+
+  @override
+  String get trackingViewButton => 'Xem vị trí xe';
+
+  @override
+  String get adminActiveTripsTitle => 'Xe đang trong chuyến';
+
+  @override
+  String get adminActiveTripsEmpty => 'Không có xe nào đang chạy.';
 
   @override
   String get mapScreenTitle => 'Xe quanh đây';

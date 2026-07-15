@@ -60,6 +60,12 @@ import 'package:frontend/features/vehicle/domain/usecases/get_price_quote_usecas
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_list_cubit.dart';
 import 'package:frontend/features/vehicle/presentation/cubit/vehicle_availability_cubit.dart';
 import 'package:frontend/features/map/presentation/cubit/map_cubit.dart';
+import 'package:frontend/features/tracking/data/datasources/tracking_remote_datasource.dart';
+import 'package:frontend/features/tracking/data/repositories/tracking_repository_impl.dart';
+import 'package:frontend/features/tracking/domain/repositories/tracking_repository.dart';
+import 'package:frontend/features/tracking/domain/usecases/get_tracking_snapshot_usecase.dart';
+import 'package:frontend/features/tracking/presentation/cubit/tracking_cubit.dart';
+import 'package:frontend/features/tracking/presentation/cubit/admin_tracking_cubit.dart';
 import 'package:frontend/features/owner/presentation/cubit/vehicle_form_cubit.dart';
 import 'package:frontend/features/owner/data/datasources/owner_remote_datasource.dart';
 import 'package:frontend/features/owner/data/repositories/owner_repository_impl.dart';
@@ -255,6 +261,25 @@ void setupMap() {
       () => MapCubit(
         locationService: sl<LocationService>(),
         listNearbyVehicles: ListNearbyVehiclesUseCase(sl<VehicleRepository>()),
+      ),
+    );
+}
+
+/// Đăng ký GPS tracking. Gọi sau [setupAuth] (cần [ApiClient]).
+/// [TrackingCubit]/[AdminTrackingCubit] là factory — poll timer riêng mỗi màn.
+void setupTracking() {
+  sl
+    ..registerSingleton<TrackingRepository>(
+      TrackingRepositoryImpl(TrackingRemoteDataSource(sl<ApiClient>())),
+    )
+    ..registerFactory<TrackingCubit>(
+      () => TrackingCubit(
+        getSnapshot: GetTrackingSnapshotUseCase(sl<TrackingRepository>()),
+      ),
+    )
+    ..registerFactory<AdminTrackingCubit>(
+      () => AdminTrackingCubit(
+        getActive: GetActiveTrackingUseCase(sl<TrackingRepository>()),
       ),
     );
 }

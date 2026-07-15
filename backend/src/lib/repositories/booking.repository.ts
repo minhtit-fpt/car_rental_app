@@ -121,6 +121,14 @@ export const bookingRepository = {
     });
   },
 
+  // Chuyến đang chạy (IN_PROGRESS) của một xe — cho tracking (authz + gán bookingId).
+  findInProgressByVehicle(vehicleId: string): Promise<Booking | null> {
+    return prisma.booking.findFirst({
+      where: { vehicleId, status: BookingStatus.IN_PROGRESS },
+      orderBy: { startTime: "desc" },
+    });
+  },
+
   // Pre-check tầng ứng dụng: có booking đang chiếm chỗ chồng khoảng [start,end)?
   // EXCLUDE constraint là chốt cứng ở bước confirm (Phase 4).
   async hasActiveOverlap(

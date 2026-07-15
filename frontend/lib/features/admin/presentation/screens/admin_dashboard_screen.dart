@@ -362,6 +362,8 @@ class _DashboardTab extends StatelessWidget {
         const SizedBox(height: 16),
         const _AnalyticsCard(),
         const SizedBox(height: 16),
+        const _TrackingMapCard(),
+        const SizedBox(height: 16),
         _DisputesCard(),
         const SizedBox(height: 16),
         _RecentUsersCard(onSeeAll: () => onTabChanged(2)),
@@ -546,6 +548,69 @@ class _AnalyticsCard extends StatelessWidget {
                   SizedBox(height: 2),
                   Text(
                     'Hỏi nhanh số liệu bằng ngôn ngữ tự nhiên (AI)',
+                    style: TextStyle(color: AppColors.adminMuted, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.adminMuted,
+              size: 22,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Vào bản đồ xe đang trong chuyến (GPS realtime).
+class _TrackingMapCard extends StatelessWidget {
+  const _TrackingMapCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/admin/tracking'),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.adminSurface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.adminBorder),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.teal.withAlpha(38),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.map_rounded,
+                color: AppColors.teal,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Xe đang trong chuyến',
+                    style: TextStyle(
+                      color: AppColors.adminText,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Bản đồ vị trí GPS realtime các xe đang chạy',
                     style: TextStyle(color: AppColors.adminMuted, fontSize: 12),
                   ),
                 ],

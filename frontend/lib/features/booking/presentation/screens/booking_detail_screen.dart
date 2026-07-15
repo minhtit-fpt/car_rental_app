@@ -100,6 +100,15 @@ class BookingDetailScreen extends StatelessWidget {
                         }),
                       ),
                     ],
+                    if (booking.status == BookingStatus.inProgress) ...[
+                      const SizedBox(height: 20),
+                      PrimaryButton(
+                        label: l10n.trackingViewButton,
+                        icon: Icons.navigation_rounded,
+                        onPressed: () =>
+                            context.push('/tracking/${booking.vehicleId}'),
+                      ),
+                    ],
                     if (showInspection) ...[
                       const SizedBox(height: 20),
                       PrimaryButton(

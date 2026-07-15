@@ -12,6 +12,9 @@ const envSchema = z.object({
     .min(32, "JWT_ACCESS_SECRET phải tối thiểu 32 ký tự"),
   JWT_ACCESS_TTL: z.string().min(1).default("15m"),
   JWT_REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(30),
+  // Khoá thiết bị GPS (simulator/hộp đen) để POST toạ độ. Không đặt → ingest bị
+  // từ chối (fail-closed), không mở endpoint.
+  TRACKING_DEVICE_KEY: z.string().min(1).optional(),
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
