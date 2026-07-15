@@ -132,7 +132,7 @@ export const paymentService = {
   },
 
   // Mô phỏng callback từ cổng (mock-first). Thành công → Payment PAID +
-  // Booking CONFIRMED; thất bại → Payment FAILED, Booking giữ nguyên.
+  // Booking AWAITING_OWNER (chờ chủ xe xác nhận); thất bại → Payment FAILED.
   async confirm(
     renterId: string,
     paymentId: string,
@@ -174,13 +174,8 @@ export const paymentService = {
       paidAt: new Date(),
     });
 
-    await notificationService.notify({
-      userId: renterId,
-      type: "PAYMENT",
-      title: "Thanh toán thành công",
-      body: "Đơn đặt xe của bạn đã được xác nhận. Chúc bạn có chuyến đi vui vẻ!",
-      payload: { bookingId: paid.bookingId },
-    });
+    // Noti renter + owner do bookingService.confirmAfterPayment phát qua
+    // notificationEvents.paymentAwaitingOwner (tránh gửi trùng ở đây).
 
     return { payment: toPublicPayment(paid), booking };
   },

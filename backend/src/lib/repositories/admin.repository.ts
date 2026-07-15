@@ -528,7 +528,7 @@ export const adminRepository = {
   refundPayment(
     bookingId: string,
     amount: number,
-    adminId: string,
+    actorId: string | null, // null = hệ thống tự hoàn (owner từ chối / hết hạn)
     reason: string,
   ) {
     return prisma.$transaction(async (tx) => {
@@ -539,7 +539,7 @@ export const adminRepository = {
       });
       await tx.auditLog.create({
         data: {
-          actorId: adminId,
+          actorId,
           action: "PAYMENT_REFUNDED",
           target: `booking:${bookingId}`,
           metadata: { amount, reason },

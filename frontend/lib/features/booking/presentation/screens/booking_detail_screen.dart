@@ -88,6 +88,18 @@ class BookingDetailScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (booking.status == BookingStatus.pendingPayment) ...[
+                      const SizedBox(height: 20),
+                      PrimaryButton(
+                        label: l10n.tripsPay,
+                        icon: Icons.payment_rounded,
+                        onPressed: () => context.push('/payment', extra: {
+                          'bookingId': booking.id,
+                          'amount': booking.totalPrice,
+                          'successLocation': '/trips',
+                        }),
+                      ),
+                    ],
                     if (showInspection) ...[
                       const SizedBox(height: 20),
                       PrimaryButton(
@@ -189,6 +201,10 @@ class _StatusBadge extends StatelessWidget {
       BookingStatus.pendingPayment => (
         l10n.bookingStatusPendingPayment,
         AppColors.accent,
+      ),
+      BookingStatus.awaitingOwner => (
+        l10n.bookingStatusAwaitingOwner,
+        AppColors.warning,
       ),
       BookingStatus.confirmed => (l10n.bookingStatusConfirmed, AppColors.primary),
       BookingStatus.inProgress => (l10n.bookingStatusInProgress, AppColors.teal),

@@ -499,6 +499,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingStatusPendingPayment => 'Pending payment';
 
   @override
+  String get bookingStatusAwaitingOwner => 'Awaiting owner';
+
+  @override
   String get bookingStatusConfirmed => 'Confirmed';
 
   @override
@@ -529,6 +532,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tripsCancel => 'Cancel booking';
+
+  @override
+  String get tripsPay => 'Pay now';
 
   @override
   String get tripsCancelTitle => 'Cancel this booking?';
@@ -1433,7 +1439,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentResultSuccessBody =>
-      'Your trip has been confirmed.\nEnjoy your trip!';
+      'Payment received. Your booking is awaiting owner confirmation.\nWe\'ll notify you as soon as it\'s confirmed.';
 
   @override
   String get paymentResultFailBody =>

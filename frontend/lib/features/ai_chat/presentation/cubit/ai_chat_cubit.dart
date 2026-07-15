@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,6 +26,10 @@ class AiChatCubit extends Cubit<AiChatState> {
   /// Số tin gần nhất gửi kèm làm ngữ cảnh cho LLM (~5 lượt hỏi-đáp). Cắt bớt để
   /// không vượt cửa sổ ngữ cảnh của model local (đang để 8192 token).
   static const _maxHistoryMessages = 10;
+
+  /// Ký tự record-separator ngăn câu trả lời với metadata xe (khớp
+  /// `VEHICLE_REFS_SENTINEL` cua ai-service): cau tra loi + sentinel + JSON metadata xe.
+  static const _refsSentinel = '\u001E';
 
   DateTime? _lastActivityAt;
 
@@ -68,24 +73,59 @@ class AiChatCubit extends Cubit<AiChatState> {
     _sub = _streamReply(message: message, history: history).listen(
       (delta) {
         buffer.write(delta);
-        _updateLastAssistant(buffer.toString(), isStreaming: true);
+        _applyBuffer(buffer.toString(), isStreaming: true);
       },
       onError: _onStreamError,
       onDone: () {
-        final finalText = buffer.toString();
-        if (finalText.isEmpty) {
+        if (_displayText(buffer.toString()).trim().isEmpty) {
           _updateLastAssistant(
             'Xin lỗi, mình chưa có câu trả lời. Bạn thử hỏi lại nhé.',
             isStreaming: false,
           );
         } else {
-          _updateLastAssistant(finalText, isStreaming: false);
+          _applyBuffer(buffer.toString(), isStreaming: false);
         }
         _lastActivityAt = DateTime.now();
         emit(state.copyWith(isStreaming: false));
       },
       cancelOnError: true,
     );
+  }
+
+  /// Phần văn bản hiển thị = mọi thứ TRƯỚC sentinel metadata xe.
+  String _displayText(String raw) {
+    final idx = raw.indexOf(_refsSentinel);
+    return idx == -1 ? raw : raw.substring(0, idx);
+  }
+
+  /// Tách buffer thành text hiển thị + danh sách xe (nếu đã tới phần metadata),
+  /// rồi cập nhật tin assistant. Metadata đến sau nên khi đang stream có thể chưa
+  /// parse được JSON — bỏ qua, tới onDone sẽ đủ.
+  void _applyBuffer(String raw, {required bool isStreaming}) {
+    final idx = raw.indexOf(_refsSentinel);
+    final text = idx == -1 ? raw : raw.substring(0, idx);
+    final vehicles = idx == -1
+        ? const <VehicleRef>[]
+        : _parseVehicles(raw.substring(idx + _refsSentinel.length));
+    _updateLastAssistant(text, isStreaming: isStreaming, vehicles: vehicles);
+  }
+
+  List<VehicleRef> _parseVehicles(String jsonPart) {
+    try {
+      final decoded = jsonDecode(jsonPart);
+      final list = decoded is Map && decoded['vehicles'] is List
+          ? decoded['vehicles'] as List
+          : const [];
+      return list
+          .whereType<Map>()
+          .map(
+            (m) => VehicleRef(id: '${m['id'] ?? ''}', name: '${m['name'] ?? ''}'),
+          )
+          .where((v) => v.id.isNotEmpty && v.name.isNotEmpty)
+          .toList();
+    } on FormatException {
+      return const []; // JSON chưa đủ (đang stream) — sẽ parse lại ở onDone.
+    }
   }
 
   void _onStreamError(Object error) {
@@ -99,7 +139,11 @@ class AiChatCubit extends Cubit<AiChatState> {
     emit(state.copyWith(messages: trimmed, isStreaming: false, error: message));
   }
 
-  void _updateLastAssistant(String content, {required bool isStreaming}) {
+  void _updateLastAssistant(
+    String content, {
+    required bool isStreaming,
+    List<VehicleRef> vehicles = const [],
+  }) {
     if (state.messages.isEmpty) return;
     final updated = [...state.messages];
     final last = updated.last;
@@ -107,6 +151,7 @@ class AiChatCubit extends Cubit<AiChatState> {
     updated[updated.length - 1] = last.copyWith(
       content: content,
       isStreaming: isStreaming,
+      vehicles: vehicles,
     );
     emit(state.copyWith(messages: updated));
   }

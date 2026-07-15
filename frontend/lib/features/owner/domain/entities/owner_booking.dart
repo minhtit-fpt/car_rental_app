@@ -35,8 +35,8 @@ class OwnerBooking {
   final String renterPhone;
   final String? renterEmail;
 
-  /// Đơn đang chờ chủ xe xác nhận (có thể chấp nhận/từ chối).
-  bool get isPending => status == BookingStatus.pendingPayment;
+  /// Đơn đã thanh toán, đang chờ chủ xe xác nhận (có thể chấp nhận/từ chối).
+  bool get isPending => status == BookingStatus.awaitingOwner;
 
   /// Tên hiển thị người thuê (backend chưa có field name → dùng email/phone).
   String get renterDisplayName => renterEmail ?? renterPhone;

@@ -21,8 +21,13 @@ vi.mock("@/lib/repositories/booking.repository", () => ({
     findByVehicle: vi.fn(),
     hasActiveOverlap: vi.fn(),
     findOverduePendingPayment: vi.fn(),
+    findOverdueAwaitingOwner: vi.fn(),
     updateStatus: vi.fn(),
   },
+}));
+
+vi.mock("@/lib/services/refund.service", () => ({
+  refundService: { refundBookingPayment: vi.fn() },
 }));
 
 vi.mock("@/lib/repositories/vehicle.repository", () => ({
@@ -36,7 +41,7 @@ vi.mock("@/lib/services/notification.events", () => ({
     bookingCreated: vi.fn(),
     bookingApproved: vi.fn(),
     bookingRejected: vi.fn(),
-    paymentConfirmed: vi.fn(),
+    paymentAwaitingOwner: vi.fn(),
     paymentExpired: vi.fn(),
     bookingCancelled: vi.fn(),
   },
@@ -46,6 +51,7 @@ import { bookingService } from "@/lib/services/booking.service";
 import { bookingRepository } from "@/lib/repositories/booking.repository";
 import { vehicleRepository } from "@/lib/repositories/vehicle.repository";
 import { notificationEvents } from "@/lib/services/notification.events";
+import { refundService } from "@/lib/services/refund.service";
 
 const RENTER = "renter-1";
 const VEHICLE_ID = "veh-1";
@@ -107,8 +113,12 @@ describe("bookingService.create", () => {
     );
     expect(result.status).toBe(BookingStatus.PENDING_PAYMENT);
     expect(result.totalPrice).toBe(100);
+    // Pay-first: chỉ báo renter lúc tạo đơn, KHÔNG kèm ownerId (owner báo sau khi trả tiền).
     expect(notificationEvents.bookingCreated).toHaveBeenCalledWith(
-      expect.objectContaining({ renterId: RENTER, ownerId: "owner-1" }),
+      expect.objectContaining({ renterId: RENTER }),
+    );
+    expect(notificationEvents.bookingCreated).not.toHaveBeenCalledWith(
+      expect.objectContaining({ ownerId: expect.anything() }),
     );
   });
 
@@ -222,9 +232,11 @@ describe("bookingService.listForOwner", () => {
 });
 
 describe("bookingService.approve", () => {
-  it("confirms a PENDING_PAYMENT booking on the owner's vehicle", async () => {
+  it("confirms an AWAITING_OWNER booking on the owner's vehicle", async () => {
     vi.mocked(bookingRepository.findByIdForOwner)
-      .mockResolvedValueOnce(makeOwnerBooking() as never)
+      .mockResolvedValueOnce(
+        makeOwnerBooking({ status: BookingStatus.AWAITING_OWNER }) as never,
+      )
       .mockResolvedValueOnce(
         makeOwnerBooking({ status: BookingStatus.CONFIRMED }) as never,
       );
@@ -250,7 +262,7 @@ describe("bookingService.approve", () => {
     expect(bookingRepository.updateStatus).not.toHaveBeenCalled();
   });
 
-  it("throws 409 when the booking is not PENDING_PAYMENT", async () => {
+  it("throws 409 when the booking is not AWAITING_OWNER", async () => {
     vi.mocked(bookingRepository.findByIdForOwner).mockResolvedValue(
       makeOwnerBooking({ status: BookingStatus.CONFIRMED }) as never,
     );
@@ -262,7 +274,7 @@ describe("bookingService.approve", () => {
 
   it("throws 409 BOOKING_CONFLICT when the slot is already taken", async () => {
     vi.mocked(bookingRepository.findByIdForOwner).mockResolvedValue(
-      makeOwnerBooking() as never,
+      makeOwnerBooking({ status: BookingStatus.AWAITING_OWNER }) as never,
     );
     vi.mocked(bookingRepository.hasActiveOverlap).mockResolvedValue(true);
     await expect(bookingService.approve(OWNER, "book-1")).rejects.toMatchObject({
@@ -274,16 +286,27 @@ describe("bookingService.approve", () => {
 });
 
 describe("bookingService.reject", () => {
-  it("cancels a PENDING_PAYMENT booking on the owner's vehicle", async () => {
+  it("cancels an AWAITING_OWNER booking and auto-refunds", async () => {
     vi.mocked(bookingRepository.findByIdForOwner)
-      .mockResolvedValueOnce(makeOwnerBooking() as never)
+      .mockResolvedValueOnce(
+        makeOwnerBooking({ status: BookingStatus.AWAITING_OWNER }) as never,
+      )
       .mockResolvedValueOnce(
         makeOwnerBooking({ status: BookingStatus.CANCELLED }) as never,
       );
+    vi.mocked(refundService.refundBookingPayment).mockResolvedValue({
+      bookingId: "book-1",
+      renterId: RENTER,
+      status: "REFUNDED",
+      amount: 100,
+    } as never);
     vi.mocked(bookingRepository.updateStatus).mockResolvedValue(makeBooking());
 
     const result = await bookingService.reject(OWNER, "book-1");
 
+    expect(refundService.refundBookingPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ bookingId: "book-1", actorId: null }),
+    );
     expect(bookingRepository.updateStatus).toHaveBeenCalledWith(
       "book-1",
       BookingStatus.CANCELLED,
@@ -291,7 +314,7 @@ describe("bookingService.reject", () => {
     expect(result.status).toBe(BookingStatus.CANCELLED);
   });
 
-  it("throws 409 when the booking is not PENDING_PAYMENT", async () => {
+  it("throws 409 when the booking is not AWAITING_OWNER", async () => {
     vi.mocked(bookingRepository.findByIdForOwner).mockResolvedValue(
       makeOwnerBooking({ status: BookingStatus.IN_PROGRESS }) as never,
     );
@@ -384,5 +407,49 @@ describe("bookingService.expireOverduePayments", () => {
     expect(result.expired).toBe(0);
     expect(bookingRepository.updateStatus).not.toHaveBeenCalled();
     expect(notificationEvents.paymentExpired).not.toHaveBeenCalled();
+  });
+});
+
+describe("bookingService.expireOverdueOwnerApprovals", () => {
+  it("refunds, cancels and notifies each overdue awaiting-owner booking", async () => {
+    vi.mocked(bookingRepository.findOverdueAwaitingOwner).mockResolvedValue([
+      makeBooking({ id: "book-1", renterId: "r1" }),
+    ]);
+    vi.mocked(refundService.refundBookingPayment).mockResolvedValue({
+      bookingId: "book-1",
+      renterId: "r1",
+      status: "REFUNDED",
+      amount: 100,
+    } as never);
+    vi.mocked(bookingRepository.updateStatus).mockResolvedValue(
+      makeBooking({ status: BookingStatus.CANCELLED }),
+    );
+
+    const result = await bookingService.expireOverdueOwnerApprovals();
+
+    expect(result.expired).toBe(1);
+    expect(refundService.refundBookingPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ bookingId: "book-1", actorId: null }),
+    );
+    expect(bookingRepository.updateStatus).toHaveBeenCalledWith(
+      "book-1",
+      BookingStatus.CANCELLED,
+    );
+  });
+
+  it("skips a booking whose refund fails and does not cancel it", async () => {
+    vi.mocked(bookingRepository.findOverdueAwaitingOwner).mockResolvedValue([
+      makeBooking({ id: "book-1", renterId: "r1" }),
+    ]);
+    vi.mocked(refundService.refundBookingPayment).mockRejectedValue(
+      new Error("no payment"),
+    );
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const result = await bookingService.expireOverdueOwnerApprovals();
+
+    expect(result.expired).toBe(0);
+    expect(bookingRepository.updateStatus).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 });

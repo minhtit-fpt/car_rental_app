@@ -49,8 +49,10 @@ export const llmClient = {
     return content;
   },
 
-  // Hỏi-đáp phân tích admin: ai-service chạy tool-calling vào API admin nên PHẢI
-  // forward token admin của phiên. Trả {answer, toolsUsed}. 503 → service fallback.
+  // Hỏi-đáp phân tích admin: ai-service ĐỌC snapshot JSON (backend xuất qua
+  // `npm run snapshot:admin`) làm ngữ cảnh, KHÔNG tool-calling vào DB. Token vẫn
+  // forward (vô hại, để dành nếu sau siết auth nội bộ). Trả {answer, toolsUsed}
+  // — toolsUsed nay luôn rỗng. 503 → service fallback.
   async adminChat(
     message: string,
     token: string,

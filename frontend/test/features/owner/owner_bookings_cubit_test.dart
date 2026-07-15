@@ -12,7 +12,7 @@ import 'package:frontend/features/owner/presentation/cubit/owner_bookings_cubit.
 
 OwnerBooking _booking({
   String id = 'b1',
-  BookingStatus status = BookingStatus.pendingPayment,
+  BookingStatus status = BookingStatus.awaitingOwner,
 }) => OwnerBooking(
   id: id,
   status: status,

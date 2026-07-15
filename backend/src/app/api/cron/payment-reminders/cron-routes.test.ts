@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/services/booking.service", () => ({
   bookingService: {
     expireOverduePayments: vi.fn(),
+    expireOverdueOwnerApprovals: vi.fn(),
   },
 }));
 
@@ -58,16 +59,23 @@ describe("POST /api/cron/payment-reminders", () => {
     expect(bookingService.expireOverduePayments).not.toHaveBeenCalled();
   });
 
-  it("runs the expiry sweep and returns its result when the secret matches", async () => {
+  it("runs both expiry sweeps and returns their counts when the secret matches", async () => {
     process.env.CRON_SECRET = SECRET;
     vi.mocked(bookingService.expireOverduePayments).mockResolvedValue({
       expired: 4,
+    });
+    vi.mocked(bookingService.expireOverdueOwnerApprovals).mockResolvedValue({
+      expired: 2,
     });
 
     const res = await POST(req(SECRET));
 
     expect(res.status).toBe(200);
-    expect((await res.json()).data).toEqual({ expired: 4 });
+    expect((await res.json()).data).toEqual({
+      expiredPayments: 4,
+      expiredOwnerApprovals: 2,
+    });
     expect(bookingService.expireOverduePayments).toHaveBeenCalledOnce();
+    expect(bookingService.expireOverdueOwnerApprovals).toHaveBeenCalledOnce();
   });
 });

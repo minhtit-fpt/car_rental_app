@@ -1034,6 +1034,12 @@ abstract class AppLocalizations {
   /// **'Pending payment'**
   String get bookingStatusPendingPayment;
 
+  /// No description provided for @bookingStatusAwaitingOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting owner'**
+  String get bookingStatusAwaitingOwner;
+
   /// No description provided for @bookingStatusConfirmed.
   ///
   /// In en, this message translates to:
@@ -1093,6 +1099,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel booking'**
   String get tripsCancel;
+
+  /// No description provided for @tripsPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay now'**
+  String get tripsPay;
 
   /// No description provided for @tripsCancelTitle.
   ///
@@ -2741,7 +2753,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentResultSuccessBody.
   ///
   /// In en, this message translates to:
-  /// **'Your trip has been confirmed.\nEnjoy your trip!'**
+  /// **'Payment received. Your booking is awaiting owner confirmation.\nWe\'ll notify you as soon as it\'s confirmed.'**
   String get paymentResultSuccessBody;
 
   /// No description provided for @paymentResultFailBody.

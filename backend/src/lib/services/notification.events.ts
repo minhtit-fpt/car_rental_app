@@ -14,7 +14,7 @@ interface BookingParties {
 // Tiêu đề/nội dung email gửi renter khi thanh toán thành công.
 const PAYMENT_EMAIL_SUBJECT = "Thanh toán thành công — RideVN";
 const PAYMENT_EMAIL_BODY =
-  "Chuyến đi của bạn đã được xác nhận. Cảm ơn bạn đã sử dụng RideVN!";
+  "Đơn của bạn đã được thanh toán và đang chờ chủ xe xác nhận. Cảm ơn bạn đã sử dụng RideVN!";
 
 interface RenterEvent {
   bookingId: string;
@@ -27,24 +27,17 @@ interface OwnerEvent {
 }
 
 export const notificationEvents = {
-  // Renter vừa tạo đơn (chờ thanh toán) + owner nhận yêu cầu mới.
-  async bookingCreated(p: BookingParties): Promise<void> {
-    await Promise.all([
-      notificationService.safeCreate({
-        userId: p.renterId,
-        type: NotificationType.BOOKING,
-        title: "Đặt xe thành công",
-        body: "Đơn của bạn đã được tạo, vui lòng hoàn tất thanh toán.",
-        payload: { bookingId: p.bookingId },
-      }),
-      notificationService.safeCreate({
-        userId: p.ownerId,
-        type: NotificationType.BOOKING,
-        title: "Có yêu cầu thuê xe mới",
-        body: "Một khách vừa gửi yêu cầu thuê xe của bạn.",
-        payload: { bookingId: p.bookingId, role: "owner" },
-      }),
-    ]);
+  // Renter vừa tạo đơn (chờ thanh toán). Luồng pay-first: KHÔNG báo owner ở đây —
+  // owner chỉ được báo sau khi khách thanh toán (xem `paymentAwaitingOwner`), tránh
+  // đơn chưa trả tiền hiện lên như "yêu cầu mới" phía chủ xe.
+  async bookingCreated(p: RenterEvent): Promise<void> {
+    await notificationService.safeCreate({
+      userId: p.renterId,
+      type: NotificationType.BOOKING,
+      title: "Đã tạo đơn, vui lòng thanh toán",
+      body: "Đơn của bạn đã được tạo. Hãy hoàn tất thanh toán để giữ chỗ.",
+      payload: { bookingId: p.bookingId },
+    });
   },
 
   // Owner phê duyệt đơn.
@@ -69,9 +62,10 @@ export const notificationEvents = {
     });
   },
 
-  // Thanh toán thành công (đơn chuyển CONFIRMED). Ngoài noti in-app, gửi email
-  // cho renter nếu có địa chỉ email (fire-and-forget, không chặn luồng).
-  async paymentConfirmed(
+  // Khách đã thanh toán → đơn chuyển AWAITING_OWNER (CHƯA confirmed). Báo renter
+  // "đã thanh toán, chờ chủ xe xác nhận" + owner "khách đã thanh toán, hãy xác
+  // nhận". Ngoài noti in-app, gửi email cho renter nếu có (fire-and-forget).
+  async paymentAwaitingOwner(
     p: BookingParties & { renterEmail?: string | null },
   ): Promise<void> {
     await Promise.all([
@@ -79,14 +73,14 @@ export const notificationEvents = {
         userId: p.renterId,
         type: NotificationType.PAYMENT,
         title: "Thanh toán thành công",
-        body: "Chuyến đi của bạn đã được xác nhận. Chúc bạn lên đường vui vẻ!",
+        body: "Đơn đã được thanh toán, đang chờ chủ xe xác nhận.",
         payload: { bookingId: p.bookingId },
       }),
       notificationService.safeCreate({
         userId: p.ownerId,
         type: NotificationType.PAYMENT,
-        title: "Đơn đã được thanh toán",
-        body: "Khách đã thanh toán cho đơn thuê xe của bạn.",
+        title: "Khách đã thanh toán, chờ bạn xác nhận",
+        body: "Một khách đã thanh toán. Vui lòng xác nhận để hoàn tất đơn.",
         payload: { bookingId: p.bookingId, role: "owner" },
       }),
       p.renterEmail

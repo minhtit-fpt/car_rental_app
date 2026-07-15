@@ -7,3 +7,5 @@ venv/
 data/index.pkl
 data/index/
 *.index
+# Snapshot admin (backend xuất) — chứa PII người dùng (SĐT/email), KHÔNG commit.
+data/admin_snapshot.json

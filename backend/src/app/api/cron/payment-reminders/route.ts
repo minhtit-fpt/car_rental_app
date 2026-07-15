@@ -28,13 +28,21 @@ function assertCronAuthorized(req: Request): void {
   }
 }
 
-// POST /api/cron/payment-reminders — tự huỷ các đơn PENDING_PAYMENT quá hạn
-// thanh toán + gửi noti in-app cho renter. Bảo vệ bằng header `x-cron-secret`.
-// Được gọi định kỳ bởi scheduler ngoài (cron / Vercel Cron).
+// POST /api/cron/payment-reminders — hai việc định kỳ, bảo vệ bằng header
+// `x-cron-secret`, gọi bởi scheduler ngoài (cron / Vercel Cron):
+//  1) Huỷ đơn PENDING_PAYMENT quá hạn thanh toán (không có tiền).
+//  2) Huỷ + hoàn tiền đơn AWAITING_OWNER quá hạn chủ xe xác nhận (24h).
 export async function POST(req: Request): Promise<Response> {
   try {
     assertCronAuthorized(req);
-    return ok(await bookingService.expireOverduePayments());
+    const [payments, ownerApprovals] = await Promise.all([
+      bookingService.expireOverduePayments(),
+      bookingService.expireOverdueOwnerApprovals(),
+    ]);
+    return ok({
+      expiredPayments: payments.expired,
+      expiredOwnerApprovals: ownerApprovals.expired,
+    });
   } catch (error) {
     return toErrorResponse(error);
   }

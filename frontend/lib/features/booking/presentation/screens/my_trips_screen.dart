@@ -111,6 +111,7 @@ class _TripCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final canCancel = _cancellable.contains(booking.status);
+    final canPay = booking.status == BookingStatus.pendingPayment;
     // Tap card → màn chi tiết đơn (từ đó mới vào kiểm tra xe nếu đơn chưa huỷ).
     return InkWell(
       onTap: () => context.push('/trips/detail', extra: booking),
@@ -160,6 +161,24 @@ class _TripCard extends StatelessWidget {
               icon: Icons.payments_outlined,
               text: '${_fmtVnd(booking.totalPrice)} đ',
             ),
+            if (canPay) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: isCancelling ? null : () => _goToPayment(context),
+                  icon: const Icon(Icons.payment_rounded, size: 18),
+                  label: Text(l10n.tripsPay),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             if (canCancel) ...[
               const SizedBox(height: 12),
               SizedBox(
@@ -192,6 +211,15 @@ class _TripCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _goToPayment(BuildContext context) {
+    // Trả tiền cho đơn PENDING_PAYMENT; xong quay về /trips (list tự refresh).
+    context.push('/payment', extra: {
+      'bookingId': booking.id,
+      'amount': booking.totalPrice,
+      'successLocation': '/trips',
+    });
   }
 
   Future<void> _confirmCancel(BuildContext context) async {
@@ -259,6 +287,10 @@ class _StatusBadge extends StatelessWidget {
       BookingStatus.pendingPayment => (
         l10n.bookingStatusPendingPayment,
         AppColors.accent,
+      ),
+      BookingStatus.awaitingOwner => (
+        l10n.bookingStatusAwaitingOwner,
+        AppColors.warning,
       ),
       BookingStatus.confirmed => (
         l10n.bookingStatusConfirmed,

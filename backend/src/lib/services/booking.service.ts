@@ -11,9 +11,14 @@ import { vehicleRepository } from "@/lib/repositories/vehicle.repository";
 import { notificationEvents } from "@/lib/services/notification.events";
 import { notificationService } from "@/lib/services/notification.service";
 import { pricingService } from "@/lib/services/pricing.service";
+import { refundService } from "@/lib/services/refund.service";
 import type { CreateBookingInput } from "@/lib/validators/booking.validator";
 
 const MS_PER_HOUR = 3_600_000;
+
+// Cửa sổ chủ xe xác nhận: đơn AWAITING_OWNER (đã trả tiền) quá ngần này giờ mà
+// chủ xe chưa xác nhận sẽ bị cron tự huỷ + hoàn tiền. Mặc định 24 giờ.
+const OWNER_APPROVAL_WINDOW_HOURS = 24;
 
 // Cửa sổ thanh toán: đơn PENDING_PAYMENT quá ngần này giờ kể từ khi tạo sẽ bị
 // cron tự huỷ. Cấu hình qua PAYMENT_REMINDER_HOURS (mặc định 1 giờ).
@@ -58,8 +63,8 @@ export interface OwnerBookingListResult {
   limit: number;
 }
 
-// Trạng thái owner được phép phê duyệt/từ chối (đơn còn chờ xác nhận).
-const OWNER_ACTIONABLE: BookingStatus[] = [BookingStatus.PENDING_PAYMENT];
+// Trạng thái owner được phép phê duyệt/từ chối: đơn đã trả tiền, chờ xác nhận.
+const OWNER_ACTIONABLE: BookingStatus[] = [BookingStatus.AWAITING_OWNER];
 
 // Trạng thái còn được phép huỷ.
 const CANCELLABLE: BookingStatus[] = [
@@ -172,12 +177,11 @@ export const bookingService = {
       deliveryRequested: input.deliveryRequested,
     });
 
-    // Báo cho renter (đặt thành công, chờ thanh toán) + owner (yêu cầu mới).
-    // safeCreate bên trong: lỗi noti KHÔNG làm hỏng luồng tạo đơn.
+    // Chỉ báo renter (chờ thanh toán). Owner được báo sau khi thanh toán
+    // (paymentAwaitingOwner). safeCreate: lỗi noti KHÔNG làm hỏng luồng tạo đơn.
     await notificationEvents.bookingCreated({
       bookingId: booking.id,
       renterId,
-      ownerId: vehicle.ownerId,
     });
     return toPublicBooking(booking);
   },
@@ -211,8 +215,8 @@ export const bookingService = {
     };
   },
 
-  // OWNER chấp nhận yêu cầu: PENDING_PAYMENT → CONFIRMED. Kiểm tra trùng giờ như
-  // confirmAfterPayment; EXCLUDE constraint là chốt cứng cuối cùng.
+  // OWNER chấp nhận yêu cầu: AWAITING_OWNER (đã trả tiền) → CONFIRMED.
+  // Slot đã được khoá từ lúc thanh toán; EXCLUDE constraint là chốt cứng cuối.
   async approve(ownerId: string, id: string): Promise<OwnerBooking> {
     const booking = await loadOwnedByVehicleOwner(id, ownerId);
     if (!OWNER_ACTIONABLE.includes(booking.status)) {
@@ -247,18 +251,18 @@ export const bookingService = {
       }
       throw error;
     }
-    // Báo cho người thuê đơn đã được chủ xe xác nhận.
+    // Báo cho người thuê đơn đã được chủ xe xác nhận (đã thanh toán trước đó).
     await notificationService.notify({
       userId: booking.renterId,
       type: "BOOKING",
       title: "Đơn đặt đã được xác nhận",
-      body: `${booking.vehicle.title} đã được chủ xe xác nhận. Vui lòng thanh toán để hoàn tất.`,
+      body: `${booking.vehicle.title} đã được chủ xe xác nhận. Chúc bạn có chuyến đi vui vẻ!`,
       payload: { bookingId: booking.id, role: "renter" },
     });
     return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
   },
 
-  // OWNER từ chối yêu cầu: PENDING_PAYMENT → CANCELLED.
+  // OWNER từ chối yêu cầu: AWAITING_OWNER → CANCELLED + tự hoàn tiền (đã trả).
   async reject(ownerId: string, id: string): Promise<OwnerBooking> {
     const booking = await loadOwnedByVehicleOwner(id, ownerId);
     if (!OWNER_ACTIONABLE.includes(booking.status)) {
@@ -268,27 +272,37 @@ export const bookingService = {
         "Đơn không ở trạng thái chờ xác nhận",
       );
     }
+    // Hoàn tiền TRƯỚC (đảm bảo tiền được xử lý), rồi mới huỷ để nhả slot.
+    await refundService.refundBookingPayment({
+      bookingId: id,
+      actorId: null,
+      reason: "Chủ xe từ chối đơn đặt",
+    });
     await bookingRepository.updateStatus(id, BookingStatus.CANCELLED);
-    // Báo cho người thuê đơn đã bị chủ xe từ chối.
+    // Báo cho người thuê đơn đã bị chủ xe từ chối + đã hoàn tiền.
     await notificationService.notify({
       userId: booking.renterId,
       type: "BOOKING",
       title: "Đơn đặt bị từ chối",
-      body: `${booking.vehicle.title} đã bị chủ xe từ chối.`,
+      body: `${booking.vehicle.title} đã bị chủ xe từ chối. Số tiền đã thanh toán sẽ được hoàn lại.`,
       payload: { bookingId: booking.id, role: "renter" },
     });
     return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
   },
 
   // Gọi bởi payment.service sau khi thanh toán thành công. Chuyển
-  // PENDING_PAYMENT → CONFIRMED; idempotent nếu đã CONFIRMED. Ownership đã được
-  // payment.service kiểm tra trước đó.
+  // PENDING_PAYMENT → AWAITING_OWNER (CHƯA confirmed — còn chờ chủ xe xác nhận).
+  // Khoá slot ngay (AWAITING_OWNER nằm trong EXCLUDE constraint). Idempotent nếu
+  // đã AWAITING_OWNER/CONFIRMED. Ownership đã được payment.service kiểm tra.
   async confirmAfterPayment(bookingId: string): Promise<PublicBooking> {
     const booking = await bookingRepository.findById(bookingId);
     if (!booking) {
       throw new AppError(404, "BOOKING_NOT_FOUND", "Không tìm thấy đơn đặt");
     }
-    if (booking.status === BookingStatus.CONFIRMED) {
+    if (
+      booking.status === BookingStatus.AWAITING_OWNER ||
+      booking.status === BookingStatus.CONFIRMED
+    ) {
       return toPublicBooking(booking);
     }
     if (booking.status !== BookingStatus.PENDING_PAYMENT) {
@@ -316,7 +330,7 @@ export const bookingService = {
     try {
       updated = await bookingRepository.updateStatus(
         bookingId,
-        BookingStatus.CONFIRMED,
+        BookingStatus.AWAITING_OWNER,
       );
     } catch (error) {
       if (isOverlapViolation(error)) {
@@ -332,7 +346,7 @@ export const bookingService = {
     const vehicle = await vehicleRepository.findById(updated.vehicleId);
     if (vehicle) {
       const renter = await userRepository.findById(updated.renterId);
-      await notificationEvents.paymentConfirmed({
+      await notificationEvents.paymentAwaitingOwner({
         bookingId: updated.id,
         renterId: updated.renterId,
         ownerId: vehicle.ownerId,
@@ -340,6 +354,46 @@ export const bookingService = {
       });
     }
     return toPublicBooking(updated);
+  },
+
+  // Quét & tự huỷ các đơn AWAITING_OWNER quá hạn chủ xe xác nhận (gọi bởi cron).
+  // Mỗi đơn: hoàn tiền (đã trả) → AWAITING_OWNER → CANCELLED + noti renter.
+  // Lỗi 1 đơn không chặn các đơn còn lại. Trả số đơn đã huỷ.
+  async expireOverdueOwnerApprovals(): Promise<{ expired: number }> {
+    const before = new Date(
+      Date.now() - OWNER_APPROVAL_WINDOW_HOURS * MS_PER_HOUR,
+    );
+    const overdue = await bookingRepository.findOverdueAwaitingOwner(
+      before,
+      EXPIRE_BATCH_LIMIT,
+    );
+
+    let expired = 0;
+    for (const booking of overdue) {
+      try {
+        await refundService.refundBookingPayment({
+          bookingId: booking.id,
+          actorId: null,
+          reason: "Chủ xe không xác nhận trong thời hạn",
+        });
+        await bookingRepository.updateStatus(
+          booking.id,
+          BookingStatus.CANCELLED,
+        );
+      } catch (error) {
+        console.error("Failed to expire awaiting-owner booking", booking.id, error);
+        continue;
+      }
+      expired += 1;
+      await notificationService.notify({
+        userId: booking.renterId,
+        type: "BOOKING",
+        title: "Đơn đã huỷ do chủ xe không xác nhận",
+        body: "Chủ xe không xác nhận trong thời hạn. Số tiền đã thanh toán sẽ được hoàn lại.",
+        payload: { bookingId: booking.id, role: "renter" },
+      });
+    }
+    return { expired };
   },
 
   // Quét & tự huỷ các đơn PENDING_PAYMENT quá hạn thanh toán (gọi bởi cron).

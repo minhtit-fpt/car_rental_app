@@ -37,7 +37,9 @@ export type BookingWithVehicleRenter = Prisma.BookingGetPayload<{
 }>;
 
 // Trạng thái "chiếm chỗ" xe — khớp với EXCLUDE constraint booking_no_overlap.
+// AWAITING_OWNER cũng khoá slot (khách đã trả tiền, chờ chủ xe xác nhận).
 const ACTIVE_STATUSES: BookingStatus[] = [
+  BookingStatus.AWAITING_OWNER,
   BookingStatus.CONFIRMED,
   BookingStatus.IN_PROGRESS,
 ];
@@ -74,9 +76,13 @@ export const bookingRepository = {
   async findManyByOwner(
     p: ListBookingsByOwnerParams,
   ): Promise<{ items: BookingWithVehicleRenter[]; total: number }> {
+    // Không truyền status → mặc định ẩn đơn PENDING_PAYMENT (khách chưa trả tiền),
+    // owner chỉ thấy đơn đã thanh toán trở đi. Có truyền status thì lọc đúng status.
     const where: Prisma.BookingWhereInput = {
       vehicle: { ownerId: p.ownerId },
-      ...(p.status && { status: p.status }),
+      ...(p.status
+        ? { status: p.status }
+        : { status: { not: BookingStatus.PENDING_PAYMENT } }),
     };
     const [items, total] = await Promise.all([
       prisma.booking.findMany({
@@ -143,6 +149,20 @@ export const bookingRepository = {
         createdAt: { lt: before },
       },
       orderBy: { createdAt: "asc" },
+      take: limit,
+    });
+  },
+
+  // Đơn AWAITING_OWNER (đã trả tiền) mà chủ xe chưa xác nhận trước mốc `before`.
+  // `updatedAt` = thời điểm chuyển sang AWAITING_OWNER (không có update nào khác ở
+  // trạng thái này) → xấp xỉ "đã chờ xác nhận > X giờ". Dùng cho cron auto-refund.
+  findOverdueAwaitingOwner(before: Date, limit: number): Promise<Booking[]> {
+    return prisma.booking.findMany({
+      where: {
+        status: BookingStatus.AWAITING_OWNER,
+        updatedAt: { lt: before },
+      },
+      orderBy: { updatedAt: "asc" },
       take: limit,
     });
   },

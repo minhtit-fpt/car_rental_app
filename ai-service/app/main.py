@@ -24,8 +24,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
-from app.admin_engine import run_admin_chat
-from app.admin_tools import AdminToolClient
+from app.admin_engine import load_snapshot, run_admin_chat
 from app.chat_engine import ChatEngine
 from app.config import get_settings
 from app.embedder import Embedder
@@ -74,8 +73,8 @@ class CompleteRequest(BaseModel):
 
 
 class AdminChatRequest(BaseModel):
-    """Hỏi-đáp phân tích của admin (có tool-calling, không RAG). Token admin lấy từ
-    header Authorization và tiêm vào AdminToolClient — quyền admin do backend chốt."""
+    """Hỏi-đáp phân tích của admin. Engine đọc snapshot JSON (backend xuất) làm
+    ngữ cảnh — KHÔNG tool-calling, KHÔNG chạm DB (yêu cầu đề bài)."""
 
     message: str = Field(min_length=1)
     history: list[dict] = Field(default_factory=list)
@@ -176,6 +175,7 @@ def create_app() -> FastAPI:
                 "answer": result.answer,
                 "sources": list(result.sources),
                 "toolsUsed": list(result.tools_used),
+                "vehicles": list(result.vehicles),
             },
         }
 
@@ -198,18 +198,17 @@ def create_app() -> FastAPI:
         return {"success": True, "data": {"content": msg.get("content") or ""}}
 
     # ponytail: cùng mức tin cậy nội bộ với /admin/complete (backend gọi trên
-    # localhost). Khác biệt: /admin/chat CHẠY tool-calling vào API admin nên PHẢI
-    # có token admin thật (forward từ phiên) — không token → tool tự từ chối.
+    # localhost). Chatbot admin ĐỌC snapshot JSON (backend xuất) làm ngữ cảnh —
+    # KHÔNG tool-calling vào DB (yêu cầu đề bài). Đọc file mỗi request để luôn
+    # lấy snapshot mới nhất; file nhỏ nên chi phí không đáng kể.
     @app.post("/admin/chat")
     def admin_chat(
         body: AdminChatRequest,
         llm: Any = Depends(get_llm),
-        authorization: str | None = Header(default=None),
     ) -> dict:
-        token = _extract_bearer(authorization)
-        tool_client = AdminToolClient.from_settings(auth_token=token)
+        snapshot = load_snapshot(get_settings().admin_snapshot_path)
         try:
-            result = run_admin_chat(llm, tool_client, body.message.strip(), body.history)
+            result = run_admin_chat(llm, snapshot, body.message.strip(), body.history)
         except httpx.HTTPError as err:
             raise HTTPException(
                 status_code=503, detail="LM Studio không phản hồi."

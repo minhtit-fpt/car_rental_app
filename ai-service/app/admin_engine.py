@@ -1,78 +1,66 @@
-"""Engine hỏi-đáp cho ADMIN: vòng tool-calling quanh LLM local, KHÔNG RAG (admin
-hỏi dữ liệu sống, không phải kiến thức tĩnh). Tách khỏi ChatEngine người dùng để
-prompt + bộ tool của admin độc lập (xem plan admin-enhancement).
+"""Engine hỏi-đáp cho ADMIN: nạp SNAPSHOT dữ liệu admin từ file JSON tĩnh rồi
+nhồi vào system prompt, gọi LLM 1 lần. KHÔNG tool-calling, KHÔNG chạm DB.
 
-ponytail: vòng lặp tool ở đây lặp lại có chủ đích logic của ChatEngine.answer với
-bộ tool admin. Giữ riêng để KHÔNG đụng vào đường RAG người dùng đã chạy ổn; nếu sau
-này cần thêm engine thứ 3, hãy tách vòng lặp ra hàm dùng chung.
+Theo yêu cầu đề bài: chatbot admin ĐỌC file .json (backend xuất qua
+`npm run snapshot:admin`) làm ngữ cảnh, không gọi tool truy vấn thẳng database.
 """
 
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
-
-from app.admin_tools import ADMIN_TOOL_SPECS, AdminToolClient, dispatch_admin_tool
-
-_DEFAULT_MAX_TOOL_ROUNDS = 4
 
 _SYSTEM_PROMPT = (
     "Bạn là trợ lý phân tích cho ADMIN nền tảng cho thuê xe RideVN. Trả lời bằng "
     "tiếng Việt, ngắn gọn, chính xác, có số liệu.\n"
-    "- LUÔN gọi tool phù hợp để lấy số liệu THỰC; TUYỆT ĐỐI không bịa số.\n"
-    "- Có thể gọi nhiều tool để trả lời câu hỏi tổng hợp.\n"
-    "- Nếu tool trả về lỗi hoặc không đủ dữ liệu, nói rõ hạn chế đó, không suy đoán.\n"
-    "- Trình bày tiền tệ theo VND, phần trăm gọn gàng; nêu con số cụ thể khi có."
+    "- CHỈ dùng số liệu trong phần DỮ LIỆU NỀN TẢNG bên dưới; TUYỆT ĐỐI không bịa số.\n"
+    "- Nếu dữ liệu không đủ để trả lời, nói rõ hạn chế đó, không suy đoán.\n"
+    "- Trình bày tiền tệ theo VND, phần trăm gọn gàng; nêu con số cụ thể khi có.\n"
+    "- Snapshot không phải thời gian thực: nếu được hỏi mốc thời gian, nhắc rằng số "
+    "liệu tính đến 'generatedAt' trong dữ liệu."
 )
+
+# Cắt bớt để snapshot không tràn ngữ cảnh LLM local (Qwen 14b).
+_MAX_SNAPSHOT_CHARS = 24_000
+
+
+def load_snapshot(path: Path) -> dict | None:
+    """Đọc snapshot JSON. Chưa xuất / lỗi đọc → None để engine báo rõ cho admin."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return data if isinstance(data, dict) else None
 
 
 def run_admin_chat(
     llm: Any,
-    tool_client: AdminToolClient,
+    snapshot: dict | None,
     message: str,
     history: list[dict] | None = None,
-    *,
-    max_tool_rounds: int = _DEFAULT_MAX_TOOL_ROUNDS,
 ) -> dict:
-    """Chạy vòng tool-calling; trả {"answer": str, "toolsUsed": [str, ...]}."""
-    messages: list[dict] = [{"role": "system", "content": _SYSTEM_PROMPT}]
+    """Trả {"answer": str, "toolsUsed": []}.
+
+    Giữ khoá 'toolsUsed' (luôn rỗng) để không phá hợp đồng API với backend."""
+    if not snapshot:
+        return {
+            "answer": (
+                "Chưa có dữ liệu snapshot để phân tích. Vui lòng chạy "
+                "`npm run snapshot:admin` ở backend để xuất file dữ liệu."
+            ),
+            "toolsUsed": [],
+        }
+
+    context = json.dumps(snapshot, ensure_ascii=False, default=str)
+    if len(context) > _MAX_SNAPSHOT_CHARS:
+        context = context[:_MAX_SNAPSHOT_CHARS] + "\n…(đã cắt bớt)"
+    system = f"{_SYSTEM_PROMPT}\n\n=== DỮ LIỆU NỀN TẢNG (JSON) ===\n{context}"
+
+    messages: list[dict] = [{"role": "system", "content": system}]
     if history:
         messages.extend(history)
     messages.append({"role": "user", "content": message})
 
-    tools_used: list[str] = []
-    for _ in range(max_tool_rounds):
-        msg = llm.complete(messages, tools=ADMIN_TOOL_SPECS)
-        tool_calls = msg.get("tool_calls")
-        if not tool_calls:
-            return {"answer": msg.get("content") or "", "toolsUsed": tools_used}
-        messages.append(
-            {
-                "role": "assistant",
-                "content": msg.get("content"),
-                "tool_calls": tool_calls,
-            }
-        )
-        for tc in tool_calls:
-            name = tc["function"]["name"]
-            tools_used.append(name)
-            args = _parse_args(tc["function"].get("arguments"))
-            content = dispatch_admin_tool(tool_client, name, args)
-            messages.append(
-                {"role": "tool", "tool_call_id": tc.get("id"), "content": content}
-            )
-
-    # Hết lượt tool → ép 1 câu trả lời cuối, không cho gọi tool nữa.
-    final = llm.complete(messages, tools=None)
-    return {"answer": final.get("content") or "", "toolsUsed": tools_used}
-
-
-def _parse_args(raw: Any) -> dict:
-    if isinstance(raw, dict):
-        return raw
-    if not raw:
-        return {}
-    try:
-        return json.loads(raw)
-    except (json.JSONDecodeError, TypeError):
-        return {}
+    msg = llm.complete(messages)
+    return {"answer": msg.get("content") or "", "toolsUsed": []}

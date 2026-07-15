@@ -8,10 +8,10 @@ import type {
   PaymentStatus,
   VehicleType,
 } from "@prisma/client";
-import { PaymentStatus as PaymentStatusEnum } from "@prisma/client";
 import { adminRepository } from "@/lib/repositories/admin.repository";
 import { llmClient } from "@/lib/ai/llm.client";
 import { notificationService } from "@/lib/services/notification.service";
+import { refundService } from "@/lib/services/refund.service";
 import {
   RISK_FLAG_MIN_SCORE,
   scoreRisk,
@@ -590,43 +590,25 @@ export const adminService = {
     bookingId: string,
     input: RefundPaymentInput,
   ): Promise<{ bookingId: string; status: PaymentStatus; amount: number }> {
-    const booking = await adminRepository.findBookingForRefund(bookingId);
-    if (!booking) {
-      throw new AppError(404, "BOOKING_NOT_FOUND", "Không tìm thấy đơn");
-    }
-    if (!booking.payment) {
-      throw new AppError(409, "NO_PAYMENT", "Đơn chưa có thanh toán");
-    }
-    if (booking.payment.status !== PaymentStatusEnum.PAID) {
-      throw new AppError(
-        409,
-        "PAYMENT_NOT_REFUNDABLE",
-        "Chỉ hoàn được thanh toán đã thanh toán thành công",
-      );
-    }
-    if (input.amount > booking.payment.amount.toNumber()) {
-      throw new AppError(
-        400,
-        "INVALID_REFUND_AMOUNT",
-        "Số tiền hoàn vượt quá số tiền đã thanh toán",
-      );
-    }
-
-    const updated = await adminRepository.refundPayment(
+    const result = await refundService.refundBookingPayment({
       bookingId,
-      input.amount,
-      adminId,
-      input.reason,
-    );
-
-    await notificationService.notify({
-      userId: booking.renterId,
-      type: "PAYMENT",
-      title: "Đơn của bạn đã được hoàn tiền",
-      body: `Đã hoàn ${input.amount.toLocaleString("vi-VN")}đ. Lý do: ${input.reason}`,
+      actorId: adminId,
+      reason: input.reason,
+      amount: input.amount,
     });
 
-    return { bookingId, status: updated.status, amount: input.amount };
+    await notificationService.notify({
+      userId: result.renterId,
+      type: "PAYMENT",
+      title: "Đơn của bạn đã được hoàn tiền",
+      body: `Đã hoàn ${result.amount.toLocaleString("vi-VN")}đ. Lý do: ${input.reason}`,
+    });
+
+    return {
+      bookingId: result.bookingId,
+      status: result.status,
+      amount: result.amount,
+    };
   },
 
   // Hàng đợi rủi ro: chấm điểm mọi user qua rule-engine, chỉ giữ tier ≥ MEDIUM,
