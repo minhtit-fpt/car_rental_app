@@ -175,6 +175,26 @@ export const bookingRepository = {
     });
   },
 
+  // Đơn đã hết hạn thuê (endTime < before) mà vẫn CONFIRMED (chưa/không nhận xe)
+  // hoặc IN_PROGRESS (đang thuê, quá hạn trả). Dùng cho cron tự hoàn thành. Kèm
+  // vehicle.ownerId + title để báo cho cả hai phía.
+  findOverdueEnded(
+    before: Date,
+    limit: number,
+  ): Promise<BookingWithVehicleRenter[]> {
+    return prisma.booking.findMany({
+      where: {
+        status: {
+          in: [BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS],
+        },
+        endTime: { lt: before },
+      },
+      include: OWNER_BOOKING_INCLUDE,
+      orderBy: { endTime: "asc" },
+      take: limit,
+    });
+  },
+
   updateStatus(id: string, status: BookingStatus): Promise<Booking> {
     return prisma.booking.update({ where: { id }, data: { status } });
   },

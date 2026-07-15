@@ -22,6 +22,7 @@ vi.mock("@/lib/repositories/booking.repository", () => ({
     hasActiveOverlap: vi.fn(),
     findOverduePendingPayment: vi.fn(),
     findOverdueAwaitingOwner: vi.fn(),
+    findOverdueEnded: vi.fn(),
     updateStatus: vi.fn(),
     updateStatusIf: vi.fn(),
   },
@@ -45,6 +46,8 @@ vi.mock("@/lib/services/notification.events", () => ({
     paymentAwaitingOwner: vi.fn(),
     paymentExpired: vi.fn(),
     bookingCancelled: vi.fn(),
+    bookingCompleted: vi.fn(),
+    bookingReturnOverdue: vi.fn(),
   },
 }));
 
@@ -497,5 +500,58 @@ describe("bookingService.expireOverdueOwnerApprovals", () => {
 
     expect(result.expired).toBe(0);
     expect(refundService.refundBookingPayment).not.toHaveBeenCalled();
+  });
+});
+
+describe("bookingService.completeOverdueBookings", () => {
+  it("completes an overdue CONFIRMED booking and notifies both parties", async () => {
+    vi.mocked(bookingRepository.findOverdueEnded).mockResolvedValue([
+      makeOwnerBooking({ id: "book-1", status: BookingStatus.CONFIRMED }) as never,
+    ]);
+    vi.mocked(bookingRepository.updateStatusIf).mockResolvedValue(
+      makeBooking({ status: BookingStatus.COMPLETED }),
+    );
+
+    const result = await bookingService.completeOverdueBookings();
+
+    expect(result.completed).toBe(1);
+    expect(bookingRepository.updateStatusIf).toHaveBeenCalledWith(
+      "book-1",
+      [BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS],
+      BookingStatus.COMPLETED,
+    );
+    expect(notificationEvents.bookingCompleted).toHaveBeenCalledWith(
+      expect.objectContaining({ bookingId: "book-1", ownerId: OWNER }),
+    );
+    expect(notificationEvents.bookingReturnOverdue).not.toHaveBeenCalled();
+  });
+
+  it("flags an overdue IN_PROGRESS booking as return-overdue", async () => {
+    vi.mocked(bookingRepository.findOverdueEnded).mockResolvedValue([
+      makeOwnerBooking({ id: "book-2", status: BookingStatus.IN_PROGRESS }) as never,
+    ]);
+    vi.mocked(bookingRepository.updateStatusIf).mockResolvedValue(
+      makeBooking({ status: BookingStatus.COMPLETED }),
+    );
+
+    const result = await bookingService.completeOverdueBookings();
+
+    expect(result.completed).toBe(1);
+    expect(notificationEvents.bookingReturnOverdue).toHaveBeenCalledWith(
+      expect.objectContaining({ bookingId: "book-2" }),
+    );
+    expect(notificationEvents.bookingCompleted).not.toHaveBeenCalled();
+  });
+
+  it("skips a booking already completed by another caller", async () => {
+    vi.mocked(bookingRepository.findOverdueEnded).mockResolvedValue([
+      makeOwnerBooking({ id: "book-3", status: BookingStatus.CONFIRMED }) as never,
+    ]);
+    vi.mocked(bookingRepository.updateStatusIf).mockResolvedValue(null);
+
+    const result = await bookingService.completeOverdueBookings();
+
+    expect(result.completed).toBe(0);
+    expect(notificationEvents.bookingCompleted).not.toHaveBeenCalled();
   });
 });

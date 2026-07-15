@@ -428,6 +428,47 @@ export const bookingService = {
     return { expired };
   },
 
+  // Quét & tự HOÀN THÀNH các đơn đã hết ngày thuê (gọi bởi cron).
+  // - CONFIRMED quá endTime → COMPLETED + báo "hoàn thành".
+  // - IN_PROGRESS quá endTime → COMPLETED + báo "quá hạn chưa trả xe".
+  // Compare-and-swap để không đua với các luồng khác; lỗi 1 đơn không chặn phần còn lại.
+  async completeOverdueBookings(): Promise<{ completed: number }> {
+    const now = new Date();
+    const overdue = await bookingRepository.findOverdueEnded(
+      now,
+      EXPIRE_BATCH_LIMIT,
+    );
+
+    let completed = 0;
+    for (const booking of overdue) {
+      const wasInProgress = booking.status === BookingStatus.IN_PROGRESS;
+      try {
+        const done = await bookingRepository.updateStatusIf(
+          booking.id,
+          [BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS],
+          BookingStatus.COMPLETED,
+        );
+        if (!done) continue; // đã bị caller khác đổi trạng thái.
+      } catch (error) {
+        console.error("Failed to complete overdue booking", booking.id, error);
+        continue;
+      }
+      completed += 1;
+      const parties = {
+        bookingId: booking.id,
+        renterId: booking.renterId,
+        ownerId: booking.vehicle.ownerId,
+      };
+      // Xe đang thuê mà hết hạn = quá hạn trả; còn lại = hoàn thành bình thường.
+      if (wasInProgress) {
+        await notificationEvents.bookingReturnOverdue(parties);
+      } else {
+        await notificationEvents.bookingCompleted(parties);
+      }
+    }
+    return { completed };
+  },
+
   // Quét & tự huỷ các đơn PENDING_PAYMENT quá hạn thanh toán (gọi bởi cron).
   // Mỗi đơn: PENDING_PAYMENT → CANCELLED + noti in-app cho renter (fire-and-forget).
   // Lỗi của 1 đơn không được chặn các đơn còn lại. Trả số đơn đã huỷ.

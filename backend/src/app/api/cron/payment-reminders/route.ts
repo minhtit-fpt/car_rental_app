@@ -36,14 +36,16 @@ function assertCronAuthorized(req: Request): void {
 export async function POST(req: Request): Promise<Response> {
   try {
     assertCronAuthorized(req);
-    const [payments, ownerApprovals, tracking] = await Promise.all([
+    const [payments, ownerApprovals, completed, tracking] = await Promise.all([
       bookingService.expireOverduePayments(),
       bookingService.expireOverdueOwnerApprovals(),
+      bookingService.completeOverdueBookings(),
       trackingService.pruneOldLocations(),
     ]);
     return ok({
       expiredPayments: payments.expired,
       expiredOwnerApprovals: ownerApprovals.expired,
+      completedBookings: completed.completed,
       prunedLocations: tracking.pruned,
     });
   } catch (error) {
