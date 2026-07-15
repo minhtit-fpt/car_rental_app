@@ -15,6 +15,14 @@ export interface OwnerTransactionRow {
   vehicleTitle: string;
 }
 
+export interface OwnerVehicleStatRow {
+  vehicleId: string;
+  title: string;
+  earnings: number;
+  trips: number;
+  avgRating: number | null;
+}
+
 const PAID_OWNED = (ownerId: string): Prisma.PaymentWhereInput => ({
   status: "PAID",
   booking: { vehicle: { ownerId } },
@@ -58,6 +66,52 @@ export const ownerRepository = {
       GROUP BY 1
       ORDER BY 1 ASC
     `;
+  },
+
+  // Thống kê theo từng xe của owner: doanh thu (Payment PAID), số chuyến đã trả,
+  // và rating trung bình (Review do renter đánh giá owner cho booking của xe).
+  // Dùng subquery tương quan để tránh fan-out khi join Payment + Review.
+  async perVehicleStats(ownerId: string): Promise<OwnerVehicleStatRow[]> {
+    const rows = await prisma.$queryRaw<
+      {
+        vehicleId: string;
+        title: string;
+        earnings: number;
+        trips: number;
+        avgRating: number | null;
+      }[]
+    >`
+      SELECT v."id" AS "vehicleId",
+             v."title" AS "title",
+             COALESCE((
+               SELECT SUM(p."amount")
+               FROM "Payment" p
+               JOIN "Booking" b ON b."id" = p."bookingId"
+               WHERE b."vehicleId" = v."id" AND p."status" = 'PAID'
+             ), 0)::float8 AS "earnings",
+             (
+               SELECT COUNT(*)
+               FROM "Payment" p
+               JOIN "Booking" b ON b."id" = p."bookingId"
+               WHERE b."vehicleId" = v."id" AND p."status" = 'PAID'
+             )::int AS "trips",
+             (
+               SELECT AVG(r."rating")
+               FROM "Review" r
+               JOIN "Booking" b ON b."id" = r."bookingId"
+               WHERE b."vehicleId" = v."id" AND r."targetId" = v."ownerId"
+             )::float8 AS "avgRating"
+      FROM "Vehicle" v
+      WHERE v."ownerId" = ${ownerId}::uuid
+      ORDER BY "earnings" DESC, v."createdAt" DESC
+    `;
+    return rows.map((r) => ({
+      vehicleId: r.vehicleId,
+      title: r.title,
+      earnings: r.earnings,
+      trips: r.trips,
+      avgRating: r.avgRating,
+    }));
   },
 
   async recentTransactions(

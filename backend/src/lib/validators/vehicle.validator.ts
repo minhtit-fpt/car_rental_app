@@ -52,7 +52,7 @@ const transmissionSchema = z.enum(["AUTOMATIC", "MANUAL"]);
 export const createVehicleSchema = z.object({
   type: vehicleTypeSchema,
   title: z.string().trim().min(1, "Tiêu đề là bắt buộc").max(120),
-  pricePerHour: z.number().positive("Giá thuê phải lớn hơn 0").max(100000000),
+  pricePerDay: z.number().positive("Giá thuê phải lớn hơn 0").max(100000000),
   isElectric: z.boolean().default(false),
   deliveryAvailable: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
@@ -67,7 +67,7 @@ export const createVehicleSchema = z.object({
 export const updateVehicleSchema = z
   .object({
     title: z.string().trim().min(1).max(120).optional(),
-    pricePerHour: z.number().positive().max(100000000).optional(),
+    pricePerDay: z.number().positive().max(100000000).optional(),
     isElectric: z.boolean().optional(),
     deliveryAvailable: z.boolean().optional(),
     isAvailable: z.boolean().optional(),

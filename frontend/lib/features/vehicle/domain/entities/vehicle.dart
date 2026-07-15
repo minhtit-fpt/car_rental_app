@@ -10,7 +10,7 @@ class Vehicle {
     required this.ownerId,
     required this.type,
     required this.title,
-    required this.pricePerHour,
+    required this.pricePerDay,
     required this.isElectric,
     required this.isAvailable,
     required this.deliveryAvailable,
@@ -34,8 +34,8 @@ class Vehicle {
   final String type;
   final String title;
 
-  /// Giá thuê theo giờ (VND) — nguồn sự thật từ backend.
-  final double pricePerHour;
+  /// Giá thuê theo ngày (VND) — nguồn sự thật từ backend.
+  final double pricePerDay;
   final bool isElectric;
   final bool isAvailable;
   final bool deliveryAvailable;
@@ -72,9 +72,9 @@ class Vehicle {
   /// Tên hiển thị = tiêu đề tin đăng.
   String get name => title;
 
-  /// Giá/ngày quy theo đơn vị nghìn VND (K) để khớp formatter UI hiện có
-  /// (vd: 50.000đ/giờ → 50000*24/1000 = 1200 → "1.2M VNĐ"/ngày).
-  double get pricePerDay => pricePerHour * 24 / 1000;
+  /// Giá/ngày quy về đơn vị nghìn VND (K) để khớp formatter UI hiện có
+  /// (vd: 120.000đ/ngày → 120 → "120K VNĐ").
+  double get pricePerDayK => pricePerDay / 1000;
 
   /// Có dữ liệu đánh giá thật để hiển thị hay không.
   bool get hasRating => rating != null && (reviewCount ?? 0) > 0;

@@ -221,6 +221,8 @@
   "unitVehicles": "cars",
   "unitTrips": "trips",
 
+  "ownerChatTooltip": "Chat with renters",
+  "ownerCarNoRating": "No rating",
   "ownerDashboardTitle": "Owner home",
   "ownerDashboardSubtitle": "Manage your rental cars and trips",
   "ownerRevenueMonth": "Monthly revenue",
@@ -230,9 +232,9 @@
   "ownerMyCarsSubtitle": "Cars you're renting out",
   "ownerAddCar": "Add a car",
   "ownerNoCars": "You haven't listed any cars yet",
-  "ownerPricePerHour": "{price}đ/hour",
-  "@ownerPricePerHour": {
-    "description": "Owner's car price per hour (price already formatted)",
+  "ownerPricePerDay": "{price}đ/day",
+  "@ownerPricePerDay": {
+    "description": "Owner's car price per day (price already formatted)",
     "placeholders": {
       "price": {
         "type": "String"
@@ -354,11 +356,11 @@
   "bookingServiceFee": "Service fee (3%)",
   "bookingTotalPayment": "Total payment",
   "bookingPriceBreakdownTitle": "Price breakdown",
-  "bookingBasePrice": "Base price ({hours}h)",
+  "bookingBasePrice": "Base price ({days}d)",
   "@bookingBasePrice": {
     "description": "Base rental price before dynamic adjustments",
     "placeholders": {
-      "hours": {
+      "days": {
         "type": "int"
       }
     }
@@ -535,7 +537,7 @@
   "ownerVehicleBasicInfo": "Basic information",
   "ownerVehicleName": "Vehicle name",
   "ownerVehicleNameHint": "e.g. Toyota Camry 2024",
-  "ownerVehiclePricePerHour": "Price/hour (VND)",
+  "ownerVehiclePricePerDay": "Price/day (VND)",
   "ownerVehiclePriceHint": "e.g. 50000",
   "ownerVehicleType": "Vehicle type",
   "ownerVehicleLocation": "Vehicle location",

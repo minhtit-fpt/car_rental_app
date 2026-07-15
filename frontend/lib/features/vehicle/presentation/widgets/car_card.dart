@@ -159,7 +159,7 @@ class _CardDetails extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                _fmtVnd(vehicle.pricePerDay),
+                _fmtVnd(vehicle.pricePerDayK),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -415,7 +415,7 @@ class CarListTile extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              _fmtVnd(vehicle.pricePerDay),
+                              _fmtVnd(vehicle.pricePerDayK),
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w800,

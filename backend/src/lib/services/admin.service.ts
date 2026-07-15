@@ -100,7 +100,7 @@ export interface AdminVehicleItem {
   id: string;
   title: string;
   type: VehicleType;
-  pricePerHour: number;
+  pricePerDay: number;
   isElectric: boolean;
   city: string | null;
   approvalStatus: VehicleApprovalStatus;
@@ -454,7 +454,7 @@ export const adminService = {
         id: v.id,
         title: v.title,
         type: v.type,
-        pricePerHour: v.pricePerHour.toNumber(),
+        pricePerDay: v.pricePerDay.toNumber(),
         isElectric: v.isElectric,
         city: v.city,
         approvalStatus: v.approvalStatus,

@@ -61,7 +61,7 @@ class _MapViewState extends State<_MapView> {
           infoWindow: InfoWindow(
             title: m.title,
             snippet: formatPricePerDayK(
-              m.pricePerHour * 24 / 1000,
+              m.pricePerDay / 1000,
               withCurrency: true,
             ),
             onTap: () => context.push('/vehicles/${m.vehicleId}'),

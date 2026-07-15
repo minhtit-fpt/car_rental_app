@@ -8,30 +8,24 @@
 // Mọi yếu tố thời gian được đánh giá theo giờ Việt Nam (UTC+7, không có DST).
 
 const MS_PER_HOUR = 3_600_000;
+const MS_PER_DAY = 24 * MS_PER_HOUR;
 const VN_OFFSET_MS = 7 * MS_PER_HOUR;
 
 // Bội số từng yếu tố — đặt tên hằng, không rải magic number.
-const PEAK_HOUR_MULTIPLIER = 1.15;
+// Xe cho thuê theo NGÀY nên không còn hệ số "giờ cao điểm".
 const WEEKEND_MULTIPLIER = 1.2;
 const HOLIDAY_MULTIPLIER = 1.3;
 
 // Giảm giá theo thời lượng thuê (thuê càng dài, đơn giá càng mềm).
-const DURATION_DISCOUNTS: ReadonlyArray<{ minHours: number; multiplier: number }> =
+const DURATION_DISCOUNTS: ReadonlyArray<{ minDays: number; multiplier: number }> =
   [
-    { minHours: 168, multiplier: 0.8 }, // ≥ 1 tuần
-    { minHours: 72, multiplier: 0.85 }, // ≥ 3 ngày
-    { minHours: 24, multiplier: 0.9 }, // ≥ 1 ngày
+    { minDays: 7, multiplier: 0.8 }, // ≥ 1 tuần
+    { minDays: 3, multiplier: 0.85 }, // ≥ 3 ngày
   ];
 
 // Biên an toàn cho hệ số cung/cầu để 1 cú sốc dữ liệu không thổi giá vô lý.
 const DEMAND_MIN_MULTIPLIER = 0.8;
 const DEMAND_MAX_MULTIPLIER = 1.5;
-
-// Khung giờ cao điểm (giờ VN): sáng đi làm và tối tan tầm.
-const PEAK_WINDOWS: ReadonlyArray<{ startHour: number; endHour: number }> = [
-  { startHour: 6, endHour: 9 },
-  { startHour: 17, endHour: 21 },
-];
 
 // Lễ cố định theo dương lịch (MM-DD). Tết Âm lịch đổi theo năm → truyền thêm
 // qua `holidays` nếu cần, không hardcode ở đây.
@@ -50,7 +44,7 @@ export interface PriceFactor {
 
 export interface SurgeInput {
   startTime: Date;
-  hours: number;
+  days: number;
   // Hệ số cung/cầu khu vực (1 = trung tính). Tính ở service rồi truyền vào.
   demandMultiplier?: number;
   // Bộ ngày lễ bổ sung (MM-DD), mặc định DEFAULT_HOLIDAYS.
@@ -58,7 +52,6 @@ export interface SurgeInput {
 }
 
 interface VnParts {
-  hour: number;
   weekday: number; // 0 = Chủ nhật ... 6 = Thứ bảy
   monthDay: string; // "MM-DD"
 }
@@ -69,21 +62,14 @@ function toVnParts(date: Date): VnParts {
   const month = String(shifted.getUTCMonth() + 1).padStart(2, "0");
   const day = String(shifted.getUTCDate()).padStart(2, "0");
   return {
-    hour: shifted.getUTCHours(),
     weekday: shifted.getUTCDay(),
     monthDay: `${month}-${day}`,
   };
 }
 
-// Làm tròn LÊN theo giờ, tối thiểu 1 giờ (đồng nhất với booking.service cũ).
-export function computeRentalHours(start: Date, end: Date): number {
-  return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / MS_PER_HOUR));
-}
-
-function isPeakHour(hour: number): boolean {
-  return PEAK_WINDOWS.some(
-    (w) => hour >= w.startHour && hour < w.endHour,
-  );
+// Làm tròn LÊN theo ngày, tối thiểu 1 ngày (thuê cùng ngày = 1 ngày).
+export function computeRentalDays(start: Date, end: Date): number {
+  return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / MS_PER_DAY));
 }
 
 function isWeekend(weekday: number): boolean {
@@ -97,14 +83,14 @@ function clampDemand(multiplier: number): number {
   );
 }
 
-function durationMultiplier(hours: number): number | null {
-  const tier = DURATION_DISCOUNTS.find((t) => hours >= t.minHours);
+function durationMultiplier(days: number): number | null {
+  const tier = DURATION_DISCOUNTS.find((t) => days >= t.minDays);
   return tier ? tier.multiplier : null;
 }
 
 // Dựng danh sách yếu tố ĐANG ÁP DỤNG (bỏ qua yếu tố trung tính multiplier=1).
 export function buildSurgeFactors(input: SurgeInput): PriceFactor[] {
-  const { startTime, hours } = input;
+  const { startTime, days } = input;
   const holidays = input.holidays ?? DEFAULT_HOLIDAYS;
   const parts = toVnParts(startTime);
   const factors: PriceFactor[] = [];
@@ -124,15 +110,7 @@ export function buildSurgeFactors(input: SurgeInput): PriceFactor[] {
     });
   }
 
-  if (isPeakHour(parts.hour)) {
-    factors.push({
-      code: "PEAK_HOUR",
-      label: "Giờ cao điểm",
-      multiplier: PEAK_HOUR_MULTIPLIER,
-    });
-  }
-
-  const discount = durationMultiplier(hours);
+  const discount = durationMultiplier(days);
   if (discount !== null) {
     factors.push({
       code: "DURATION_DISCOUNT",

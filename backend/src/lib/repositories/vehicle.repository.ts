@@ -21,7 +21,7 @@ export interface CreateVehicleData {
   ownerId: string;
   type: VehicleType;
   title: string;
-  pricePerHour: number;
+  pricePerDay: number;
   isElectric: boolean;
   deliveryAvailable: boolean;
   isAvailable: boolean;
@@ -35,7 +35,7 @@ export interface CreateVehicleData {
 
 export interface UpdateVehicleData {
   title?: string;
-  pricePerHour?: number;
+  pricePerDay?: number;
   isElectric?: boolean;
   deliveryAvailable?: boolean;
   isAvailable?: boolean;
@@ -61,7 +61,7 @@ export interface NearbyRow {
   ownerName: string | null;
   type: VehicleType;
   title: string;
-  pricePerHour: number;
+  pricePerDay: number;
   isElectric: boolean;
   isAvailable: boolean;
   deliveryAvailable: boolean;
@@ -90,7 +90,7 @@ function buildWhere(f: VehicleListFilters): Prisma.VehicleWhereInput {
     ...(f.isElectric !== undefined && { isElectric: f.isElectric }),
     ...(f.available !== undefined && { isAvailable: f.available }),
     ...((f.minPrice !== undefined || f.maxPrice !== undefined) && {
-      pricePerHour: {
+      pricePerDay: {
         ...(f.minPrice !== undefined && { gte: f.minPrice }),
         ...(f.maxPrice !== undefined && { lte: f.maxPrice }),
       },
@@ -131,12 +131,12 @@ export const vehicleRepository = {
     const id = randomUUID();
     await prisma.$executeRaw(Prisma.sql`
       INSERT INTO "Vehicle"
-        ("id","ownerId","type","title","pricePerHour","isElectric",
+        ("id","ownerId","type","title","pricePerDay","isElectric",
          "isAvailable","deliveryAvailable","seats","doors","transmission",
          "city","location","createdAt","updatedAt")
       VALUES (
         ${id}::uuid, ${data.ownerId}::uuid, ${data.type}::"VehicleType",
-        ${data.title}, ${data.pricePerHour}, ${data.isElectric},
+        ${data.title}, ${data.pricePerDay}, ${data.isElectric},
         ${data.isAvailable}, ${data.deliveryAvailable},
         ${data.seats ?? null}, ${data.doors ?? null},
         ${data.transmission ?? null}, ${data.city ?? null},
@@ -154,8 +154,8 @@ export const vehicleRepository = {
   async update(id: string, data: UpdateVehicleData): Promise<Vehicle> {
     const scalar: Prisma.VehicleUpdateInput = {
       ...(data.title !== undefined && { title: data.title }),
-      ...(data.pricePerHour !== undefined && {
-        pricePerHour: data.pricePerHour,
+      ...(data.pricePerDay !== undefined && {
+        pricePerDay: data.pricePerDay,
       }),
       ...(data.isElectric !== undefined && { isElectric: data.isElectric }),
       ...(data.deliveryAvailable !== undefined && {
@@ -197,7 +197,7 @@ export const vehicleRepository = {
     return prisma.$queryRaw<NearbyRow[]>(Prisma.sql`
       SELECT
         v."id", v."ownerId", u."name" AS "ownerName", v."type", v."title",
-        v."pricePerHour"::float8 AS "pricePerHour",
+        v."pricePerDay"::float8 AS "pricePerDay",
         v."isElectric", v."isAvailable", v."deliveryAvailable",
         v."seats", v."doors", v."transmission", v."city",
         v."createdAt", v."updatedAt",

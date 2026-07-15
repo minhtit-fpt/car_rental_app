@@ -12,7 +12,7 @@ Vehicle _vehicle(String id) => Vehicle(
   ownerId: 'o1',
   type: 'CAR',
   title: 'Xe $id',
-  pricePerHour: 100,
+  pricePerDay: 100,
   isElectric: false,
   isAvailable: true,
   deliveryAvailable: false,

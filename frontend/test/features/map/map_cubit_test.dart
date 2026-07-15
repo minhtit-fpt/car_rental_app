@@ -49,7 +49,7 @@ Vehicle _vehicle(String id, {double? lat, double? lng}) => Vehicle(
   ownerId: 'o1',
   type: 'CAR',
   title: 'Car $id',
-  pricePerHour: 50000,
+  pricePerDay: 50000,
   isElectric: false,
   isAvailable: true,
   deliveryAvailable: false,
@@ -130,7 +130,7 @@ void main() {
       vehicleId: 'a',
       position: GeoPoint(21.0, 105.0),
       title: 'x',
-      pricePerHour: 1,
+      pricePerDay: 1,
       type: 'CAR',
     );
 

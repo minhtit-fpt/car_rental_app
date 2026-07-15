@@ -18,7 +18,7 @@ String vehicleShareLink(String vehicleId) =>
 String buildVehicleShareText(AppLocalizations l10n, Vehicle vehicle) {
   return l10n.vehicleShareMessage(
     vehicle.name,
-    formatPricePerDayK(vehicle.pricePerDay),
+    formatPricePerDayK(vehicle.pricePerDayK),
     vehicleShareLink(vehicle.id),
   );
 }

@@ -142,7 +142,7 @@ Route handler chỉ parse request + gọi service, không chứa logic.
 
 ```
 User              → id, phone, email, roles[] (RENTER|OWNER|ADMIN), kycStatus, createdAt
-Vehicle           → id, ownerId, type, pricePerHour, isElectric, isAvailable, location
+Vehicle           → id, ownerId, type, pricePerDay, isElectric, isAvailable, location
 Booking           → id, vehicleId, renterId, status, startTime, endTime, totalPrice
 Payment           → id, bookingId, method, status, amount, gatewayRef
 Contract          → id, bookingId, pdfUrl, signedAt

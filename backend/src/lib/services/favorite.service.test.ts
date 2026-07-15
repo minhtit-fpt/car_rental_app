@@ -27,7 +27,7 @@ function makeVehicle(overrides: Record<string, unknown> = {}) {
     ownerId: "owner-1",
     type: "CAR",
     title: "Vinfast VF8",
-    pricePerHour: 120,
+    pricePerDay: 120,
     isElectric: true,
     isAvailable: true,
     deliveryAvailable: false,
@@ -66,7 +66,7 @@ describe("favoriteService.list", () => {
     expect(result).toHaveLength(1);
     expect(result[0]?.id).toBe(VEHICLE);
     expect(result[0]?.ownerName).toBe("Anh Tài");
-    expect(result[0]?.pricePerHour).toBe(120);
+    expect(result[0]?.pricePerDay).toBe(120);
   });
 });
 

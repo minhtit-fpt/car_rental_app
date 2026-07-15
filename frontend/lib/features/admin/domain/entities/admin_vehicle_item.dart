@@ -4,7 +4,7 @@ class AdminVehicleItem {
     required this.id,
     required this.title,
     required this.type,
-    required this.pricePerHour,
+    required this.pricePerDay,
     required this.isElectric,
     required this.approvalStatus,
     required this.createdAt,
@@ -18,7 +18,7 @@ class AdminVehicleItem {
   final String id;
   final String title;
   final String type; // CAR | MOTORBIKE | BICYCLE
-  final double pricePerHour;
+  final double pricePerDay;
   final bool isElectric;
   final String? city;
   final String approvalStatus; // PENDING | APPROVED | REJECTED

@@ -31,6 +31,23 @@ class OwnerTransaction {
   String get renterDisplayName => renterEmail ?? renterPhone;
 }
 
+/// Thống kê theo từng xe của owner — phản chiếu `OwnerVehicleStat` của backend.
+class OwnerVehicleStat {
+  const OwnerVehicleStat({
+    required this.vehicleId,
+    required this.title,
+    required this.earnings,
+    required this.trips,
+    required this.avgRating,
+  });
+
+  final String vehicleId;
+  final String title;
+  final double earnings;
+  final int trips;
+  final double? avgRating;
+}
+
 /// Tổng quan doanh thu chủ xe — phản chiếu `OwnerRevenue` của backend.
 class OwnerRevenue {
   const OwnerRevenue({
@@ -38,10 +55,12 @@ class OwnerRevenue {
     required this.totalTrips,
     required this.monthly,
     required this.transactions,
+    required this.vehicles,
   });
 
   final double monthRevenue;
   final int totalTrips;
   final List<RevenuePoint> monthly;
   final List<OwnerTransaction> transactions;
+  final List<OwnerVehicleStat> vehicles;
 }

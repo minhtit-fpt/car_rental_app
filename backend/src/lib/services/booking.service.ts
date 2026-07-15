@@ -158,7 +158,7 @@ export const bookingService = {
     // Giá động: giá gốc (DB, do chủ xe đặt) × các yếu tố surge (giờ cao điểm,
     // cuối tuần/lễ, giảm giá thuê dài). Xem pricing.service / surge.util.
     const totalPrice = pricingService.quote({
-      pricePerHour: Number(vehicle.pricePerHour),
+      pricePerDay: Number(vehicle.pricePerDay),
       startTime: start,
       endTime: end,
     }).finalPrice;

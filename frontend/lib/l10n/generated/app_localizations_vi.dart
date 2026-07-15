@@ -426,6 +426,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get unitTrips => 'chuyến';
 
   @override
+  String get ownerChatTooltip => 'Tin nhắn với khách';
+
+  @override
+  String get ownerCarNoRating => 'Chưa có';
+
+  @override
   String get ownerDashboardTitle => 'Trang chủ Chủ xe';
 
   @override
@@ -454,8 +460,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get ownerNoCars => 'Bạn chưa đăng xe nào';
 
   @override
-  String ownerPricePerHour(String price) {
-    return '$priceđ/giờ';
+  String ownerPricePerDay(String price) {
+    return '$priceđ/ngày';
   }
 
   @override
@@ -640,8 +646,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get bookingPriceBreakdownTitle => 'Chi tiết giá';
 
   @override
-  String bookingBasePrice(int hours) {
-    return 'Giá gốc ($hours giờ)';
+  String bookingBasePrice(int days) {
+    return 'Giá gốc ($days ngày)';
   }
 
   @override
@@ -991,7 +997,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get ownerVehicleNameHint => 'VD: Toyota Camry 2024';
 
   @override
-  String get ownerVehiclePricePerHour => 'Giá/giờ (VNĐ)';
+  String get ownerVehiclePricePerDay => 'Giá/ngày (VNĐ)';
 
   @override
   String get ownerVehiclePriceHint => 'VD: 50000';

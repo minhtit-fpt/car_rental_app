@@ -48,7 +48,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
     final v = widget.vehicle;
     if (v != null) {
       _nameController.text = v.title;
-      _priceController.text = v.pricePerHour.toStringAsFixed(0);
+      _priceController.text = v.pricePerDay.toStringAsFixed(0);
       _selectedType = v.type;
       _isElectric = v.isElectric;
       _deliveryAvailable = v.deliveryAvailable;
@@ -100,7 +100,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
       await cubit.update(
         widget.vehicle!.id,
         title: title,
-        pricePerHour: price,
+        pricePerDay: price,
         isElectric: _isElectric,
         deliveryAvailable: _deliveryAvailable,
         seats: seats,
@@ -118,7 +118,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
       await cubit.create(
         type: _selectedType,
         title: title,
-        pricePerHour: price,
+        pricePerDay: price,
         isElectric: _isElectric,
         deliveryAvailable: _deliveryAvailable,
         lat: lat,
@@ -392,7 +392,7 @@ class _BasicInfoCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _FormField(
-                  label: l10n.ownerVehiclePricePerHour,
+                  label: l10n.ownerVehiclePricePerDay,
                   hint: l10n.ownerVehiclePriceHint,
                   controller: priceController,
                   keyboardType: TextInputType.number,

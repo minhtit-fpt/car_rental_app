@@ -264,7 +264,7 @@ export const adminRepository = {
           id: true,
           title: true,
           type: true,
-          pricePerHour: true,
+          pricePerDay: true,
           isElectric: true,
           city: true,
           approvalStatus: true,

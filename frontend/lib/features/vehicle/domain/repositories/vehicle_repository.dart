@@ -30,7 +30,7 @@ abstract interface class VehicleRepository {
   Future<Vehicle> createVehicle({
     required String type,
     required String title,
-    required double pricePerHour,
+    required double pricePerDay,
     required bool isElectric,
     required bool deliveryAvailable,
     required double lat,
@@ -45,7 +45,7 @@ abstract interface class VehicleRepository {
   Future<Vehicle> updateVehicle(
     String id, {
     String? title,
-    double? pricePerHour,
+    double? pricePerDay,
     bool? isElectric,
     bool? deliveryAvailable,
     bool? isAvailable,

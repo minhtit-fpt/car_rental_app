@@ -14,7 +14,7 @@ const _created = Vehicle(
   ownerId: 'owner1',
   type: 'CAR',
   title: 'Toyota Vios 2024',
-  pricePerHour: 50000,
+  pricePerDay: 50000,
   isElectric: false,
   isAvailable: true,
   deliveryAvailable: false,
@@ -31,7 +31,7 @@ class _FakeVehicleRepository implements VehicleRepository {
   Future<Vehicle> createVehicle({
     required String type,
     required String title,
-    required double pricePerHour,
+    required double pricePerDay,
     required bool isElectric,
     required bool deliveryAvailable,
     required double lat,
@@ -49,7 +49,7 @@ class _FakeVehicleRepository implements VehicleRepository {
   Future<Vehicle> updateVehicle(
     String id, {
     String? title,
-    double? pricePerHour,
+    double? pricePerDay,
     bool? isElectric,
     bool? deliveryAvailable,
     bool? isAvailable,
@@ -110,7 +110,7 @@ VehicleFormCubit _build(_FakeVehicleRepository repo) => VehicleFormCubit(
 Future<void> _act(VehicleFormCubit cubit) => cubit.create(
   type: 'CAR',
   title: 'Toyota Vios 2024',
-  pricePerHour: 50000,
+  pricePerDay: 50000,
   isElectric: false,
   deliveryAvailable: false,
   lat: 21.0278,
@@ -166,7 +166,7 @@ void main() {
       act: (cubit) => cubit.update(
         'v1',
         title: 'Toyota Vios 2024',
-        pricePerHour: 60000,
+        pricePerDay: 60000,
         isElectric: false,
         deliveryAvailable: true,
       ),
@@ -188,7 +188,7 @@ void main() {
       act: (cubit) => cubit.update(
         'v1',
         title: 'Toyota Vios 2024',
-        pricePerHour: 60000,
+        pricePerDay: 60000,
         isElectric: false,
         deliveryAvailable: true,
       ),

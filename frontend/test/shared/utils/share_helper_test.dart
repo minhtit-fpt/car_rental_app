@@ -8,13 +8,13 @@ import 'package:frontend/shared/utils/share_helper.dart';
 Vehicle _vehicle({
   String id = 'veh-1',
   String title = 'Toyota Vios',
-  double pricePerHour = 50000, // → pricePerDay = 50000*24/1000 = 1200 (K) = 1.2M
+  double pricePerDay = 50000, // → pricePerDayK = 50000/1000 = 50 (K)
 }) => Vehicle(
   id: id,
   ownerId: 'owner-1',
   type: 'CAR',
   title: title,
-  pricePerHour: pricePerHour,
+  pricePerDay: pricePerDay,
   isElectric: false,
   isAvailable: true,
   deliveryAvailable: false,
@@ -35,20 +35,20 @@ void main() {
       final text = buildVehicleShareText(l10n, _vehicle());
 
       expect(text, contains('Toyota Vios'));
-      expect(text, contains('1.2M')); // 1200K → 1.2M
+      expect(text, contains('50K')); // 50000đ/ngày → 50K
       expect(text, contains('/vehicles/veh-1'));
     });
 
     test('formats sub-1M prices in K (Vietnamese)', () {
       final l10n = lookupAppLocalizations(const Locale('vi'));
-      // 30000đ/giờ → 30000*24/1000 = 720 (K)
+      // 30000đ/ngày → 30000/1000 = 30 (K)
       final text = buildVehicleShareText(
         l10n,
-        _vehicle(title: 'Honda Wave', pricePerHour: 30000),
+        _vehicle(title: 'Honda Wave', pricePerDay: 30000),
       );
 
       expect(text, contains('Honda Wave'));
-      expect(text, contains('720K'));
+      expect(text, contains('30K'));
       expect(text, contains('/vehicles/veh-1'));
     });
   });

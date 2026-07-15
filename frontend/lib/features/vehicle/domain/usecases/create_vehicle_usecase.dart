@@ -10,7 +10,7 @@ class CreateVehicleUseCase {
   Future<Vehicle> call({
     required String type,
     required String title,
-    required double pricePerHour,
+    required double pricePerDay,
     required bool isElectric,
     required bool deliveryAvailable,
     required double lat,
@@ -22,7 +22,7 @@ class CreateVehicleUseCase {
   }) => _repository.createVehicle(
     type: type,
     title: title,
-    pricePerHour: pricePerHour,
+    pricePerDay: pricePerDay,
     isElectric: isElectric,
     deliveryAvailable: deliveryAvailable,
     lat: lat,

@@ -42,4 +42,34 @@ void main() {
       expect(notif.payload?['conversationId'], 'c-9');
     });
   });
+
+  group('AppNotification.targetRoute', () {
+    AppNotification make(NotificationType type, Map<String, dynamic>? payload) =>
+        AppNotification(
+          id: 'n-1',
+          type: type,
+          title: 't',
+          createdAt: DateTime(2026),
+          payload: payload,
+        );
+
+    test('routes owner booking/payment to booking-request', () {
+      expect(
+        make(NotificationType.booking, {'role': 'owner'}).targetRoute,
+        '/owner/booking-request',
+      );
+      expect(
+        make(NotificationType.payment, {'role': 'owner'}).targetRoute,
+        '/owner/booking-request',
+      );
+    });
+
+    test('routes renter booking/payment to trips', () {
+      expect(
+        make(NotificationType.booking, {'bookingId': 'b'}).targetRoute,
+        '/trips',
+      );
+      expect(make(NotificationType.payment, null).targetRoute, '/trips');
+    });
+  });
 }

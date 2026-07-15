@@ -51,7 +51,7 @@ List<Vehicle> applyVehicleFilters(
 }) {
   return vehicles.where((v) {
     if (electricOnly && !v.isElectric) return false;
-    if (maxPrice != null && v.pricePerDay > maxPrice) return false;
+    if (maxPrice != null && v.pricePerDayK > maxPrice) return false;
     if (minRating != null && v.hasRating && v.rating! < minRating) return false;
     return true;
   }).toList();

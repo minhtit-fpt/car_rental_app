@@ -174,7 +174,7 @@ class _VehicleSummaryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${vehicle.pricePerDay.toInt()}K',
+                '${vehicle.pricePerDayK.toInt()}K',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -535,7 +535,7 @@ class _PriceSummary extends StatelessWidget {
       builder: (context, state) {
         if (!state.datesSelected) return const SizedBox.shrink();
         final days = state.totalDays;
-        final rentalTotal = vehicle.pricePerDay * days;
+        final rentalTotal = vehicle.pricePerDayK * days;
         final deliveryFee = state.withDelivery ? 50.0 : 0.0;
         final insurance = rentalTotal * 0.05;
         final total = rentalTotal + deliveryFee + insurance;
@@ -568,7 +568,7 @@ class _PriceSummary extends StatelessWidget {
               const SizedBox(height: 12),
               _PriceLine(
                 label: l10n.bookingRentalLine(
-                  vehicle.pricePerDay.toInt().toString(),
+                  vehicle.pricePerDayK.toInt().toString(),
                   days,
                 ),
                 amount: rentalTotal,

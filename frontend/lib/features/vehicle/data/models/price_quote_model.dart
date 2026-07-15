@@ -3,8 +3,8 @@ import 'package:frontend/features/vehicle/domain/entities/price_quote.dart';
 /// Parse envelope `data` của `GET /api/vehicles/:id/price-quote`.
 class PriceQuoteModel extends PriceQuote {
   const PriceQuoteModel({
-    required super.basePricePerHour,
-    required super.hours,
+    required super.basePricePerDay,
+    required super.days,
     required super.basePrice,
     required super.factors,
     required super.finalPrice,
@@ -14,8 +14,8 @@ class PriceQuoteModel extends PriceQuote {
   factory PriceQuoteModel.fromJson(Map<String, dynamic> json) {
     final rawFactors = (json['factors'] as List<dynamic>? ?? const []);
     return PriceQuoteModel(
-      basePricePerHour: (json['basePricePerHour'] as num).toDouble(),
-      hours: (json['hours'] as num).toInt(),
+      basePricePerDay: (json['basePricePerDay'] as num).toDouble(),
+      days: (json['days'] as num).toInt(),
       basePrice: (json['basePrice'] as num).toDouble(),
       finalPrice: (json['finalPrice'] as num).toDouble(),
       currency: json['currency'] as String? ?? 'VND',

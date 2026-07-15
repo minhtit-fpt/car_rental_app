@@ -57,7 +57,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
   Future<Vehicle> createVehicle({
     required String type,
     required String title,
-    required double pricePerHour,
+    required double pricePerDay,
     required bool isElectric,
     required bool deliveryAvailable,
     required double lat,
@@ -70,7 +70,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
     await _remote.create(
       type: type,
       title: title,
-      pricePerHour: pricePerHour,
+      pricePerDay: pricePerDay,
       isElectric: isElectric,
       deliveryAvailable: deliveryAvailable,
       lat: lat,
@@ -86,7 +86,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
   Future<Vehicle> updateVehicle(
     String id, {
     String? title,
-    double? pricePerHour,
+    double? pricePerDay,
     bool? isElectric,
     bool? deliveryAvailable,
     bool? isAvailable,
@@ -100,7 +100,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
     await _remote.update(
       id,
       title: title,
-      pricePerHour: pricePerHour,
+      pricePerDay: pricePerDay,
       isElectric: isElectric,
       deliveryAvailable: deliveryAvailable,
       isAvailable: isAvailable,

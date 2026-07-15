@@ -17,7 +17,7 @@ export interface PublicVehicle {
   ownerName: string | null;
   type: VehicleType;
   title: string;
-  pricePerHour: number;
+  pricePerDay: number;
   isElectric: boolean;
   isAvailable: boolean;
   deliveryAvailable: boolean;
@@ -72,7 +72,7 @@ export function toPublicVehicle(
     ownerName,
     type: v.type,
     title: v.title,
-    pricePerHour: Number(v.pricePerHour),
+    pricePerDay: Number(v.pricePerDay),
     isElectric: v.isElectric,
     isAvailable: v.isAvailable,
     deliveryAvailable: v.deliveryAvailable,
@@ -92,7 +92,7 @@ function toNearbyVehicle(row: NearbyRow): NearbyVehicle {
     ownerName: row.ownerName,
     type: row.type,
     title: row.title,
-    pricePerHour: Number(row.pricePerHour),
+    pricePerDay: Number(row.pricePerDay),
     isElectric: row.isElectric,
     isAvailable: row.isAvailable,
     deliveryAvailable: row.deliveryAvailable,

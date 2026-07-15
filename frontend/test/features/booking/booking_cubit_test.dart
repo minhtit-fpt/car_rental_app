@@ -57,8 +57,8 @@ class _StubVehicleRepository implements VehicleRepository {
     required DateTime endTime,
   }) async =>
       const PriceQuote(
-        basePricePerHour: 50000,
-        hours: 1,
+        basePricePerDay: 50000,
+        days: 1,
         basePrice: 50000,
         factors: [],
         finalPrice: 50000,

@@ -10,7 +10,7 @@ class UpdateVehicleUseCase {
   Future<Vehicle> call(
     String id, {
     String? title,
-    double? pricePerHour,
+    double? pricePerDay,
     bool? isElectric,
     bool? deliveryAvailable,
     bool? isAvailable,
@@ -23,7 +23,7 @@ class UpdateVehicleUseCase {
   }) => _repository.updateVehicle(
     id,
     title: title,
-    pricePerHour: pricePerHour,
+    pricePerDay: pricePerDay,
     isElectric: isElectric,
     deliveryAvailable: deliveryAvailable,
     isAvailable: isAvailable,

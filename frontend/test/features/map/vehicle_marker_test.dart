@@ -9,7 +9,7 @@ Vehicle _vehicle({String id = 'v1', double? latitude, double? longitude}) =>
       ownerId: 'o1',
       type: 'CAR',
       title: 'Toyota Vios',
-      pricePerHour: 50000,
+      pricePerDay: 50000,
       isElectric: false,
       isAvailable: true,
       deliveryAvailable: false,
@@ -28,7 +28,7 @@ void main() {
       expect(markers.single.vehicleId, 'v1');
       expect(markers.single.position, const GeoPoint(21.03, 105.85));
       expect(markers.single.title, 'Toyota Vios');
-      expect(markers.single.pricePerHour, 50000);
+      expect(markers.single.pricePerDay, 50000);
       expect(markers.single.type, 'CAR');
     });
 
