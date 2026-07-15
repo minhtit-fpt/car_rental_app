@@ -256,10 +256,7 @@ class _EmptyState extends StatelessWidget {
                     Expanded(
                       child: Text(
                         s,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: palette.darkText,
-                        ),
+                        style: TextStyle(fontSize: 14, color: palette.darkText),
                       ),
                     ),
                   ],
@@ -332,6 +329,23 @@ class _MessageBubble extends StatelessWidget {
   }
 }
 
+final _wordChar = RegExp(r'[\p{L}\p{N}]', unicode: true);
+
+/// Tìm [needle] trong [text] từ [from], nhưng chỉ nhận khi 2 đầu là ranh giới từ
+/// (đầu/cuối chuỗi hoặc ký tự không phải chữ/số) → tránh gạch chân nhầm khi tên
+/// xe là chuỗi con của một từ khác.
+int _indexOfWholeWord(String text, String needle, int from) {
+  var idx = text.indexOf(needle, from);
+  while (idx != -1) {
+    final beforeOk = idx == 0 || !_wordChar.hasMatch(text[idx - 1]);
+    final after = idx + needle.length;
+    final afterOk = after >= text.length || !_wordChar.hasMatch(text[after]);
+    if (beforeOk && afterOk) return idx;
+    idx = text.indexOf(needle, idx + 1);
+  }
+  return -1;
+}
+
 /// Chia câu trả lời thành các span; tên xe khớp [vehicles] trở thành link bấm
 /// mở `/vehicles/:id`. Ưu tiên tên dài trùng vị trí để không cắt nhầm.
 List<InlineSpan> _linkifyVehicles(
@@ -353,10 +367,11 @@ List<InlineSpan> _linkifyVehicles(
     var matchAt = text.length;
     for (final v in vehicles) {
       if (v.name.isEmpty) continue;
-      final idx = text.indexOf(v.name, i);
+      final idx = _indexOfWholeWord(text, v.name, i);
       if (idx == -1) continue;
       // Vị trí sớm hơn thắng; cùng vị trí thì tên dài hơn thắng.
-      if (idx < matchAt || (idx == matchAt && v.name.length > (match?.name.length ?? 0))) {
+      if (idx < matchAt ||
+          (idx == matchAt && v.name.length > (match?.name.length ?? 0))) {
         match = v;
         matchAt = idx;
       }

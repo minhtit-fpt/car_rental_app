@@ -82,7 +82,9 @@ class BookingDetailScreen extends StatelessWidget {
                           const SizedBox(height: 12),
                           _DetailRow(
                             icon: Icons.schedule_outlined,
-                            label: l10n.tripsBookedOn(_fmtDate(booking.createdAt)),
+                            label: l10n.tripsBookedOn(
+                              _fmtDate(booking.createdAt),
+                            ),
                             value: '',
                           ),
                         ],
@@ -93,11 +95,18 @@ class BookingDetailScreen extends StatelessWidget {
                       PrimaryButton(
                         label: l10n.tripsPay,
                         icon: Icons.payment_rounded,
-                        onPressed: () => context.push('/payment', extra: {
-                          'bookingId': booking.id,
-                          'amount': booking.totalPrice,
-                          'successLocation': '/trips',
-                        }),
+                        onPressed: () {
+                          // Chống double-tap: bỏ qua nếu đã rời màn này (đã push).
+                          if (ModalRoute.of(context)?.isCurrent != true) return;
+                          context.push(
+                            '/payment',
+                            extra: {
+                              'bookingId': booking.id,
+                              'amount': booking.totalPrice,
+                              'successLocation': '/trips',
+                            },
+                          );
+                        },
                       ),
                     ],
                     if (booking.status == BookingStatus.inProgress) ...[
@@ -215,13 +224,22 @@ class _StatusBadge extends StatelessWidget {
         l10n.bookingStatusAwaitingOwner,
         AppColors.warning,
       ),
-      BookingStatus.confirmed => (l10n.bookingStatusConfirmed, AppColors.primary),
-      BookingStatus.inProgress => (l10n.bookingStatusInProgress, AppColors.teal),
+      BookingStatus.confirmed => (
+        l10n.bookingStatusConfirmed,
+        AppColors.primary,
+      ),
+      BookingStatus.inProgress => (
+        l10n.bookingStatusInProgress,
+        AppColors.teal,
+      ),
       BookingStatus.completed => (
         l10n.bookingStatusCompleted,
         context.palette.mutedText,
       ),
-      BookingStatus.cancelled => (l10n.bookingStatusCancelled, AppColors.danger),
+      BookingStatus.cancelled => (
+        l10n.bookingStatusCancelled,
+        AppColors.danger,
+      ),
       BookingStatus.unknown => ('—', context.palette.mutedText),
     };
     return Container(

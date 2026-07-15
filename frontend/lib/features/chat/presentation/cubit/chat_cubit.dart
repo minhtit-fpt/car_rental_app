@@ -39,6 +39,7 @@ class ChatCubit extends Cubit<ChatState> {
     if (showLoading) emit(const ChatLoading());
     try {
       final messages = await _listMessages(id, limit: 50);
+      if (isClosed) return;
       final ordered = messages.reversed.toList(growable: false);
       final current = state;
       emit(
@@ -48,6 +49,7 @@ class ChatCubit extends Cubit<ChatState> {
         ),
       );
     } on ApiException catch (e) {
+      if (isClosed) return;
       // Chỉ hiện lỗi khi đang tải lần đầu; polling lỗi thì giữ nguyên.
       if (state is! ChatLoaded) emit(ChatError(e.message));
     }
@@ -61,9 +63,11 @@ class ChatCubit extends Cubit<ChatState> {
     emit(ChatLoaded(base, isSending: true));
     try {
       final sent = await _sendMessage(id, body);
+      if (isClosed) return null;
       emit(ChatLoaded([...base, sent], isSending: false));
       return null;
     } on ApiException catch (e) {
+      if (isClosed) return e.message;
       emit(ChatLoaded(base, isSending: false));
       return e.message;
     }

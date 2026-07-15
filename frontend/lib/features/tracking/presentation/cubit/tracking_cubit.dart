@@ -47,9 +47,17 @@ class TrackingCubit extends Cubit<TrackingState> {
             : TrackingLoaded(snapshot: snapshot),
       );
     } on ApiException catch (e) {
-      // Lỗi lúc đang chạy (đã có dữ liệu) → giữ bản đồ hiện tại, chờ tick sau.
-      // Lỗi ngay lần đầu → báo lỗi.
       if (isClosed) return;
+      // Lỗi vĩnh viễn (403 hết quyền/chuyến đã kết thúc, 404 không còn dữ liệu):
+      // dừng poll + báo, KHÔNG để bản đồ đóng băng ở vị trí cũ mãi mãi.
+      final isPermanent = e.statusCode == 403 || e.statusCode == 404;
+      if (isPermanent) {
+        _timer?.cancel();
+        emit(TrackingError(e.message));
+        return;
+      }
+      // Lỗi transient (mạng chập chờn) lúc đang chạy → giữ bản đồ, chờ tick sau.
+      // Lỗi transient ngay lần đầu → báo lỗi.
       if (state is! TrackingLoaded) emit(TrackingError(e.message));
     }
   }

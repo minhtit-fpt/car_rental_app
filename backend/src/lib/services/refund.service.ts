@@ -13,6 +13,9 @@ export interface RefundResult {
   renterId: string;
   status: PaymentStatus;
   amount: number;
+  // false = đã được hoàn trước đó bởi caller khác (race). Caller nên bỏ qua
+  // gửi notification/đếm để tránh trùng.
+  refunded: boolean;
 }
 
 export const refundService = {
@@ -58,6 +61,7 @@ export const refundService = {
       renterId: booking.renterId,
       status: updated.status,
       amount,
+      refunded: updated.refunded,
     };
   },
 };

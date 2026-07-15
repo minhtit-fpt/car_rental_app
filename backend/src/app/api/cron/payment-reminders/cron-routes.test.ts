@@ -7,8 +7,13 @@ vi.mock("@/lib/services/booking.service", () => ({
   },
 }));
 
+vi.mock("@/lib/services/tracking.service", () => ({
+  trackingService: { pruneOldLocations: vi.fn() },
+}));
+
 import { POST } from "@/app/api/cron/payment-reminders/route";
 import { bookingService } from "@/lib/services/booking.service";
+import { trackingService } from "@/lib/services/tracking.service";
 
 const SECRET = "test-cron-secret";
 
@@ -67,6 +72,9 @@ describe("POST /api/cron/payment-reminders", () => {
     vi.mocked(bookingService.expireOverdueOwnerApprovals).mockResolvedValue({
       expired: 2,
     });
+    vi.mocked(trackingService.pruneOldLocations).mockResolvedValue({
+      pruned: 9,
+    });
 
     const res = await POST(req(SECRET));
 
@@ -74,8 +82,10 @@ describe("POST /api/cron/payment-reminders", () => {
     expect((await res.json()).data).toEqual({
       expiredPayments: 4,
       expiredOwnerApprovals: 2,
+      prunedLocations: 9,
     });
     expect(bookingService.expireOverduePayments).toHaveBeenCalledOnce();
     expect(bookingService.expireOverdueOwnerApprovals).toHaveBeenCalledOnce();
+    expect(trackingService.pruneOldLocations).toHaveBeenCalledOnce();
   });
 });

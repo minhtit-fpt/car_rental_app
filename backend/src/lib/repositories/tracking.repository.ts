@@ -21,6 +21,14 @@ export interface ActiveVehicleLocation {
 }
 
 export const trackingRepository = {
+  // Xoá điểm GPS cũ hơn mốc `before` (retention). Trả số dòng đã xoá.
+  async deleteOlderThan(before: Date): Promise<number> {
+    const result = await prisma.vehicleLocation.deleteMany({
+      where: { recordedAt: { lt: before } },
+    });
+    return result.count;
+  },
+
   insert(data: InsertLocationData): Promise<VehicleLocation> {
     return prisma.vehicleLocation.create({
       data: {
@@ -33,10 +41,16 @@ export const trackingRepository = {
     });
   },
 
-  // Điểm mới nhất + (nếu trail>0) N điểm gần nhất, mới→cũ.
-  findRecent(vehicleId: string, trail: number): Promise<VehicleLocation[]> {
+  // Điểm mới nhất + (nếu trail>0) N điểm gần nhất, mới→cũ. `since` giới hạn theo
+  // thời điểm bắt đầu chuyến hiện tại để KHÔNG lộ lịch sử di chuyển của chuyến
+  // trước (privacy) — chỉ trả điểm ghi trong chuyến đang chạy.
+  findRecent(
+    vehicleId: string,
+    trail: number,
+    since: Date,
+  ): Promise<VehicleLocation[]> {
     return prisma.vehicleLocation.findMany({
-      where: { vehicleId },
+      where: { vehicleId, recordedAt: { gte: since } },
       orderBy: { recordedAt: "desc" },
       take: Math.max(1, trail),
     });

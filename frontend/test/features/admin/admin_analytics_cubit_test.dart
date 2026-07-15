@@ -17,8 +17,7 @@ class _FakeAdminRepository implements AdminRepository {
   }
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -33,7 +32,7 @@ void main() {
     test('ask → thêm turn câu hỏi + câu trả lời', () async {
       repo.answer = const AnalyticsAnswer(
         answer: 'Tổng doanh thu 3.000.000đ',
-        templateKey: 'revenue_by_method',
+        toolsUsed: ['revenue_by_method'],
       );
       final cubit = build();
 
@@ -42,7 +41,7 @@ void main() {
       expect(cubit.state.asking, false);
       expect(cubit.state.turns, hasLength(1));
       expect(cubit.state.turns.single.question, 'doanh thu?');
-      expect(cubit.state.turns.single.answer?.templateKey, 'revenue_by_method');
+      expect(cubit.state.turns.single.answer?.toolsUsed, ['revenue_by_method']);
     });
 
     test('câu hỏi rỗng → bỏ qua', () async {

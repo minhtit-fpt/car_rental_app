@@ -12,6 +12,7 @@ vi.mock("@/lib/repositories/tracking.repository", () => ({
     insert: vi.fn(),
     findRecent: vi.fn(),
     findActiveLatest: vi.fn(),
+    deleteOlderThan: vi.fn(),
   },
 }));
 
@@ -22,7 +23,11 @@ import { bookingRepository } from "@/lib/repositories/booking.repository";
 import { trackingRepository } from "@/lib/repositories/tracking.repository";
 
 const VEHICLE = { id: "veh-1", ownerId: "owner-1" } as Vehicle;
-const BOOKING = { id: "bk-1", renterId: "renter-1" } as Booking;
+const BOOKING = {
+  id: "bk-1",
+  renterId: "renter-1",
+  startTime: new Date("2026-07-13T09:00:00Z"),
+} as Booking;
 
 function claims(sub: string, roles: UserRole[] = [UserRole.RENTER]) {
   return { sub, roles, kycStatus: "VERIFIED" } as never;
@@ -95,6 +100,12 @@ describe("trackingService.getSnapshot", () => {
     expect(snap.trail[0].recordedAt.toISOString()).toBe(
       "2026-07-13T10:00:00.000Z",
     );
+    // Privacy: chỉ lấy điểm từ lúc chuyến hiện tại bắt đầu, không lộ chuyến trước.
+    expect(trackingRepository.findRecent).toHaveBeenCalledWith(
+      "veh-1",
+      20,
+      BOOKING.startTime,
+    );
   });
 
   it("allows the owner", async () => {
@@ -143,6 +154,21 @@ describe("trackingService.getSnapshot", () => {
     await expect(
       trackingService.getSnapshot(claims("owner-1"), "veh-1", 0),
     ).rejects.toMatchObject({ status: 403, code: "TRACKING_UNAVAILABLE" });
+  });
+});
+
+describe("trackingService.pruneOldLocations", () => {
+  it("deletes rows older than the retention window (7 days)", async () => {
+    vi.mocked(trackingRepository.deleteOlderThan).mockResolvedValue(5);
+    const now = Date.now();
+
+    const result = await trackingService.pruneOldLocations();
+
+    expect(result.pruned).toBe(5);
+    const before = vi.mocked(trackingRepository.deleteOlderThan).mock
+      .calls[0][0] as Date;
+    const elapsedDays = (now - before.getTime()) / 86_400_000;
+    expect(elapsedDays).toBeCloseTo(7, 1);
   });
 });
 

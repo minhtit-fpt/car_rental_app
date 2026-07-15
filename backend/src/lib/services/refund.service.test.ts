@@ -23,6 +23,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(adminRepository.refundPayment).mockResolvedValue({
     status: "REFUNDED",
+    refunded: true,
   } as never);
 });
 
@@ -43,6 +44,7 @@ describe("refundService.refundBookingPayment", () => {
       renterId: "r-1",
       status: "REFUNDED",
       amount: 250,
+      refunded: true,
     });
     expect(adminRepository.refundPayment).toHaveBeenCalledWith(
       "b-1",
@@ -50,6 +52,25 @@ describe("refundService.refundBookingPayment", () => {
       null,
       "owner rejected",
     );
+  });
+
+  it("returns refunded=false when the payment was already refunded by a racing caller", async () => {
+    vi.mocked(adminRepository.findBookingForRefund).mockResolvedValue(
+      booking("PAID", 100),
+    );
+    // Repo compare-and-swap khớp 0 dòng → coi như đã hoàn, không throw.
+    vi.mocked(adminRepository.refundPayment).mockResolvedValue({
+      status: "REFUNDED",
+      refunded: false,
+    } as never);
+
+    const result = await refundService.refundBookingPayment({
+      bookingId: "b-1",
+      actorId: null,
+      reason: "owner rejected",
+    });
+
+    expect(result.refunded).toBe(false);
   });
 
   it("rejects a partial amount greater than the paid amount", async () => {

@@ -21,8 +21,11 @@ class MyTripsCubit extends Cubit<MyTripsState> {
   Future<void> load() async {
     emit(const MyTripsLoading());
     try {
-      emit(MyTripsLoaded(await _listBookings()));
+      final bookings = await _listBookings();
+      if (isClosed) return;
+      emit(MyTripsLoaded(bookings));
     } on ApiException catch (e) {
+      if (isClosed) return;
       emit(MyTripsError(e.message));
     }
   }
@@ -30,15 +33,18 @@ class MyTripsCubit extends Cubit<MyTripsState> {
   Future<void> cancel(String id) async {
     final current = state;
     if (current is! MyTripsLoaded || current.cancellingId != null) return;
-    emit(current.copyWith(cancellingId: id));
+    emit(MyTripsLoaded(current.bookings, cancellingId: id));
     try {
       final updated = await _cancelBooking(id);
+      if (isClosed) return;
       final next = current.bookings
           .map((b) => b.id == id ? updated : b)
           .toList(growable: false);
       emit(MyTripsLoaded(next));
     } on ApiException catch (e) {
-      emit(MyTripsError(e.message));
+      if (isClosed) return;
+      // Giữ nguyên danh sách chuyến, chỉ báo lỗi qua SnackBar (không wipe list).
+      emit(MyTripsLoaded(current.bookings, actionError: e.message));
     }
   }
 }

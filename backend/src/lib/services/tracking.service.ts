@@ -9,6 +9,10 @@ import {
 import { vehicleRepository } from "@/lib/repositories/vehicle.repository";
 import type { IngestLocationInput } from "@/lib/validators/tracking.validator";
 
+// Retention điểm GPS: giữ 7 ngày rồi cron dọn (tránh bảng phình vô hạn).
+const LOCATION_RETENTION_DAYS = 7;
+const MS_PER_DAY = 86_400_000;
+
 export interface TrackingPoint {
   lat: number;
   lng: number;
@@ -83,7 +87,11 @@ export const trackingService = {
       throw new AppError(403, "FORBIDDEN", "Bạn không có quyền xem vị trí xe này");
     }
 
-    const recent = await trackingRepository.findRecent(vehicleId, trail);
+    const recent = await trackingRepository.findRecent(
+      vehicleId,
+      trail,
+      booking.startTime,
+    );
     if (recent.length === 0) {
       throw new AppError(
         404,
@@ -108,5 +116,14 @@ export const trackingService = {
       throw new AppError(403, "FORBIDDEN", "Chỉ ADMIN xem được bản đồ này");
     }
     return trackingRepository.findActiveLatest();
+  },
+
+  // Dọn điểm GPS cũ (retention) — gọi bởi cron. Mặc định giữ 7 ngày.
+  async pruneOldLocations(): Promise<{ pruned: number }> {
+    const before = new Date(
+      Date.now() - LOCATION_RETENTION_DAYS * MS_PER_DAY,
+    );
+    const pruned = await trackingRepository.deleteOlderThan(before);
+    return { pruned };
   },
 };
