@@ -64,10 +64,10 @@ void main() {
       );
     });
 
-    test('routes renter booking/payment to trips', () {
+    test('routes renter booking/payment to trip detail when bookingId', () {
       expect(
         make(NotificationType.booking, {'bookingId': 'b'}).targetRoute,
-        '/trips',
+        '/trips/detail/b',
       );
       expect(make(NotificationType.payment, null).targetRoute, '/trips');
     });
