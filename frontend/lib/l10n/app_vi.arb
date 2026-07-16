@@ -492,6 +492,9 @@
   "chatStartConversation": "Bắt đầu trò chuyện",
   "chatNoMessages": "Chưa có tin nhắn nào",
   "chatInputHint": "Nhắn tin...",
+  "chatYesterday": "Hôm qua",
+  "chatPartnerFallback": "Hội thoại",
+  "chatWithOwner": "Nhắn tin với chủ xe",
 
   "paymentTitle": "Thanh toán",
   "paymentSubtitle": "Chọn phương thức thanh toán",
@@ -505,6 +508,8 @@
   "paymentMethodCard": "Thẻ quốc tế",
   "paymentSslEncryption": "Giao dịch được mã hóa 256-bit SSL",
   "paymentVnpayTitle": "Thanh toán VNPay",
+  "paymentGatewayLoadError": "Không tải được cổng thanh toán.\nKiểm tra kết nối mạng rồi thử lại.",
+  "commonClose": "Đóng",
   "paymentResultSuccessTitle": "Thanh toán thành công!",
   "paymentResultFailTitle": "Thanh toán thất bại",
   "paymentResultSuccessBody": "Đã thanh toán. Đơn đang chờ chủ xe xác nhận.\nBạn sẽ được thông báo ngay khi có kết quả.",

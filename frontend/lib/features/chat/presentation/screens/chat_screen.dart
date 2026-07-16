@@ -43,11 +43,28 @@ class _ChatViewState extends State<_ChatView> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
 
+  /// Cuộn gần lên đầu danh sách thì tải thêm tin cũ hơn.
+  static const _loadMoreThreshold = 40.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.pixels <= _loadMoreThreshold) {
+      context.read<ChatCubit>().loadMore();
+    }
   }
 
   Future<void> _send() async {
@@ -125,10 +142,14 @@ class _ChatViewState extends State<_ChatView> {
           children: [
             Expanded(
               child: BlocConsumer<ChatCubit, ChatState>(
+                // Chỉ auto-cuộn xuống khi có tin MỚI NHẤT thay đổi —
+                // tải thêm tin cũ (prepend) thì giữ nguyên vị trí.
                 listenWhen: (a, b) =>
                     a is ChatLoaded &&
                     b is ChatLoaded &&
-                    b.messages.length > a.messages.length,
+                    b.messages.isNotEmpty &&
+                    (a.messages.isEmpty ||
+                        a.messages.last.id != b.messages.last.id),
                 listener: (_, _) => _scrollToBottom(),
                 builder: (context, state) => switch (state) {
                   ChatLoading() => const Center(
@@ -147,7 +168,7 @@ class _ChatViewState extends State<_ChatView> {
                       ),
                     ),
                   ),
-                  ChatLoaded(:final messages) =>
+                  ChatLoaded(:final messages, :final isLoadingMore) =>
                     messages.isEmpty
                         ? Center(
                             child: Text(
@@ -164,13 +185,30 @@ class _ChatViewState extends State<_ChatView> {
                               horizontal: 16,
                               vertical: 12,
                             ),
-                            itemCount: messages.length,
-                            itemBuilder: (context, index) => _MessageBubble(
-                              message: messages[index],
-                              isMe:
-                                  messages[index].senderId ==
-                                  widget.currentUserId,
-                            ),
+                            // +1 dòng spinner ở đầu khi đang tải tin cũ hơn.
+                            itemCount: messages.length + (isLoadingMore ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (isLoadingMore && index == 0) {
+                                return const Padding(
+                                  padding: EdgeInsets.only(bottom: 12),
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              final message =
+                                  messages[index - (isLoadingMore ? 1 : 0)];
+                              return _MessageBubble(
+                                message: message,
+                                isMe: message.senderId == widget.currentUserId,
+                              );
+                            },
                           ),
                 },
               ),

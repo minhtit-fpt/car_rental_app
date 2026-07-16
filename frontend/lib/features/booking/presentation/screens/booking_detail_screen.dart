@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/di/injector.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/booking/domain/entities/booking.dart';
+import 'package:frontend/features/chat/presentation/cubit/start_conversation_cubit.dart';
 import 'package:frontend/l10n/generated/app_localizations.dart';
 import 'package:frontend/shared/widgets/primary_button.dart';
 import 'package:frontend/shared/widgets/rv_sliver_app_bar.dart';
@@ -127,6 +130,10 @@ class BookingDetailScreen extends StatelessWidget {
                             context.push('/inspection/${booking.id}'),
                       ),
                     ],
+                    if (booking.status != BookingStatus.cancelled) ...[
+                      const SizedBox(height: 12),
+                      _ChatWithOwnerButton(bookingId: booking.id),
+                    ],
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -135,6 +142,79 @@ class BookingDetailScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Nút "Nhắn tin với chủ xe" — tạo/lấy hội thoại theo booking rồi mở chat.
+// ─────────────────────────────────────────────
+
+class _ChatWithOwnerButton extends StatelessWidget {
+  const _ChatWithOwnerButton({required this.bookingId});
+  final String bookingId;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<StartConversationCubit>(
+      create: (_) => sl<StartConversationCubit>(),
+      child: _ChatWithOwnerButtonView(bookingId: bookingId),
+    );
+  }
+}
+
+class _ChatWithOwnerButtonView extends StatelessWidget {
+  const _ChatWithOwnerButtonView({required this.bookingId});
+  final String bookingId;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return BlocConsumer<StartConversationCubit, StartConversationState>(
+      listener: (context, state) {
+        switch (state) {
+          case StartConversationReady(:final conversationId, :final partnerName):
+            context.push(
+              '/chat/$conversationId',
+              extra: partnerName ?? l10n.vehicleOwnerFallback,
+            );
+          case StartConversationError(:final message):
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(message)));
+          case StartConversationIdle():
+          case StartConversationInProgress():
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is StartConversationInProgress;
+        return SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: isLoading
+                ? null
+                : () => context.read<StartConversationCubit>().open(
+                    bookingId: bookingId,
+                  ),
+            icon: isLoading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+            label: Text(l10n.chatWithOwner),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+        );
+      },
     );
   }
 }

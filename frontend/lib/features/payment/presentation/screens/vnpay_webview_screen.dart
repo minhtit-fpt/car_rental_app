@@ -26,6 +26,15 @@ class _VnpayWebViewScreenState extends State<VnpayWebViewScreen> {
   bool _returned = false;
   double _progress = 0;
 
+  /// Lỗi tải trang cổng (main frame) — hiển thị thay vì để WebView trắng.
+  String? _loadError;
+
+  /// Chỉ chấp nhận cert không xác thực được cho đúng host sandbox VNPay:
+  /// chain của sandbox ký tới root Sectigo E46 mà Android cũ (≤12) chưa có
+  /// trong trust store → ERR_CERT_AUTHORITY_INVALID → trang trắng. Sandbox
+  /// chỉ dùng tiền test nên rủi ro chấp nhận được; cổng live KHÔNG được phép.
+  static const _trustedSandboxHost = 'sandbox.vnpayment.vn';
+
   // Đã tới URL return chưa? Nhận diện qua sự hiện diện của vnp_ResponseCode —
   // bền vững dù host return URL được cấu hình khác nhau.
   Map<String, String>? _extractReturnParams(Uri uri) {
@@ -68,24 +77,98 @@ class _VnpayWebViewScreenState extends State<VnpayWebViewScreen> {
                 )
               : null,
         ),
-        body: InAppWebView(
-          initialUrlRequest: URLRequest(url: WebUri(widget.payUrl)),
-          initialSettings: InAppWebViewSettings(
-            useShouldOverrideUrlLoading: true,
-            javaScriptEnabled: true,
-          ),
-          shouldOverrideUrlLoading: (controller, action) async {
-            final uri = action.request.url;
-            final params = uri == null ? null : _extractReturnParams(uri);
-            if (params != null) {
-              _finishWith(params);
-              return NavigationActionPolicy.CANCEL;
-            }
-            return NavigationActionPolicy.ALLOW;
-          },
-          onProgressChanged: (controller, progress) {
-            if (mounted) setState(() => _progress = progress / 100);
-          },
+        body: _loadError != null
+            ? _LoadErrorView(
+                message: _loadError!,
+                onClose: () => Navigator.of(context).pop(),
+              )
+            : InAppWebView(
+                initialUrlRequest: URLRequest(url: WebUri(widget.payUrl)),
+                initialSettings: InAppWebViewSettings(
+                  useShouldOverrideUrlLoading: true,
+                  javaScriptEnabled: true,
+                ),
+                shouldOverrideUrlLoading: (controller, action) async {
+                  final uri = action.request.url;
+                  final params = uri == null ? null : _extractReturnParams(uri);
+                  if (params != null) {
+                    _finishWith(params);
+                    return NavigationActionPolicy.CANCEL;
+                  }
+                  return NavigationActionPolicy.ALLOW;
+                },
+                onProgressChanged: (controller, progress) {
+                  if (mounted) setState(() => _progress = progress / 100);
+                },
+                onReceivedServerTrustAuthRequest: (controller, challenge) async {
+                  final host = challenge.protectionSpace.host;
+                  return ServerTrustAuthResponse(
+                    action: host == _trustedSandboxHost
+                        ? ServerTrustAuthResponseAction.PROCEED
+                        : ServerTrustAuthResponseAction.CANCEL,
+                  );
+                },
+                onReceivedError: (controller, request, error) {
+                  // Chỉ lỗi main frame mới thay cả trang; lỗi resource phụ bỏ qua.
+                  if (request.isForMainFrame != true || !mounted) return;
+                  setState(
+                    () => _loadError =
+                        '${error.description} (${error.type})',
+                  );
+                },
+              ),
+      ),
+    );
+  }
+}
+
+/// Màn lỗi khi WebView không tải được cổng thanh toán (mạng/SSL) — thay vì
+/// để trang trắng không thông báo gì.
+class _LoadErrorView extends StatelessWidget {
+  const _LoadErrorView({required this.message, required this.onClose});
+
+  final String message;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.wifi_off_rounded,
+              size: 48,
+              color: context.palette.mutedText,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.paymentGatewayLoadError,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: context.palette.darkText,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: context.palette.mutedText,
+              ),
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton(
+              onPressed: onClose,
+              child: Text(l10n.commonClose),
+            ),
+          ],
         ),
       ),
     );

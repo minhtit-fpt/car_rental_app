@@ -123,6 +123,26 @@ export const chatRepository = {
     return message;
   },
 
+  // Số tin chưa đọc cho NHIỀU hội thoại trong 1 query (tránh N+1).
+  async countUnreadBatch(
+    userId: string,
+    entries: Array<{ conversationId: string; since: Date | null }>,
+  ): Promise<Map<string, number>> {
+    if (entries.length === 0) return new Map();
+    const grouped = await prisma.chatMessage.groupBy({
+      by: ["conversationId"],
+      where: {
+        senderId: { not: userId },
+        OR: entries.map((e) => ({
+          conversationId: e.conversationId,
+          ...(e.since ? { sentAt: { gt: e.since } } : {}),
+        })),
+      },
+      _count: { _all: true },
+    });
+    return new Map(grouped.map((g) => [g.conversationId, g._count._all]));
+  },
+
   // Số tin nhắn chưa đọc của người dùng trong 1 hội thoại.
   countUnread(
     conversationId: string,

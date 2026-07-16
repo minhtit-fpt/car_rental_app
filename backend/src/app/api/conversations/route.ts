@@ -1,7 +1,7 @@
 import { chatService } from "@/lib/services/chat.service";
 import { createConversationSchema } from "@/lib/validators/chat.validator";
 import { created, ok, toErrorResponse } from "@/lib/http/response";
-import { getClientIp, parseJsonBody } from "@/lib/http/request";
+import { parseJsonBody } from "@/lib/http/request";
 import { requireAuth } from "@/lib/middleware/auth.middleware";
 import { enforceRateLimit } from "@/lib/middleware/rate-limit.middleware";
 
@@ -24,8 +24,9 @@ export async function GET(req: Request): Promise<Response> {
 export async function POST(req: Request): Promise<Response> {
   try {
     const claims = await requireAuth(req);
+    // Giới hạn theo user (không theo IP — tránh 429 oan khi chung NAT).
     await enforceRateLimit(
-      `conversation-create:${getClientIp(req)}`,
+      `conversation-create:${claims.sub}`,
       RATE_LIMIT,
       WINDOW_SECONDS,
     );

@@ -5,6 +5,7 @@ import 'package:frontend/features/community/presentation/screens/community_feed_
 import 'package:frontend/features/loyalty/presentation/screens/loyalty_screen.dart';
 import 'package:frontend/features/notification/presentation/screens/notification_list_screen.dart';
 import 'package:frontend/features/review/presentation/screens/user_reviews_screen.dart';
+import 'package:frontend/l10n/generated/app_localizations.dart';
 
 final socialRoutes = [
   GoRoute(
@@ -15,7 +16,9 @@ final socialRoutes = [
     path: '/chat/:id',
     builder: (context, state) {
       final id = state.pathParameters['id']!;
-      final name = state.extra as String? ?? 'Chủ xe';
+      final name =
+          state.extra as String? ??
+          AppLocalizations.of(context).chatPartnerFallback;
       return ChatScreen(conversationId: id, partnerName: name);
     },
   ),

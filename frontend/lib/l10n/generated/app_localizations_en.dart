@@ -1417,6 +1417,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInputHint => 'Type a message...';
 
   @override
+  String get chatYesterday => 'Yesterday';
+
+  @override
+  String get chatPartnerFallback => 'Conversation';
+
+  @override
+  String get chatWithOwner => 'Message owner';
+
+  @override
   String get paymentTitle => 'Payment';
 
   @override
@@ -1453,6 +1462,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentVnpayTitle => 'VNPay payment';
+
+  @override
+  String get paymentGatewayLoadError =>
+      'Couldn\'t load the payment gateway.\nCheck your connection and try again.';
+
+  @override
+  String get commonClose => 'Close';
 
   @override
   String get paymentResultSuccessTitle => 'Payment successful!';

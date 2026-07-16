@@ -90,7 +90,11 @@ class _ConversationListView extends StatelessWidget {
                             onTap: () async {
                               await context.push(
                                 '/chat/${conv.id}',
-                                extra: conv.partnerName,
+                                extra:
+                                    conv.partner?.name ??
+                                    AppLocalizations.of(
+                                      context,
+                                    ).chatPartnerFallback,
                               );
                               if (context.mounted) {
                                 await context
@@ -226,7 +230,8 @@ class _ConversationTile extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        conversation.partnerName,
+                        conversation.partner?.name ??
+                            AppLocalizations.of(context).chatPartnerFallback,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: hasUnread
@@ -237,7 +242,10 @@ class _ConversationTile extends StatelessWidget {
                       ),
                       if (conversation.lastMessageAt != null)
                         Text(
-                          _shortTime(conversation.lastMessageAt!),
+                          _shortTime(
+                            AppLocalizations.of(context),
+                            conversation.lastMessageAt!,
+                          ),
                           style: TextStyle(
                             fontSize: 12,
                             color: hasUnread
@@ -276,12 +284,12 @@ class _ConversationTile extends StatelessWidget {
   }
 }
 
-String _shortTime(DateTime time) {
+String _shortTime(AppLocalizations l10n, DateTime time) {
   final diff = DateTime.now().difference(time);
   if (diff.inDays == 0) {
     return '${time.hour.toString().padLeft(2, '0')}:'
         '${time.minute.toString().padLeft(2, '0')}';
   }
-  if (diff.inDays == 1) return 'Hôm qua';
+  if (diff.inDays == 1) return l10n.chatYesterday;
   return '${time.day}/${time.month}';
 }

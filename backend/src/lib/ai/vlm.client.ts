@@ -20,6 +20,9 @@ export const damageAnalysisSchema = z.object({
   summary: z.string().default(""),
   items: z.array(damageItemSchema),
   estimatedCost: z.number().int().nonnegative().default(0),
+  /** false khi ảnh không phải xe (CCCD, phong cảnh, ảnh nhiễu...) — không
+   *  được coi là "xe không hư hỏng". Mặc định true cho response cũ. */
+  isVehicle: z.boolean().default(true),
 });
 
 export type DamageAnalysis = z.infer<typeof damageAnalysisSchema>;
@@ -35,8 +38,14 @@ const JSON_FORMAT = `CHỈ trả về JSON đúng định dạng sau, KHÔNG kè
   "items": [
     { "label": "loại hư hỏng", "severity": "minor|moderate|severe", "description": "vị trí + mô tả" }
   ],
-  "estimatedCost": <số tiền bồi thường gợi ý bằng VND, số nguyên>
-}`;
+  "estimatedCost": <số tiền bồi thường gợi ý bằng VND, số nguyên>,
+  "isVehicle": <true nếu ảnh chụp xe, false nếu không>
+}
+
+QUAN TRỌNG: Nếu ảnh KHÔNG phải chụp xe (giấy tờ, người, phong cảnh, ảnh mờ
+không nhận diện được xe...) thì trả về isVehicle là false, items là [],
+estimatedCost là 0, và summary ghi rõ ảnh không phải ảnh xe. TUYỆT ĐỐI không
+bịa ra hư hỏng cho ảnh không phải xe.`;
 
 // So ảnh trước/sau → chỉ hư hỏng MỚI (dùng tính bồi thường).
 const DIFF_SYSTEM_PROMPT = `Bạn là chuyên gia giám định hư hỏng xe cho thuê. Bạn nhận
