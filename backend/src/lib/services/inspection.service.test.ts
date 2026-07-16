@@ -51,6 +51,7 @@ describe("inspectionService.submit per-phase detection", () => {
       summary: "Trầy cửa trái",
       items: [{ label: "trầy", severity: "minor", description: "cửa trái" }],
       estimatedCost: 0,
+      isVehicle: true,
     });
 
     const result = await inspectionService.submit("renter-1", "b-1", input);
@@ -67,6 +68,7 @@ describe("inspectionService.submit per-phase detection", () => {
       summary: "Xe sạch",
       items: [],
       estimatedCost: 0,
+      isVehicle: true,
     });
 
     const result = await inspectionService.submit("renter-1", "b-1", input);
