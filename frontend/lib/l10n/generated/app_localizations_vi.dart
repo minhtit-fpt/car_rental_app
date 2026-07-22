@@ -1411,6 +1411,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chatInputHint => 'Nhắn tin...';
 
   @override
+  String get chatYesterday => 'Hôm qua';
+
+  @override
+  String get chatPartnerFallback => 'Hội thoại';
+
+  @override
+  String get chatWithOwner => 'Nhắn tin với chủ xe';
+
+  @override
   String get paymentTitle => 'Thanh toán';
 
   @override
@@ -1447,6 +1456,13 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get paymentVnpayTitle => 'Thanh toán VNPay';
+
+  @override
+  String get paymentGatewayLoadError =>
+      'Không tải được cổng thanh toán.\nKiểm tra kết nối mạng rồi thử lại.';
+
+  @override
+  String get commonClose => 'Đóng';
 
   @override
   String get paymentResultSuccessTitle => 'Thanh toán thành công!';

@@ -14,6 +14,7 @@ vi.mock("@/lib/repositories/chat.repository", () => ({
     findMessages: vi.fn(),
     createMessage: vi.fn(),
     countUnread: vi.fn(),
+    countUnreadBatch: vi.fn(),
     markRead: vi.fn(),
   },
 }));
@@ -63,7 +64,9 @@ describe("chatService.listConversations", () => {
     vi.mocked(chatRepository.findConversationsForUser).mockResolvedValue([
       makeConversation() as never,
     ]);
-    vi.mocked(chatRepository.countUnread).mockResolvedValue(3);
+    vi.mocked(chatRepository.countUnreadBatch).mockResolvedValue(
+      new Map([["conv-1", 3]]),
+    );
 
     const result = await chatService.listConversations(ME);
 

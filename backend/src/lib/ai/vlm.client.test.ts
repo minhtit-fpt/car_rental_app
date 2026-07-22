@@ -43,4 +43,17 @@ describe("parseDamageAnalysis", () => {
   it("throws VLM_BAD_RESPONSE on malformed JSON", () => {
     expect(() => parseDamageAnalysis('{"items": [},')).toThrow(AppError);
   });
+
+  it("defaults isVehicle to true when absent (back-compat)", () => {
+    const result = parseDamageAnalysis('{"items":[]}');
+    expect(result.isVehicle).toBe(true);
+  });
+
+  it("parses isVehicle=false for non-vehicle images", () => {
+    const result = parseDamageAnalysis(
+      '{"summary":"Ảnh không phải xe","items":[],"estimatedCost":0,"isVehicle":false}',
+    );
+    expect(result.isVehicle).toBe(false);
+    expect(result.items).toHaveLength(0);
+  });
 });

@@ -22,6 +22,4 @@ class Conversation {
   final String? lastMessage;
   final DateTime? lastMessageAt;
   final int unreadCount;
-
-  String get partnerName => partner?.name ?? 'Hội thoại';
 }

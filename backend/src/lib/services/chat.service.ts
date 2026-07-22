@@ -62,15 +62,14 @@ function toMessage(m: ChatMessage): PublicMessage {
 async function toPublicConversation(
   c: ConversationWithDetails,
   userId: string,
+  precomputedUnread?: number,
 ): Promise<PublicConversation> {
   const me = c.participants.find((p) => p.userId === userId);
   const other = c.participants.find((p) => p.userId !== userId);
   const last = c.messages[0];
-  const unreadCount = await chatRepository.countUnread(
-    c.id,
-    userId,
-    me?.lastReadAt ?? null,
-  );
+  const unreadCount =
+    precomputedUnread ??
+    (await chatRepository.countUnread(c.id, userId, me?.lastReadAt ?? null));
   return {
     id: c.id,
     bookingId: c.bookingId,
@@ -100,8 +99,19 @@ async function ensureParticipant(
 export const chatService = {
   async listConversations(userId: string): Promise<PublicConversation[]> {
     const conversations = await chatRepository.findConversationsForUser(userId);
+    // 1 query gộp cho toàn bộ unread thay vì N query.
+    const unreadMap = await chatRepository.countUnreadBatch(
+      userId,
+      conversations.map((c) => ({
+        conversationId: c.id,
+        since:
+          c.participants.find((p) => p.userId === userId)?.lastReadAt ?? null,
+      })),
+    );
     return Promise.all(
-      conversations.map((c) => toPublicConversation(c, userId)),
+      conversations.map((c) =>
+        toPublicConversation(c, userId, unreadMap.get(c.id) ?? 0),
+      ),
     );
   },
 

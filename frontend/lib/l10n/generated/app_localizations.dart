@@ -2708,6 +2708,24 @@ abstract class AppLocalizations {
   /// **'Type a message...'**
   String get chatInputHint;
 
+  /// No description provided for @chatYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get chatYesterday;
+
+  /// No description provided for @chatPartnerFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation'**
+  String get chatPartnerFallback;
+
+  /// No description provided for @chatWithOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Message owner'**
+  String get chatWithOwner;
+
   /// No description provided for @paymentTitle.
   ///
   /// In en, this message translates to:
@@ -2779,6 +2797,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'VNPay payment'**
   String get paymentVnpayTitle;
+
+  /// No description provided for @paymentGatewayLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the payment gateway.\nCheck your connection and try again.'**
+  String get paymentGatewayLoadError;
+
+  /// No description provided for @commonClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get commonClose;
 
   /// No description provided for @paymentResultSuccessTitle.
   ///

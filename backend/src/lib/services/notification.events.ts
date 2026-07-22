@@ -137,6 +137,48 @@ export const notificationEvents = {
     ]);
   },
 
+  // Hết ngày thuê, xe coi như đã trả → đơn tự chuyển COMPLETED (cron). Báo cả
+  // renter và owner rằng chuyến đã hoàn thành.
+  async bookingCompleted(p: BookingParties): Promise<void> {
+    await Promise.all([
+      notificationService.safeCreate({
+        userId: p.renterId,
+        type: NotificationType.BOOKING,
+        title: "Chuyến đi đã hoàn thành",
+        body: "Đã hết thời gian thuê. Chuyến của bạn được đánh dấu hoàn thành. Đừng quên đánh giá nhé!",
+        payload: { bookingId: p.bookingId },
+      }),
+      notificationService.safeCreate({
+        userId: p.ownerId,
+        type: NotificationType.BOOKING,
+        title: "Chuyến đi đã hoàn thành",
+        body: "Một chuyến thuê xe của bạn đã kết thúc và được đánh dấu hoàn thành.",
+        payload: { bookingId: p.bookingId, role: "owner" },
+      }),
+    ]);
+  },
+
+  // Hết ngày thuê nhưng xe đang trong chuyến (IN_PROGRESS) — nhắc renter trả xe,
+  // báo owner xe quá hạn chưa trả.
+  async bookingReturnOverdue(p: BookingParties): Promise<void> {
+    await Promise.all([
+      notificationService.safeCreate({
+        userId: p.renterId,
+        type: NotificationType.BOOKING,
+        title: "Đã đến hạn trả xe",
+        body: "Đã hết thời gian thuê. Vui lòng trả xe sớm để tránh phát sinh phí quá hạn.",
+        payload: { bookingId: p.bookingId },
+      }),
+      notificationService.safeCreate({
+        userId: p.ownerId,
+        type: NotificationType.BOOKING,
+        title: "Xe quá hạn chưa được trả",
+        body: "Một chuyến thuê đã hết hạn nhưng khách chưa trả xe. Vui lòng liên hệ khách thuê.",
+        payload: { bookingId: p.bookingId, role: "owner" },
+      }),
+    ]);
+  },
+
   // Renter huỷ đơn — báo cho owner.
   async bookingCancelled(p: OwnerEvent): Promise<void> {
     await notificationService.safeCreate({

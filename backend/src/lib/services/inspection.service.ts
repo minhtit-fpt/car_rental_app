@@ -192,6 +192,15 @@ export const inspectionService = {
       after,
     );
 
+    // Ảnh không phải xe → không tạo báo cáo bồi thường từ dữ liệu rác.
+    if (!analysis.isVehicle) {
+      throw new AppError(
+        422,
+        "INSPECTION_PHOTOS_INVALID",
+        "Ảnh kiểm tra không phải ảnh xe. Vui lòng chụp lại.",
+      );
+    }
+
     await inspectionRepository.upsertDamageReport(bookingId, {
       summary: analysis.summary,
       items: analysis.items,

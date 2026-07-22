@@ -15,10 +15,13 @@ final class StartConversationInProgress extends StartConversationState {
 }
 
 final class StartConversationReady extends StartConversationState {
-  const StartConversationReady(this.conversationId);
+  const StartConversationReady(this.conversationId, {this.partnerName});
 
   /// Id hội thoại để điều hướng tới [ChatScreen].
   final String conversationId;
+
+  /// Tên đối tác (nếu backend trả về) — dùng làm tiêu đề màn chat.
+  final String? partnerName;
 }
 
 final class StartConversationError extends StartConversationState {
@@ -26,8 +29,8 @@ final class StartConversationError extends StartConversationState {
   final String message;
 }
 
-/// Mở (tạo hoặc lấy) hội thoại với một người dùng — dùng cho nút "Nhắn tin"
-/// ở màn chi tiết xe.
+/// Mở (tạo hoặc lấy) hội thoại với một người dùng hoặc theo booking —
+/// dùng cho nút "Nhắn tin" ở màn chi tiết xe / chi tiết đơn đặt.
 class StartConversationCubit extends Cubit<StartConversationState> {
   StartConversationCubit({
     required CreateOrGetConversationUseCase createOrGetConversation,
@@ -36,14 +39,21 @@ class StartConversationCubit extends Cubit<StartConversationState> {
 
   final CreateOrGetConversationUseCase _createOrGetConversation;
 
-  Future<void> open({required String participantId}) async {
+  Future<void> open({String? participantId, String? bookingId}) async {
+    assert(participantId != null || bookingId != null);
     if (state is StartConversationInProgress) return;
     emit(const StartConversationInProgress());
     try {
       final conversation = await _createOrGetConversation(
         participantId: participantId,
+        bookingId: bookingId,
       );
-      emit(StartConversationReady(conversation.id));
+      emit(
+        StartConversationReady(
+          conversation.id,
+          partnerName: conversation.partner?.name,
+        ),
+      );
     } on ApiException catch (e) {
       emit(StartConversationError(e.message));
     }

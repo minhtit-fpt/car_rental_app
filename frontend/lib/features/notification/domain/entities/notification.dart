@@ -36,9 +36,9 @@ class AppNotification {
         return '/kyc/status';
       case NotificationType.booking:
       case NotificationType.payment:
-        return payload?['role'] == 'owner'
-            ? '/owner/booking-request'
-            : '/trips';
+        if (payload?['role'] == 'owner') return '/owner/booking-request';
+        final bookingId = payload?['bookingId'];
+        return bookingId is String ? '/trips/detail/$bookingId' : '/trips';
       case NotificationType.promotion:
       case NotificationType.system:
         return null;

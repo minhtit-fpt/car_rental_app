@@ -4,7 +4,7 @@ import {
   sendMessageSchema,
 } from "@/lib/validators/chat.validator";
 import { created, ok, toErrorResponse } from "@/lib/http/response";
-import { getClientIp, parseJsonBody } from "@/lib/http/request";
+import { parseJsonBody } from "@/lib/http/request";
 import { requireAuth } from "@/lib/middleware/auth.middleware";
 import { enforceRateLimit } from "@/lib/middleware/rate-limit.middleware";
 
@@ -40,8 +40,9 @@ export async function POST(
 ): Promise<Response> {
   try {
     const claims = await requireAuth(req);
+    // Giới hạn theo user (không theo IP — tránh 429 oan khi chung NAT).
     await enforceRateLimit(
-      `message-send:${getClientIp(req)}`,
+      `message-send:${claims.sub}`,
       RATE_LIMIT,
       WINDOW_SECONDS,
     );

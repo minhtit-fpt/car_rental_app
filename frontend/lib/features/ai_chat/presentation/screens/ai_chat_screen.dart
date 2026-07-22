@@ -312,15 +312,17 @@ class _MessageBubble extends StatelessWidget {
       height: 1.4,
       color: isUser ? Colors.white : palette.darkText,
     );
+    // Bỏ dòng trống thừa trong câu trả lời của bot (LLM hay chèn \n\n) cho gọn.
+    final content = isUser ? message.content : _tidyReply(message.content);
     // Chỉ linkify tin assistant khi đã xong stream + có xe được nhắc.
     if (isUser || message.isStreaming || message.vehicles.isEmpty) {
-      return Text(message.content, style: baseStyle);
+      return Text(content, style: baseStyle);
     }
     return Text.rich(
       TextSpan(
         children: _linkifyVehicles(
           context,
-          message.content,
+          content,
           message.vehicles,
           baseStyle,
         ),
@@ -328,6 +330,13 @@ class _MessageBubble extends StatelessWidget {
     );
   }
 }
+
+/// Gom khoảng trắng thừa trong câu trả lời bot: bỏ khoảng trắng cuối dòng và gộp
+/// các dòng trống liên tiếp thành 1 xuống dòng (bỏ dòng trống) cho danh sách gọn.
+String _tidyReply(String s) => s
+    .replaceAll(RegExp(r'[ \t]+\n'), '\n')
+    .replaceAll(RegExp(r'\n{2,}'), '\n')
+    .trim();
 
 final _wordChar = RegExp(r'[\p{L}\p{N}]', unicode: true);
 

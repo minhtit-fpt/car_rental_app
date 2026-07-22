@@ -729,6 +729,9 @@
   "chatStartConversation": "Start a conversation",
   "chatNoMessages": "No messages yet",
   "chatInputHint": "Type a message...",
+  "chatYesterday": "Yesterday",
+  "chatPartnerFallback": "Conversation",
+  "chatWithOwner": "Message owner",
 
   "paymentTitle": "Payment",
   "paymentSubtitle": "Choose a payment method",
@@ -750,6 +753,8 @@
   "paymentMethodCard": "International card",
   "paymentSslEncryption": "Transactions encrypted with 256-bit SSL",
   "paymentVnpayTitle": "VNPay payment",
+  "paymentGatewayLoadError": "Couldn't load the payment gateway.\nCheck your connection and try again.",
+  "commonClose": "Close",
   "paymentResultSuccessTitle": "Payment successful!",
   "paymentResultFailTitle": "Payment failed",
   "paymentResultSuccessBody": "Payment received. Your booking is awaiting owner confirmation.\nWe'll notify you as soon as it's confirmed.",
