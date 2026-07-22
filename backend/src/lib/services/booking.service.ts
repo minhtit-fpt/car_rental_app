@@ -8,8 +8,8 @@ import {
 } from "@/lib/repositories/booking.repository";
 import { userRepository } from "@/lib/repositories/user.repository";
 import { vehicleRepository } from "@/lib/repositories/vehicle.repository";
+import type { BookingEmailDetails } from "@/lib/services/email.service";
 import { notificationEvents } from "@/lib/services/notification.events";
-import { notificationService } from "@/lib/services/notification.service";
 import { pricingService } from "@/lib/services/pricing.service";
 import { refundService } from "@/lib/services/refund.service";
 import type { CreateBookingInput } from "@/lib/validators/booking.validator";
@@ -114,6 +114,22 @@ async function loadOwnedByVehicleOwner(
     throw new AppError(403, "FORBIDDEN", "Đây không phải xe của bạn");
   }
   return booking;
+}
+
+// Ghép chi tiết đơn cho email giao dịch. `totalPrice` là Prisma Decimal → Number.
+function toEmailDetails(
+  booking: Pick<Booking, "id" | "startTime" | "endTime" | "totalPrice">,
+  vehicleTitle: string,
+  refundAmount?: number,
+): BookingEmailDetails {
+  return {
+    bookingId: booking.id,
+    vehicleTitle,
+    startTime: booking.startTime,
+    endTime: booking.endTime,
+    totalPrice: Number(booking.totalPrice),
+    refundAmount,
+  };
 }
 
 async function loadOwned(id: string, renterId: string): Promise<Booking> {
@@ -264,13 +280,13 @@ export const bookingService = {
       }
       throw error;
     }
-    // Báo cho người thuê đơn đã được chủ xe xác nhận (đã thanh toán trước đó).
-    await notificationService.notify({
-      userId: booking.renterId,
-      type: "BOOKING",
-      title: "Đơn đặt đã được xác nhận",
-      body: `${booking.vehicle.title} đã được chủ xe xác nhận. Chúc bạn có chuyến đi vui vẻ!`,
-      payload: { bookingId: booking.id, role: "renter" },
+    // Báo cho người thuê đơn đã được chủ xe xác nhận (noti + email chi tiết).
+    await notificationEvents.bookingApproved({
+      bookingId: booking.id,
+      renterId: booking.renterId,
+      vehicleTitle: booking.vehicle.title,
+      renterEmail: booking.renter.email,
+      emailDetails: toEmailDetails(booking, booking.vehicle.title),
     });
     return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
   },
@@ -305,14 +321,18 @@ export const bookingService = {
       reason: "Chủ xe từ chối đơn đặt",
     });
     // Chỉ báo khi chính lần này thực hiện hoàn tiền (tránh noti trùng nếu đã bị
-    // caller khác hoàn trước đó).
+    // caller khác hoàn trước đó). Email kèm số tiền hoàn.
     if (refund.refunded) {
-      await notificationService.notify({
-        userId: booking.renterId,
-        type: "BOOKING",
-        title: "Đơn đặt bị từ chối",
-        body: `${booking.vehicle.title} đã bị chủ xe từ chối. Số tiền đã thanh toán sẽ được hoàn lại.`,
-        payload: { bookingId: booking.id, role: "renter" },
+      await notificationEvents.bookingRejected({
+        bookingId: booking.id,
+        renterId: booking.renterId,
+        vehicleTitle: booking.vehicle.title,
+        renterEmail: booking.renter.email,
+        emailDetails: toEmailDetails(
+          booking,
+          booking.vehicle.title,
+          refund.amount,
+        ),
       });
     }
     return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
@@ -373,12 +393,17 @@ export const bookingService = {
 
     const vehicle = await vehicleRepository.findById(updated.vehicleId);
     if (vehicle) {
-      const renter = await userRepository.findById(updated.renterId);
+      const [renter, owner] = await Promise.all([
+        userRepository.findById(updated.renterId),
+        userRepository.findById(vehicle.ownerId),
+      ]);
       await notificationEvents.paymentAwaitingOwner({
         bookingId: updated.id,
         renterId: updated.renterId,
         ownerId: vehicle.ownerId,
         renterEmail: renter?.email,
+        ownerEmail: owner?.email,
+        emailDetails: toEmailDetails(updated, vehicle.title),
       });
     }
     return toPublicBooking(updated);
@@ -417,12 +442,17 @@ export const bookingService = {
         continue;
       }
       expired += 1;
-      await notificationService.notify({
-        userId: booking.renterId,
-        type: "BOOKING",
-        title: "Đơn đã huỷ do chủ xe không xác nhận",
-        body: "Chủ xe không xác nhận trong thời hạn. Số tiền đã thanh toán sẽ được hoàn lại.",
-        payload: { bookingId: booking.id, role: "renter" },
+      const [renter, vehicle] = await Promise.all([
+        userRepository.findById(booking.renterId),
+        vehicleRepository.findById(booking.vehicleId),
+      ]);
+      await notificationEvents.ownerApprovalExpired({
+        bookingId: booking.id,
+        renterId: booking.renterId,
+        renterEmail: renter?.email,
+        emailDetails: vehicle
+          ? toEmailDetails(booking, vehicle.title, Number(booking.totalPrice))
+          : undefined,
       });
     }
     return { expired };
@@ -525,19 +555,33 @@ export const bookingService = {
         "Đơn này không thể huỷ ở trạng thái hiện tại",
       );
     }
+    let refunded = false;
+    let refundAmount: number | undefined;
     if (wasPaid) {
-      await refundService.refundBookingPayment({
+      const refund = await refundService.refundBookingPayment({
         bookingId: id,
         actorId: null,
         reason: "Người thuê huỷ đơn đã thanh toán",
       });
+      refunded = refund.refunded;
+      if (refunded) refundAmount = refund.amount;
     }
-    // Báo cho chủ xe rằng người thuê đã huỷ đơn (bỏ qua nếu tự huỷ xe của mình).
+    // Báo chủ xe khách đã huỷ (bỏ qua nếu tự huỷ xe của mình) + email xác nhận
+    // hoàn tiền cho renter nếu đơn đã thanh toán.
     const vehicle = await vehicleRepository.findById(booking.vehicleId);
-    if (vehicle && vehicle.ownerId !== renterId) {
+    if (vehicle) {
+      const notifyOwner = vehicle.ownerId !== renterId;
+      const [owner, renter] = await Promise.all([
+        notifyOwner ? userRepository.findById(vehicle.ownerId) : null,
+        refunded ? userRepository.findById(renterId) : null,
+      ]);
       await notificationEvents.bookingCancelled({
         bookingId: updated.id,
-        ownerId: vehicle.ownerId,
+        ownerId: notifyOwner ? vehicle.ownerId : null,
+        ownerEmail: owner?.email,
+        renterEmail: renter?.email,
+        refunded,
+        emailDetails: toEmailDetails(updated, vehicle.title, refundAmount),
       });
     }
     return toPublicBooking(updated);

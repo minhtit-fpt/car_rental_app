@@ -38,6 +38,12 @@ vi.mock("@/lib/repositories/vehicle.repository", () => ({
   },
 }));
 
+vi.mock("@/lib/repositories/user.repository", () => ({
+  userRepository: {
+    findById: vi.fn(),
+  },
+}));
+
 vi.mock("@/lib/services/notification.events", () => ({
   notificationEvents: {
     bookingCreated: vi.fn(),
@@ -46,6 +52,7 @@ vi.mock("@/lib/services/notification.events", () => ({
     paymentAwaitingOwner: vi.fn(),
     paymentExpired: vi.fn(),
     bookingCancelled: vi.fn(),
+    ownerApprovalExpired: vi.fn(),
     bookingCompleted: vi.fn(),
     bookingReturnOverdue: vi.fn(),
   },

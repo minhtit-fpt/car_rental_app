@@ -1,20 +1,19 @@
 import { NotificationType } from "@prisma/client";
 import { notificationService } from "@/lib/services/notification.service";
-import { emailService } from "@/lib/services/email.service";
+import {
+  emailService,
+  type BookingEmailDetails,
+} from "@/lib/services/email.service";
 
 // Phát thông báo theo sự kiện nghiệp vụ (đặt xe / thanh toán).
 // Tất cả dùng `safeCreate` — lỗi noti KHÔNG được làm hỏng luồng chính.
+// Email cũng fire-and-forget (emailService không bao giờ ném lỗi).
 
 interface BookingParties {
   bookingId: string;
   renterId: string;
   ownerId: string;
 }
-
-// Tiêu đề/nội dung email gửi renter khi thanh toán thành công.
-const PAYMENT_EMAIL_SUBJECT = "Thanh toán thành công — RideVN";
-const PAYMENT_EMAIL_BODY =
-  "Đơn của bạn đã được thanh toán và đang chờ chủ xe xác nhận. Cảm ơn bạn đã sử dụng RideVN!";
 
 interface RenterEvent {
   bookingId: string;
@@ -24,6 +23,23 @@ interface RenterEvent {
 interface OwnerEvent {
   bookingId: string;
   ownerId: string;
+}
+
+// Thông tin email đính kèm sự kiện — có đủ (địa chỉ + chi tiết đơn) mới gửi.
+interface EmailInfo {
+  renterEmail?: string | null;
+  ownerEmail?: string | null;
+  emailDetails?: BookingEmailDetails;
+}
+
+function sendIfPossible(
+  to: string | null | undefined,
+  subject: string,
+  intro: string,
+  details: BookingEmailDetails | undefined,
+): Promise<boolean> {
+  if (!to || !details) return Promise.resolve(false);
+  return emailService.sendBookingEmail(to, subject, intro, details);
 }
 
 export const notificationEvents = {
@@ -40,34 +56,54 @@ export const notificationEvents = {
     });
   },
 
-  // Owner phê duyệt đơn.
-  async bookingApproved(p: RenterEvent): Promise<void> {
-    await notificationService.safeCreate({
-      userId: p.renterId,
-      type: NotificationType.BOOKING,
-      title: "Chủ xe đã xác nhận",
-      body: "Yêu cầu thuê xe của bạn đã được chủ xe chấp nhận.",
-      payload: { bookingId: p.bookingId },
-    });
+  // Owner phê duyệt đơn — noti in-app + email chi tiết cho renter.
+  async bookingApproved(
+    p: RenterEvent & { vehicleTitle: string } & EmailInfo,
+  ): Promise<void> {
+    const body = `${p.vehicleTitle} đã được chủ xe xác nhận. Chúc bạn có chuyến đi vui vẻ!`;
+    await Promise.all([
+      notificationService.safeCreate({
+        userId: p.renterId,
+        type: NotificationType.BOOKING,
+        title: "Đơn đặt đã được xác nhận",
+        body,
+        payload: { bookingId: p.bookingId, role: "renter" },
+      }),
+      sendIfPossible(
+        p.renterEmail,
+        "Chủ xe đã xác nhận đơn — RideVN",
+        body,
+        p.emailDetails,
+      ),
+    ]);
   },
 
-  // Owner từ chối đơn.
-  async bookingRejected(p: RenterEvent): Promise<void> {
-    await notificationService.safeCreate({
-      userId: p.renterId,
-      type: NotificationType.BOOKING,
-      title: "Yêu cầu bị từ chối",
-      body: "Rất tiếc, chủ xe đã từ chối yêu cầu thuê xe của bạn.",
-      payload: { bookingId: p.bookingId },
-    });
+  // Owner từ chối đơn (đã thanh toán → kèm hoàn tiền) — noti + email cho renter.
+  async bookingRejected(
+    p: RenterEvent & { vehicleTitle: string } & EmailInfo,
+  ): Promise<void> {
+    const body = `${p.vehicleTitle} đã bị chủ xe từ chối. Số tiền đã thanh toán sẽ được hoàn lại.`;
+    await Promise.all([
+      notificationService.safeCreate({
+        userId: p.renterId,
+        type: NotificationType.BOOKING,
+        title: "Đơn đặt bị từ chối",
+        body,
+        payload: { bookingId: p.bookingId, role: "renter" },
+      }),
+      sendIfPossible(
+        p.renterEmail,
+        "Đơn bị từ chối — hoàn tiền — RideVN",
+        body,
+        p.emailDetails,
+      ),
+    ]);
   },
 
   // Khách đã thanh toán → đơn chuyển AWAITING_OWNER (CHƯA confirmed). Báo renter
   // "đã thanh toán, chờ chủ xe xác nhận" + owner "khách đã thanh toán, hãy xác
-  // nhận". Ngoài noti in-app, gửi email cho renter nếu có (fire-and-forget).
-  async paymentAwaitingOwner(
-    p: BookingParties & { renterEmail?: string | null },
-  ): Promise<void> {
+  // nhận". Ngoài noti in-app, gửi email chi tiết cho cả renter và owner.
+  async paymentAwaitingOwner(p: BookingParties & EmailInfo): Promise<void> {
     await Promise.all([
       notificationService.safeCreate({
         userId: p.renterId,
@@ -83,13 +119,18 @@ export const notificationEvents = {
         body: "Một khách đã thanh toán. Vui lòng xác nhận để hoàn tất đơn.",
         payload: { bookingId: p.bookingId, role: "owner" },
       }),
-      p.renterEmail
-        ? emailService.sendNotificationEmail(
-            p.renterEmail,
-            PAYMENT_EMAIL_SUBJECT,
-            PAYMENT_EMAIL_BODY,
-          )
-        : Promise.resolve(),
+      sendIfPossible(
+        p.renterEmail,
+        "Thanh toán thành công — RideVN",
+        "Đơn của bạn đã được thanh toán và đang chờ chủ xe xác nhận. Cảm ơn bạn đã sử dụng RideVN!",
+        p.emailDetails,
+      ),
+      sendIfPossible(
+        p.ownerEmail,
+        "Khách đã thanh toán — chờ bạn xác nhận — RideVN",
+        "Một khách đã thanh toán đơn thuê xe của bạn. Vui lòng vào ứng dụng xác nhận đơn trong thời hạn để tránh đơn tự huỷ.",
+        p.emailDetails,
+      ),
     ]);
   },
 
@@ -179,14 +220,62 @@ export const notificationEvents = {
     ]);
   },
 
-  // Renter huỷ đơn — báo cho owner.
-  async bookingCancelled(p: OwnerEvent): Promise<void> {
-    await notificationService.safeCreate({
-      userId: p.ownerId,
-      type: NotificationType.BOOKING,
-      title: "Khách đã huỷ đơn",
-      body: "Một đơn thuê xe của bạn vừa bị khách huỷ.",
-      payload: { bookingId: p.bookingId, role: "owner" },
-    });
+  // Renter huỷ đơn — báo cho owner (noti + email). Nếu đơn đã thanh toán và
+  // được hoàn tiền, gửi thêm email xác nhận hoàn tiền cho renter.
+  // `ownerId = null` khi renter tự huỷ xe của chính mình (không báo owner).
+  async bookingCancelled(
+    p: Omit<OwnerEvent, "ownerId"> & { ownerId: string | null } & EmailInfo & {
+        refunded?: boolean;
+      },
+  ): Promise<void> {
+    await Promise.all([
+      p.ownerId
+        ? notificationService.safeCreate({
+            userId: p.ownerId,
+            type: NotificationType.BOOKING,
+            title: "Khách đã huỷ đơn",
+            body: "Một đơn thuê xe của bạn vừa bị khách huỷ.",
+            payload: { bookingId: p.bookingId, role: "owner" },
+          })
+        : Promise.resolve(),
+      p.ownerId
+        ? sendIfPossible(
+            p.ownerEmail,
+            "Khách đã huỷ đơn — RideVN",
+            "Một đơn thuê xe của bạn vừa bị khách huỷ. Xem chi tiết bên dưới.",
+            p.emailDetails,
+          )
+        : Promise.resolve(false),
+      p.refunded
+        ? sendIfPossible(
+            p.renterEmail,
+            "Xác nhận huỷ đơn — hoàn tiền — RideVN",
+            "Đơn của bạn đã được huỷ. Số tiền đã thanh toán sẽ được hoàn lại.",
+            p.emailDetails,
+          )
+        : Promise.resolve(false),
+    ]);
+  },
+
+  // Cron tự huỷ đơn do chủ xe không xác nhận trong thời hạn — noti + email hoàn
+  // tiền cho renter.
+  async ownerApprovalExpired(p: RenterEvent & EmailInfo): Promise<void> {
+    const body =
+      "Chủ xe không xác nhận trong thời hạn. Số tiền đã thanh toán sẽ được hoàn lại.";
+    await Promise.all([
+      notificationService.safeCreate({
+        userId: p.renterId,
+        type: NotificationType.BOOKING,
+        title: "Đơn đã huỷ do chủ xe không xác nhận",
+        body,
+        payload: { bookingId: p.bookingId, role: "renter" },
+      }),
+      sendIfPossible(
+        p.renterEmail,
+        "Đơn đã huỷ — hoàn tiền — RideVN",
+        body,
+        p.emailDetails,
+      ),
+    ]);
   },
 };
