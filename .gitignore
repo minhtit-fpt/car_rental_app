@@ -42,3 +42,5 @@ frontend/ios/Flutter/Maps.xcconfig
 .claude/
 backend/prisma/seed.ts
 frontend/ios/Flutter/Maps.xcconfig
+
+docs/

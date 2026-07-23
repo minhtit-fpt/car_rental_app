@@ -11,6 +11,9 @@ abstract interface class OwnerRepository {
     int limit,
   });
 
+  /// `GET /api/owner/bookings/:id` — chi tiết 1 đơn (vd mở từ thông báo).
+  Future<OwnerBooking> getBookingById(String id);
+
   /// `POST /api/bookings/:id/approve` — chấp nhận yêu cầu.
   Future<OwnerBooking> approve(String id);
 

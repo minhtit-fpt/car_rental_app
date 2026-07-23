@@ -66,9 +66,12 @@ export interface OwnerBookingListResult {
 // Trạng thái owner được phép phê duyệt/từ chối: đơn đã trả tiền, chờ xác nhận.
 const OWNER_ACTIONABLE: BookingStatus[] = [BookingStatus.AWAITING_OWNER];
 
-// Trạng thái còn được phép huỷ.
+// Trạng thái còn được phép huỷ. AWAITING_OWNER (đã trả tiền, chờ chủ xe xác
+// nhận) phải huỷ được — nếu không, đơn quá ngày mà owner chưa xác nhận sẽ kẹt
+// lại không ai huỷ nổi cho tới khi cron expireOverdueOwnerApprovals chạy.
 const CANCELLABLE: BookingStatus[] = [
   BookingStatus.PENDING_PAYMENT,
+  BookingStatus.AWAITING_OWNER,
   BookingStatus.CONFIRMED,
 ];
 
@@ -219,6 +222,11 @@ export const bookingService = {
   },
 
   // Danh sách đơn đặt trên các xe của OWNER (lọc theo vehicle.ownerId).
+  // Chi tiết 1 đơn cho OWNER (vd mở từ thông báo, chỉ có bookingId).
+  async getByIdForOwner(ownerId: string, id: string): Promise<OwnerBooking> {
+    return toOwnerBooking(await loadOwnedByVehicleOwner(id, ownerId));
+  },
+
   async listForOwner(
     params: Omit<ListBookingsByOwnerParams, "ownerId"> & { ownerId: string },
   ): Promise<OwnerBookingListResult> {
@@ -538,9 +546,11 @@ export const bookingService = {
         "Đơn này không thể huỷ ở trạng thái hiện tại",
       );
     }
-    // Đơn CONFIRMED = đã thanh toán → phải hoàn tiền (như reject/expire). Đơn
-    // PENDING_PAYMENT chưa có tiền nên bỏ qua bước hoàn.
-    const wasPaid = booking.status === BookingStatus.CONFIRMED;
+    // AWAITING_OWNER/CONFIRMED = đã thanh toán → phải hoàn tiền (như reject/
+    // expire). Đơn PENDING_PAYMENT chưa có tiền nên bỏ qua bước hoàn.
+    const wasPaid =
+      booking.status === BookingStatus.AWAITING_OWNER ||
+      booking.status === BookingStatus.CONFIRMED;
     // Compare-and-swap để chống race với owner approve/reject: chỉ caller đổi
     // được trạng thái mới đi tiếp.
     const updated = await bookingRepository.updateStatusIf(

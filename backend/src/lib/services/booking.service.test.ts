@@ -218,6 +218,30 @@ describe("bookingService.cancel", () => {
     );
   });
 
+  it("refunds when cancelling an AWAITING_OWNER (paid, unconfirmed) booking", async () => {
+    vi.mocked(bookingRepository.findById).mockResolvedValue(
+      makeBooking({ status: BookingStatus.AWAITING_OWNER }),
+    );
+    vi.mocked(bookingRepository.updateStatusIf).mockResolvedValue(
+      makeBooking({ status: BookingStatus.CANCELLED }),
+    );
+    vi.mocked(refundService.refundBookingPayment).mockResolvedValue({
+      bookingId: "book-1",
+      renterId: RENTER,
+      status: "REFUNDED",
+      amount: 100,
+      refunded: true,
+    } as never);
+    vi.mocked(vehicleRepository.findById).mockResolvedValue(makeVehicle());
+
+    const result = await bookingService.cancel(RENTER, "book-1");
+
+    expect(result.status).toBe(BookingStatus.CANCELLED);
+    expect(refundService.refundBookingPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ bookingId: "book-1", actorId: null }),
+    );
+  });
+
   it("throws 409 when the compare-and-swap loses a race (already changed)", async () => {
     vi.mocked(bookingRepository.findById).mockResolvedValue(
       makeBooking({ status: BookingStatus.CONFIRMED }),

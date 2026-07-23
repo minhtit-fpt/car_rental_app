@@ -28,6 +28,10 @@ class OwnerRepositoryImpl implements OwnerRepository {
   }
 
   @override
+  Future<OwnerBooking> getBookingById(String id) async =>
+      OwnerBookingModel.fromJson(await _remote.getBookingById(id));
+
+  @override
   Future<OwnerBooking> approve(String id) async =>
       OwnerBookingModel.fromJson(await _remote.approve(id));
 

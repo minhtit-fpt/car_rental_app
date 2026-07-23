@@ -21,6 +21,12 @@ class OwnerRemoteDataSource {
     return (data as Map<String, dynamic>)['items'] as List<dynamic>;
   }
 
+  /// `GET /api/owner/bookings/:id` — chi tiết 1 đơn (vd mở từ thông báo).
+  Future<Map<String, dynamic>> getBookingById(String id) async {
+    final data = await _client.get('/api/owner/bookings/$id');
+    return data as Map<String, dynamic>;
+  }
+
   /// `POST /api/bookings/:id/approve` — chấp nhận yêu cầu đặt.
   Future<Map<String, dynamic>> approve(String id) async {
     final data = await _client.post('/api/bookings/$id/approve');
