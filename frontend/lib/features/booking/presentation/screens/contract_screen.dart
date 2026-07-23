@@ -35,15 +35,15 @@ class _ContractView extends StatelessWidget {
     return BlocListener<BookingCubit, BookingFormState>(
       listenWhen: (p, c) => c.contractSigned && !p.contractSigned,
       listener: (context, state) {
-        final cubit = context.read<BookingCubit>();
-        // Đã ký hợp đồng → thanh toán thật; xong xuôi mới sang chuyến đi.
+        // Đã ký hợp đồng → thanh toán thật. Xong xuôi đơn ở trạng thái
+        // AWAITING_OWNER (chờ chủ xe xác nhận) — CHƯA phải chuyến đang chạy, nên
+        // về danh sách "Chuyến" chứ không nhảy vào màn active trip.
         context.pushReplacement(
           '/payment',
           extra: {
             'bookingId': state.booking?.id,
             'amount': state.booking?.totalPrice ?? 0.0,
-            'successLocation': '/booking/active',
-            'successExtra': {'vehicle': vehicle, 'cubit': cubit},
+            'successLocation': '/trips',
           },
         );
       },

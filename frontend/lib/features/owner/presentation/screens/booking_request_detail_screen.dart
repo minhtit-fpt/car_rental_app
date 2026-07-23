@@ -122,7 +122,7 @@ class _DetailBody extends StatelessWidget {
               _VehicleCard(booking: booking),
               const SizedBox(height: 16),
               _EarningsCard(total: booking.totalPrice),
-              if (booking.status == BookingStatus.inProgress) ...[
+              if (booking.status == BookingStatus.confirmed) ...[
                 const SizedBox(height: 20),
                 PrimaryButton(
                   label: AppLocalizations.of(context).trackingViewButton,

@@ -460,6 +460,10 @@
   "commonYes": "Yes",
   "vehicleTransmissionNone": "Not applicable",
 
+  "ownerTripsTitle": "Rental trips",
+  "ownerTripsSubtitle": "Your vehicle bookings",
+  "ownerTripsEmpty": "No rental trips yet.",
+
   "ownerCalendarTitle": "Vehicle calendar",
   "ownerCalendarSubtitle": "Manage your rental schedule",
   "ownerPendingApproval": "Pending",

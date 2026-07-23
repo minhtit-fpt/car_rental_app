@@ -69,7 +69,7 @@ function advance(car: SimCar): [number, number] {
 
 async function loadActiveCars(existing: Map<string, SimCar>): Promise<void> {
   const active = await prisma.booking.findMany({
-    where: { status: "IN_PROGRESS" },
+    where: { status: "CONFIRMED" },
     select: { vehicleId: true },
     distinct: ["vehicleId"],
   });

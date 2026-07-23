@@ -121,10 +121,11 @@ export const bookingRepository = {
     });
   },
 
-  // Chuyến đang chạy (IN_PROGRESS) của một xe — cho tracking (authz + gán bookingId).
+  // Chuyến đã xác nhận (CONFIRMED) của một xe — cho tracking (authz + gán bookingId).
+  // GPS bật ngay khi owner duyệt; không cần bước IN_PROGRESS riêng.
   findInProgressByVehicle(vehicleId: string): Promise<Booking | null> {
     return prisma.booking.findFirst({
-      where: { vehicleId, status: BookingStatus.IN_PROGRESS },
+      where: { vehicleId, status: BookingStatus.CONFIRMED },
       orderBy: { startTime: "desc" },
     });
   },
@@ -135,10 +136,14 @@ export const bookingRepository = {
     vehicleId: string,
     start: Date,
     end: Date,
+    excludeBookingId?: string,
   ): Promise<boolean> {
     const count = await prisma.booking.count({
       where: {
         vehicleId,
+        // Loại chính đơn đang xét: khi approve, đơn đã AWAITING_OWNER (đang khoá
+        // slot) sẽ tự chồng lên chính nó nếu không loại ra.
+        ...(excludeBookingId ? { id: { not: excludeBookingId } } : {}),
         status: { in: ACTIVE_STATUSES },
         startTime: { lt: end },
         endTime: { gt: start },

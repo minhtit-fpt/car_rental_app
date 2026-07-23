@@ -1652,6 +1652,24 @@ abstract class AppLocalizations {
   /// **'Not applicable'**
   String get vehicleTransmissionNone;
 
+  /// No description provided for @ownerTripsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental trips'**
+  String get ownerTripsTitle;
+
+  /// No description provided for @ownerTripsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your vehicle bookings'**
+  String get ownerTripsSubtitle;
+
+  /// No description provided for @ownerTripsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No rental trips yet.'**
+  String get ownerTripsEmpty;
+
   /// No description provided for @ownerCalendarTitle.
   ///
   /// In en, this message translates to:

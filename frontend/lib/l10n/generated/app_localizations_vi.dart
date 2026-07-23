@@ -840,6 +840,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get vehicleTransmissionNone => 'Không áp dụng';
 
   @override
+  String get ownerTripsTitle => 'Chuyến cho thuê';
+
+  @override
+  String get ownerTripsSubtitle => 'Danh sách đơn thuê xe của bạn';
+
+  @override
+  String get ownerTripsEmpty => 'Chưa có chuyến cho thuê nào.';
+
+  @override
   String get ownerCalendarTitle => 'Lịch xe';
 
   @override

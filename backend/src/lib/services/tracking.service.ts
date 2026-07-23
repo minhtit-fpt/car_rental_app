@@ -43,7 +43,7 @@ function toPoint(row: {
 
 export const trackingService = {
   // Ingest 1 điểm. Gọi từ route sau khi đã xác thực device key. Gán bookingId
-  // của chuyến IN_PROGRESS hiện tại (nếu có) để replay theo chuyến.
+  // của chuyến CONFIRMED hiện tại (nếu có) để replay theo chuyến.
   async ingest(vehicleId: string, input: IngestLocationInput): Promise<void> {
     const vehicle = await vehicleRepository.findById(vehicleId);
     if (!vehicle) {
@@ -60,7 +60,7 @@ export const trackingService = {
     });
   },
 
-  // Vị trí realtime của xe. Chỉ xem được khi xe đang trong chuyến (IN_PROGRESS)
+  // Vị trí realtime của xe. Chỉ xem được khi xe đang có chuyến (CONFIRMED)
   // và người xem là admin / chủ xe / người thuê của chuyến đó. Ngoài chuyến → 403.
   async getSnapshot(
     claims: AccessTokenClaims,

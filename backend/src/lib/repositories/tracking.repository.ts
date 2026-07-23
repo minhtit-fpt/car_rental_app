@@ -56,8 +56,8 @@ export const trackingRepository = {
     });
   },
 
-  // Vị trí mới nhất mỗi xe đang IN_PROGRESS. DISTINCT ON theo xe, chọn điểm mới
-  // nhất; JOIN Booking (IN_PROGRESS) để chỉ lấy xe đang có chuyến chạy.
+  // Vị trí mới nhất mỗi xe có chuyến CONFIRMED. DISTINCT ON theo xe, chọn điểm mới
+  // nhất; JOIN Booking (CONFIRMED) để chỉ lấy xe đang có chuyến (owner đã duyệt).
   findActiveLatest(): Promise<ActiveVehicleLocation[]> {
     return prisma.$queryRaw<ActiveVehicleLocation[]>`
       SELECT DISTINCT ON (l."vehicleId")
@@ -71,7 +71,7 @@ export const trackingRepository = {
       FROM "VehicleLocation" l
       JOIN "Vehicle" v ON v."id" = l."vehicleId"
       JOIN "Booking" b
-        ON b."vehicleId" = l."vehicleId" AND b."status" = 'IN_PROGRESS'
+        ON b."vehicleId" = l."vehicleId" AND b."status" = 'CONFIRMED'
       ORDER BY l."vehicleId", l."recordedAt" DESC
     `;
   },

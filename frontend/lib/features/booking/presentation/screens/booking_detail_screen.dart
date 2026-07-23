@@ -112,7 +112,7 @@ class BookingDetailScreen extends StatelessWidget {
                         },
                       ),
                     ],
-                    if (booking.status == BookingStatus.inProgress) ...[
+                    if (booking.status == BookingStatus.confirmed) ...[
                       const SizedBox(height: 20),
                       PrimaryButton(
                         label: l10n.trackingViewButton,

@@ -255,6 +255,7 @@ export const bookingService = {
         booking.vehicleId,
         booking.startTime,
         booking.endTime,
+        booking.id,
       )
     ) {
       throw new AppError(
@@ -374,6 +375,7 @@ export const bookingService = {
         booking.vehicleId,
         booking.startTime,
         booking.endTime,
+        booking.id,
       )
     ) {
       throw new AppError(
@@ -544,6 +546,13 @@ export const bookingService = {
         409,
         "BOOKING_NOT_CANCELLABLE",
         "Đơn này không thể huỷ ở trạng thái hiện tại",
+      );
+    }
+    if (booking.endTime <= new Date()) {
+      throw new AppError(
+        409,
+        "BOOKING_NOT_CANCELLABLE",
+        "Đơn đã quá hạn, không thể huỷ",
       );
     }
     // AWAITING_OWNER/CONFIRMED = đã thanh toán → phải hoàn tiền (như reject/

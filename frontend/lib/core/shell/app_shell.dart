@@ -6,6 +6,7 @@ import 'package:frontend/core/theme/app_palette.dart';
 import 'package:frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frontend/features/booking/presentation/screens/my_trips_screen.dart';
 import 'package:frontend/features/map/presentation/screens/map_screen.dart';
+import 'package:frontend/features/owner/presentation/screens/owner_trips_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/car_list_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/home_screen.dart';
 import 'package:frontend/features/vehicle/presentation/screens/owner_dashboard_screen.dart';
@@ -21,22 +22,31 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
+  // 0=Renter, 1=Owner — chia sẻ với bộ chuyển vai ở tab "Tôi" để tab "Chuyến"
+  // hiện đúng danh sách (chuyến đi thuê vs. chuyến cho thuê).
+  int _role = 0;
 
   void _navigateTo(int index) {
     setState(() => _currentIndex = index);
   }
 
+  void _setRole(int role) {
+    setState(() => _role = role);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isOwner = context.watch<AuthCubit>().state.user?.isOwner ?? false;
+    final showOwnerTrips = isOwner && _role == 1;
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
         children: [
           HomeScreen(onCarsTap: () => _navigateTo(1)),
           const CarListScreen(),
-          const MyTripsScreen(),
+          showOwnerTrips ? const OwnerTripsScreen() : const MyTripsScreen(),
           const MapScreen(),
-          const _DashboardSelectorScreen(),
+          _DashboardSelectorScreen(role: _role, onRoleChanged: _setRole),
         ],
       ),
       // Trợ lý AI nổi ở tab Trang chủ (index 0) — lối vào chatbot RAG.
@@ -108,16 +118,15 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-class _DashboardSelectorScreen extends StatefulWidget {
-  const _DashboardSelectorScreen();
+class _DashboardSelectorScreen extends StatelessWidget {
+  const _DashboardSelectorScreen({
+    required this.role,
+    required this.onRoleChanged,
+  });
 
-  @override
-  State<_DashboardSelectorScreen> createState() =>
-      _DashboardSelectorScreenState();
-}
-
-class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
-  int _role = 0; // 0=Renter, 1=Owner (admin có khu vực riêng ở /admin)
+  // 0=Renter, 1=Owner (admin có khu vực riêng ở /admin)
+  final int role;
+  final ValueChanged<int> onRoleChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -162,14 +171,14 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
                     children: [
                       _RoleChip(
                         label: '👤 ${l10n.roleRenter}',
-                        isActive: _role == 0,
-                        onTap: () => setState(() => _role = 0),
+                        isActive: role == 0,
+                        onTap: () => onRoleChanged(0),
                       ),
                       const SizedBox(width: 8),
                       _RoleChip(
                         label: '🚗 ${l10n.roleOwner}',
-                        isActive: _role == 1,
-                        onTap: () => setState(() => _role = 1),
+                        isActive: role == 1,
+                        onTap: () => onRoleChanged(1),
                       ),
                     ],
                   ),
@@ -179,7 +188,7 @@ class _DashboardSelectorScreenState extends State<_DashboardSelectorScreen> {
       ),
       body: isOwner
           ? IndexedStack(
-              index: _role,
+              index: role,
               children: const [RenterDashboardScreen(), OwnerDashboardScreen()],
             )
           : const RenterDashboardScreen(),

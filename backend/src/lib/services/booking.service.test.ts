@@ -178,9 +178,13 @@ describe("bookingService.create", () => {
   });
 });
 
+const FUTURE_END = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
 describe("bookingService.cancel", () => {
   it("cancels a PENDING_PAYMENT booking owned by the renter and notifies the owner", async () => {
-    vi.mocked(bookingRepository.findById).mockResolvedValue(makeBooking());
+    vi.mocked(bookingRepository.findById).mockResolvedValue(
+      makeBooking({ endTime: FUTURE_END }),
+    );
     vi.mocked(bookingRepository.updateStatusIf).mockResolvedValue(
       makeBooking({ status: BookingStatus.CANCELLED }),
     );
@@ -196,7 +200,7 @@ describe("bookingService.cancel", () => {
 
   it("refunds when cancelling a CONFIRMED (already-paid) booking", async () => {
     vi.mocked(bookingRepository.findById).mockResolvedValue(
-      makeBooking({ status: BookingStatus.CONFIRMED }),
+      makeBooking({ status: BookingStatus.CONFIRMED, endTime: FUTURE_END }),
     );
     vi.mocked(bookingRepository.updateStatusIf).mockResolvedValue(
       makeBooking({ status: BookingStatus.CANCELLED }),
@@ -220,7 +224,7 @@ describe("bookingService.cancel", () => {
 
   it("refunds when cancelling an AWAITING_OWNER (paid, unconfirmed) booking", async () => {
     vi.mocked(bookingRepository.findById).mockResolvedValue(
-      makeBooking({ status: BookingStatus.AWAITING_OWNER }),
+      makeBooking({ status: BookingStatus.AWAITING_OWNER, endTime: FUTURE_END }),
     );
     vi.mocked(bookingRepository.updateStatusIf).mockResolvedValue(
       makeBooking({ status: BookingStatus.CANCELLED }),
@@ -244,7 +248,7 @@ describe("bookingService.cancel", () => {
 
   it("throws 409 when the compare-and-swap loses a race (already changed)", async () => {
     vi.mocked(bookingRepository.findById).mockResolvedValue(
-      makeBooking({ status: BookingStatus.CONFIRMED }),
+      makeBooking({ status: BookingStatus.CONFIRMED, endTime: FUTURE_END }),
     );
     vi.mocked(bookingRepository.updateStatusIf).mockResolvedValue(null);
 
@@ -252,6 +256,22 @@ describe("bookingService.cancel", () => {
       status: 409,
       code: "BOOKING_NOT_CANCELLABLE",
     });
+    expect(refundService.refundBookingPayment).not.toHaveBeenCalled();
+  });
+
+  it("throws 409 when the rental period has already ended", async () => {
+    vi.mocked(bookingRepository.findById).mockResolvedValue(
+      makeBooking({
+        status: BookingStatus.CONFIRMED,
+        endTime: new Date(Date.now() - 60 * 1000),
+      }),
+    );
+
+    await expect(bookingService.cancel(RENTER, "book-1")).rejects.toMatchObject({
+      status: 409,
+      code: "BOOKING_NOT_CANCELLABLE",
+    });
+    expect(bookingRepository.updateStatusIf).not.toHaveBeenCalled();
     expect(refundService.refundBookingPayment).not.toHaveBeenCalled();
   });
 
@@ -321,6 +341,14 @@ describe("bookingService.approve", () => {
 
     const result = await bookingService.approve(OWNER, "book-1");
 
+    // Loại chính đơn đang duyệt khỏi overlap-check: đơn AWAITING_OWNER đã tự
+    // khoá slot, nếu không loại ra sẽ luôn báo trùng và không bao giờ duyệt được.
+    expect(bookingRepository.hasActiveOverlap).toHaveBeenCalledWith(
+      VEHICLE_ID,
+      expect.any(Date),
+      expect.any(Date),
+      "book-1",
+    );
     expect(bookingRepository.updateStatusIf).toHaveBeenCalledWith(
       "book-1",
       [BookingStatus.AWAITING_OWNER],

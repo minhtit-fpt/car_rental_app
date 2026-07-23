@@ -290,6 +290,10 @@
   "commonYes": "Có",
   "vehicleTransmissionNone": "Không áp dụng",
 
+  "ownerTripsTitle": "Chuyến cho thuê",
+  "ownerTripsSubtitle": "Danh sách đơn thuê xe của bạn",
+  "ownerTripsEmpty": "Chưa có chuyến cho thuê nào.",
+
   "ownerCalendarTitle": "Lịch xe",
   "ownerCalendarSubtitle": "Quản lý lịch cho thuê",
   "ownerPendingApproval": "Chờ duyệt",

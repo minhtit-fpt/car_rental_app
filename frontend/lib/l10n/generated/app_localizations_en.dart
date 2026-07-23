@@ -843,6 +843,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicleTransmissionNone => 'Not applicable';
 
   @override
+  String get ownerTripsTitle => 'Rental trips';
+
+  @override
+  String get ownerTripsSubtitle => 'Your vehicle bookings';
+
+  @override
+  String get ownerTripsEmpty => 'No rental trips yet.';
+
+  @override
   String get ownerCalendarTitle => 'Vehicle calendar';
 
   @override
